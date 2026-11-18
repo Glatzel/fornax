@@ -1,5 +1,3 @@
-#![cfg(feature = "phase-one")]
-
 use std::path::PathBuf;
 
 use fornax_raw_core::error::DecodeError;

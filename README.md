@@ -28,9 +28,8 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 - **fornax-bmff**: Bounded generic ISO-BMFF box and sample-table parsing.
 - **fornax-codec**: Format-neutral request, sample-buffer, predictor, Huffman,
   and generic codec interfaces.
-- **fornax-decoder**: Feature-gated native decoder facade over DNG and the
-  vendor format crates.
-- **fornax-raw-canon**: Canon CR3/CRM parsing and owned lossless CRX decoding.
+- **fornax-raw-decoder**: Native decoder with DNG plus unconditional Sony,
+  Canon, Nikon, Fujifilm, Hasselblad, Panasonic, and Phase One modules.
 - **fornax-raw-pipeline**: Black/white-level normalization, demosaic
   algorithms, RGB reconstruction, and color processing.
 - **fornax-raw**: High-level facade tying the stages together.

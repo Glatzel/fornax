@@ -15,12 +15,12 @@ fn crop_and_cast_uses_half_open_bounds_and_converts_samples() {
 fn every_decoder_adapter_uses_the_shared_crop_and_cast() {
     let adapters = [
         include_str!("../../fornax-dng/src/dng_decoder/mod.rs"),
-        include_str!("../../fornax-raw-canon/src/lib.rs"),
-        include_str!("../../fornax-raw-sony/src/lib.rs"),
-        include_str!("../../fornax-raw-hasselblad/src/lib.rs"),
-        include_str!("../../fornax-raw-nikon/src/lib.rs"),
-        include_str!("../../fornax-raw-panasonic/src/lib.rs"),
-        include_str!("../../fornax-raw-fujifilm/src/lib.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/canon/mod.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/sony/mod.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/hasselblad/mod.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/nikon/mod.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/panasonic/mod.rs"),
+        include_str!("../../fornax-raw-decoder/src/decoders/fujifilm/mod.rs"),
     ];
 
     for source in adapters {

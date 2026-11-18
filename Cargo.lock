@@ -898,20 +898,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fornax-raw-canon"
-version = "0.0.17"
-dependencies = [
- "fornax-bmff",
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "image 0.25.9",
- "rayon",
- "sha2",
-]
-
-[[package]]
 name = "fornax-raw-cli"
 version = "0.0.17"
 dependencies = [
@@ -954,20 +940,16 @@ dependencies = [
 name = "fornax-raw-decoder"
 version = "0.0.17"
 dependencies = [
+ "bytemuck",
  "clerk",
  "codspeed-criterion-compat",
  "csv",
  "flashraw",
+ "fornax-bmff",
  "fornax-codec",
  "fornax-dng",
- "fornax-raw-canon",
+ "fornax-large-alloc",
  "fornax-raw-core",
- "fornax-raw-fujifilm",
- "fornax-raw-hasselblad",
- "fornax-raw-nikon",
- "fornax-raw-panasonic",
- "fornax-raw-phase-one",
- "fornax-raw-sony",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
@@ -978,68 +960,6 @@ dependencies = [
  "sha2",
  "strum",
  "tempfile",
-]
-
-[[package]]
-name = "fornax-raw-fujifilm"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "image 0.25.9",
- "rawler",
-]
-
-[[package]]
-name = "fornax-raw-hasselblad"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "image 0.25.9",
- "rawler",
-]
-
-[[package]]
-name = "fornax-raw-nikon"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-large-alloc",
- "fornax-raw-core",
- "fornax-tiff",
- "rayon",
-]
-
-[[package]]
-name = "fornax-raw-panasonic"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "image 0.25.9",
- "sha2",
-]
-
-[[package]]
-name = "fornax-raw-phase-one"
-version = "0.0.17"
-dependencies = [
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "rawler",
- "rayon",
 ]
 
 [[package]]
@@ -1054,20 +974,6 @@ dependencies = [
  "mischief",
  "num-traits",
  "rayon",
-]
-
-[[package]]
-name = "fornax-raw-sony"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "fornax-codec",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-tiff",
- "rawler",
- "rayon",
- "sha2",
 ]
 
 [[package]]

@@ -34,8 +34,9 @@ open; it stops being authoritative after merge.
 
 ## Benchmark matrix and validation details
 
-Decoder benchmark matrix entries compile with `--no-default-features` plus only
-the feature needed by the golden input. DNG needs no format feature.
+Decoder benchmark matrix entries compile with `--no-default-features`. All
+native vendor formats remain available because there are no per-format
+features; this only disables independent infrastructure such as mmap.
 
 `scripts/agent-validation.sh` runs:
 

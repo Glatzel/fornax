@@ -10,22 +10,17 @@ HEADER = ["path", "size", "sha256"]
 EXTENDED_HEADER = ["path", "size", "sha256", "decoder_path", "reason", "overhead_only"]
 GROUP_HEADER = [*EXTENDED_HEADER, "group"]
 GROUPS = frozenset({"core", "full", "overhead", "hdr"})
-FEATURES = {
-    "3FR": "hasselblad",
-    "ARW": "sony",
-    "CR3": "canon",
-    "CRM": "canon",
-    "DNG": "",
-    "IIQ": "phase-one",
-    "NEF": "nikon",
-    "RAF": "fujifilm",
-    "RW2": "panasonic",
-}
-ALL_FORMATS = frozenset(FEATURES)
+ALL_FORMATS = frozenset({"3FR", "ARW", "CR3", "CRM", "DNG", "IIQ", "NEF", "RAF", "RW2"})
 SHARED_PREFIXES = (
     ".github/workflows/ci.yml",
     "Cargo.lock",
     "Cargo.toml",
+    "crates/fornax-raw-decoder/README.md",
+    "crates/fornax-raw-decoder/benches/",
+    "crates/fornax-raw-decoder/src/decoders/mod.rs",
+    "crates/fornax-raw-decoder/src/dnc.rs",
+    "crates/fornax-raw-decoder/src/lib.rs",
+    "crates/fornax-raw-decoder/tests/",
     "crates/fornax-codec/",
     "crates/fornax-dng/",
     "crates/fornax-raw-core/",
@@ -34,13 +29,13 @@ SHARED_PREFIXES = (
     "crates/decoder-tracker/scripts/benchmark_",
 )
 VENDOR_FORMATS = (
-    ("crates/fornax-raw-canon/", frozenset({"CR3", "CRM"})),
-    ("crates/fornax-raw-fujifilm/", frozenset({"RAF"})),
-    ("crates/fornax-raw-hasselblad/", frozenset({"3FR"})),
-    ("crates/fornax-raw-nikon/", frozenset({"NEF"})),
-    ("crates/fornax-raw-panasonic/", frozenset({"RW2"})),
-    ("crates/fornax-raw-phase-one/", frozenset({"IIQ"})),
-    ("crates/fornax-raw-sony/", frozenset({"ARW"})),
+    ("crates/fornax-raw-decoder/src/decoders/canon/", frozenset({"CR3", "CRM"})),
+    ("crates/fornax-raw-decoder/src/decoders/fujifilm/", frozenset({"RAF"})),
+    ("crates/fornax-raw-decoder/src/decoders/hasselblad/", frozenset({"3FR"})),
+    ("crates/fornax-raw-decoder/src/decoders/nikon/", frozenset({"NEF"})),
+    ("crates/fornax-raw-decoder/src/decoders/panasonic/", frozenset({"RW2"})),
+    ("crates/fornax-raw-decoder/src/decoders/phase_one/", frozenset({"IIQ"})),
+    ("crates/fornax-raw-decoder/src/decoders/sony/", frozenset({"ARW"})),
     ("crates/fornax-bmff/", frozenset({"CR3", "CRM"})),
 )
 
@@ -145,19 +140,14 @@ def build_matrix(rows, formats=None, groups=None):
         format_name = extension[1].upper()
         if format_name not in selected:
             continue
-        try:
-            feature = FEATURES[format_name]
-        except KeyError as error:
-            msg = f"golden format has no decoder feature: {format_name}"
-            raise GoldenManifestError(msg) from error
+        if format_name not in ALL_FORMATS:
+            msg = f"golden format has no native decoder: {format_name}"
+            raise GoldenManifestError(msg)
         include.append(
             {
                 "path": row["path"],
                 "format": format_name,
-                "feature": feature,
-                "cargo-options": (
-                    f"--no-default-features --features {feature}" if feature else "--no-default-features"
-                ),
+                "cargo-options": "--no-default-features",
                 "label": f"{format_name}: {row['path']}",
                 "size": row["size"],
                 "sha256": row["sha256"],

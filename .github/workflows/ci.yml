@@ -47,33 +47,33 @@ jobs:
               - ./**
               - '!**/*.md'
             benchmark_all:
-              - ./crates/fornax-core/**
+              - ./crates/fornax-raw-core/**
               - ./crates/fornax-codec/**
               - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-              - ./crates/decoder-tracker/golden/**
+              - ./crates/fornax-raw-decoder/benches/**
               - '!**/*.md'
             benchmark_sony:
-              - ./crates/fornax-raw-sony/**
+              - ./crates/fornax-raw-decoder/src/decoders/sony/**
               - '!**/*.md'
             benchmark_canon:
-              - ./crates/fornax-raw-canon/**
+              - ./crates/fornax-raw-decoder/src/decoders/canon/**
               - ./crates/fornax-bmff/**
               - '!**/*.md'
             benchmark_nikon:
-              - ./crates/fornax-raw-nikon/**
+              - ./crates/fornax-raw-decoder/src/decoders/nikon/**
               - '!**/*.md'
             benchmark_fujifilm:
-              - ./crates/fornax-raw-fujifilm/**
+              - ./crates/fornax-raw-decoder/src/decoders/fujifilm/**
               - '!**/*.md'
             benchmark_hasselblad:
-              - ./crates/fornax-raw-hasselblad/**
+              - ./crates/fornax-raw-decoder/src/decoders/hasselblad/**
               - '!**/*.md'
             benchmark_panasonic:
-              - ./crates/fornax-raw-panasonic/**
+              - ./crates/fornax-raw-decoder/src/decoders/panasonic/**
               - '!**/*.md'
             benchmark_phase_one:
-              - ./crates/fornax-raw-phase-one/**
+              - ./crates/fornax-raw-decoder/src/decoders/phase_one/**
               - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-codec/**

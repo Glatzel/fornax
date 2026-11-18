@@ -1,13 +1,11 @@
-#![cfg(feature = "canon")]
-
 use std::fs;
 
 use fornax_dng::metadata::IDecoderDng;
-use fornax_raw_canon::CanonCrxCfa;
 use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::protocol::IDecoder;
 use fornax_raw_decoder::Decoder;
+use fornax_raw_decoder::canon::CanonCrxCfa;
 
 #[test]
 fn non_2x2_layouts_are_rejected_before_pipeline_handoff() {

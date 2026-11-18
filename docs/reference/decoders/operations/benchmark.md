@@ -4,7 +4,7 @@ This guide defines the golden-corpus decoder benchmark, its comparison scope, an
 
 ## Current benchmark
 
-`fornax-decoder` owns the `decoder` benchmark target. It compares the default
+`fornax-raw-decoder` owns the `decoder` benchmark target. It compares the default
 pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
 of `crates/decoder-tracker/golden/perf-manifest.csv`.
 
@@ -70,7 +70,7 @@ CI run with no explicit selection defaults to Fornax alone. Every Fornax crop
 case uses `f32`.
 
 ```bash
-RAYON_NUM_THREADS=1 cargo bench -p fornax-decoder
+RAYON_NUM_THREADS=1 cargo bench -p fornax-raw-decoder
 ```
 
 FlashRaw is configured for the CPU, one worker thread, strict corruption
@@ -95,7 +95,7 @@ performance set.
 Compile the benchmark without executing timings:
 
 ```bash
-cargo bench -p fornax-decoder --no-run
+cargo bench -p fornax-raw-decoder --no-run
 ```
 
 ## Decoder output equality
@@ -128,17 +128,17 @@ matrix item per file. Each `decoder-benchmark` job:
    `golden` job;
 3. fetches only a missing matrix item's Git LFS object;
 4. verifies its recorded size and SHA-256;
-5. builds `fornax-decoder` with `--no-default-features` and only that input's
-   vendor feature, except DNG which needs no format feature;
+5. builds `fornax-raw-decoder` with `--no-default-features`, which still
+   includes every native vendor format;
 6. verifies the Fornax raw hash before timing and native equality across Fornax,
    Rawler, and FlashRaw;
 7. runs Fornax, Rawler, and FlashRaw on that one input.
 
-Changed-path impact selection is proportional. A direct vendor crate change
-runs only that vendor's golden cases; `fornax-bmff` runs Canon cases; every
-`fornax-codec` change runs all formats and DNG. Shared TIFF/DNG/core/decoder,
-benchmark source, manifests, matrix scripts, and workflow changes run every
-case.
+Changed-path impact selection is proportional. A change under a decoder vendor
+submodule runs only that vendor's golden cases; `fornax-bmff` runs Canon cases;
+every `fornax-codec` change runs all formats and DNG. Shared TIFF/DNG/core/
+decoder, benchmark source, manifests, matrix scripts, and workflow changes run
+every case.
 
 RAW payloads remain transient. The decoder benchmark workflow does not cache or
 upload them. Before registering a reference, the benchmark preflights both
@@ -162,7 +162,7 @@ output, and panics fail the matrix case.
 - Do not merge measurement stages into one Criterion item.
 - Compare `dng_metadata` and `process_metadata` only with another implementation
   that exposes equivalent metadata. The current reference adapters do not.
-- `rawler` and `flashraw` are dev-dependencies of `fornax-decoder`. They must not
+- `rawler` and `flashraw` are dev-dependencies of `fornax-raw-decoder`. They must not
   appear in the normal dependency graph of any production decoder crate.
 
 See [FlashRaw reference notes](../reference/flashraw.md) for the pinned

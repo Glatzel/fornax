@@ -4,24 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = [
-  "canon",
-  "fujifilm",
-  "hasselblad",
-  "mmap",
-  "nikon",
-  "panasonic",
-  "phase-one",
-  "sony",
-]
-canon = ["dep:fornax-raw-canon"]
-fujifilm = ["dep:fornax-raw-fujifilm"]
-hasselblad = ["dep:fornax-raw-hasselblad"]
+default = ["mmap"]
 mmap = ["dep:memmap2", "fornax-tiff/mmap"]
-nikon = ["dep:fornax-raw-nikon"]
-panasonic = ["dep:fornax-raw-panasonic"]
-phase-one = ["dep:fornax-raw-phase-one"]
-sony = ["dep:fornax-raw-sony"]
 zstd = ["fornax-dng/zstd"]
 
 [[bench]]
@@ -38,28 +22,24 @@ name = "flashraw_031_probe"
 
 [dependencies]
 clerk.workspace = true
+fornax-bmff.workspace = true
+fornax-codec = { workspace = true, features = ["lossless-jpeg"] }
 fornax-dng.workspace = true
-fornax-raw-canon = { workspace = true, optional = true }
+fornax-large-alloc.workspace = true
 fornax-raw-core.workspace = true
-fornax-raw-fujifilm = { workspace = true, optional = true }
-fornax-raw-hasselblad = { workspace = true, optional = true }
-fornax-raw-nikon = { workspace = true, optional = true }
-fornax-raw-panasonic = { workspace = true, optional = true }
-fornax-raw-phase-one = { workspace = true, optional = true }
-fornax-raw-sony = { workspace = true, optional = true }
 fornax-tiff = { workspace = true, default-features = false }
+generic-num.workspace = true
+image.workspace = true
 memmap2 = { workspace = true, optional = true }
+rayon.workspace = true
 
 [dev-dependencies]
+bytemuck.workspace = true
 criterion.workspace = true
 csv.workspace = true
 flashraw = "=0.3.1"
-fornax-codec.workspace = true
-generic-num.workspace = true
-image.workspace = true
 libc.workspace = true
 rawler = "0.8.0"
-rayon.workspace = true
 sha2.workspace = true
 tempfile.workspace = true
 
