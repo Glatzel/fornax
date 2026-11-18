@@ -9,10 +9,13 @@ use serde::{Deserialize, Serialize};
 use crate::cases;
 use crate::run::repo_path;
 
-pub const VERSION: u32 = 1;
+pub const VERSION: u32 = 2;
 const WIDTH: u32 = 128;
 const HEIGHT: u32 = 128;
 const BORDER_PX: u32 = 8;
+const REFERENCE_RANGE_ERROR_FRAGMENT: &str = "requires finite [0,1] samples";
+const EXCLUDED_SOURCE_REASON: &str =
+    "not all algorithms accept the explicit bounded reference range";
 const RELATIVE_NOISE_FLOOR: f64 = 1.0e-3;
 const LOG_NOISE_FLOOR: f64 = 1.0e-3;
 const EDGE_RELATIVE_THRESHOLD: f64 = 0.02;
@@ -37,8 +40,16 @@ pub struct GroundTruthReport {
     pub edge_threshold: f64,
     pub suspicious_margin: f64,
     pub synthetic_sources: Vec<String>,
+    pub excluded_sources: Vec<ExcludedSource>,
     pub corpus_sources: Vec<CorpusSource>,
     pub algorithms: Vec<AlgorithmGroundTruth>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExcludedSource {
+    pub name: String,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -150,6 +161,24 @@ impl GroundTruthReport {
                 "ground truth requires synthetic sources and algorithm rows"
             ));
         }
+        let mut excluded_names = self
+            .excluded_sources
+            .iter()
+            .map(|source| source.name.as_str())
+            .collect::<Vec<_>>();
+        excluded_names.sort_unstable();
+        excluded_names.dedup();
+        if excluded_names.len() != self.excluded_sources.len()
+            || self.excluded_sources.iter().any(|source| {
+                source.name.is_empty()
+                    || source.reason.is_empty()
+                    || self.synthetic_sources.contains(&source.name)
+            })
+        {
+            return Err(mischief::mischief!(
+                "ground truth has invalid excluded sources"
+            ));
+        }
         for value in [
             self.relative_noise_floor,
             self.log_noise_floor,
@@ -242,6 +271,7 @@ impl GroundTruthReport {
             || self.edge_threshold != other.edge_threshold
             || self.suspicious_margin != other.suspicious_margin
             || self.synthetic_sources != other.synthetic_sources
+            || self.excluded_sources != other.excluded_sources
             || self.corpus_sources != other.corpus_sources
         {
             return false;
@@ -276,6 +306,7 @@ impl GroundTruthReport {
             edge_threshold: EDGE_RELATIVE_THRESHOLD,
             suspicious_margin: SUSPICIOUS_MARGIN,
             synthetic_sources: vec!["fixture".to_owned()],
+            excluded_sources: Vec::new(),
             corpus_sources: Vec::new(),
             algorithms: vec![AlgorithmGroundTruth {
                 algorithm: "Linear".to_owned(),
@@ -695,6 +726,42 @@ fn evaluate_algorithms(
     }
     algorithms.sort_unstable_by_key(|algorithm| algorithm.to_ascii_lowercase());
 
+    let mut excluded_sources = Vec::new();
+    for source in sources
+        .iter()
+        .filter(|source| source.kind != SourceKind::Corpus)
+    {
+        let mut excluded = false;
+        for algorithm in cases::algorithm_names() {
+            let demosaic = cases::demosaic_for(algorithm).ok_or_else(|| {
+                mischief::mischief!("unknown ground-truth algorithm `{algorithm}`")
+            })?;
+            match evaluate_source(demosaic, source) {
+                Ok(_) => {}
+                Err(error) if error.to_string().contains(REFERENCE_RANGE_ERROR_FRAGMENT) => {
+                    excluded = true;
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        if excluded {
+            excluded_sources.push(ExcludedSource {
+                name: source.name.clone(),
+                reason: EXCLUDED_SOURCE_REASON.into(),
+            });
+        }
+    }
+    let excluded_names = excluded_sources
+        .iter()
+        .map(|source| source.name.as_str())
+        .collect::<Vec<_>>();
+    sources.retain(|source| !excluded_names.contains(&source.name.as_str()));
+    if sources.is_empty() {
+        return Err(mischief::mischief!(
+            "all ground-truth sources were excluded"
+        ));
+    }
+
     let mut evaluated = Vec::with_capacity(algorithms.len());
     let mut linear_means = Vec::new();
     for algorithm in &algorithms {
@@ -788,6 +855,7 @@ fn evaluate_algorithms(
             .filter(|source| source.kind != SourceKind::Corpus)
             .map(|source| source.name.clone())
             .collect(),
+        excluded_sources,
         corpus_sources,
         algorithms: rows,
     })
@@ -1121,9 +1189,11 @@ mod tests {
     #[test]
     fn linear_is_the_ground_truth_floor_and_is_its_own_reference() -> mischief::Result<()> {
         let report = evaluate_algorithms(&["Linear".to_owned()], false)?;
-        assert_eq!(report.version, 1);
+        assert_eq!(report.version, 2);
         assert_eq!(report.pattern, "GBRG");
-        assert_eq!(report.synthetic_sources.len(), 6);
+        assert_eq!(report.synthetic_sources.len(), 5);
+        assert_eq!(report.excluded_sources.len(), 1);
+        assert_eq!(report.excluded_sources[0].name, "hdr_blocks");
         assert_eq!(report.algorithms.len(), 1);
         let linear = &report.algorithms[0];
         assert_eq!(linear.algorithm, "Linear");

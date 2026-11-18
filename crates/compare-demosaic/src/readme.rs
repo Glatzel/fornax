@@ -321,6 +321,19 @@ fn render_ground_truth(report: &GroundTruthReport) -> String {
         report.width,
         report.height,
     ));
+    let excluded = report
+        .excluded_sources
+        .iter()
+        .map(|source| format!("`{}` ({})", source.name, source.reason))
+        .collect::<Vec<_>>();
+    output.push_str(&format!(
+        "- Excluded ground-truth sources: {}.\n",
+        if excluded.is_empty() {
+            "none".to_owned()
+        } else {
+            excluded.join("; ")
+        }
+    ));
     let suspicious = report
         .algorithms
         .iter()
