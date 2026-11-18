@@ -45,7 +45,6 @@ for file in "${files[@]}"; do
 done
 
 rawtherapee_files=(
-    "rtengine/ahd_demosaic_RT.cc"
     "rtengine/amaze_demosaic_RT.cc"
     "rtengine/demosaic_algos.cc"
     "rtengine/eahd_demosaic.cc"

@@ -55,7 +55,6 @@ foreach ($file in @(
 }
 
 foreach ($file in @(
-    "rtengine/ahd_demosaic_RT.cc"
     "rtengine/amaze_demosaic_RT.cc"
     "rtengine/demosaic_algos.cc"
     "rtengine/eahd_demosaic.cc"

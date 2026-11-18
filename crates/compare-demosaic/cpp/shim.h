@@ -13,7 +13,6 @@ class ReferenceDemosaicer final : public LibRaw {
     std::int32_t prepare(const std::uint16_t* mosaic, std::uint32_t width, std::uint32_t height, std::uint32_t filters);
     std::int32_t run_linear();
     std::int32_t run_ppg();
-    std::int32_t run_ahd();
     std::int32_t run_vng();
     std::int32_t run_vng4();
     void         copy_rgb(std::uint16_t* output) const;
@@ -60,14 +59,6 @@ std::int32_t run_darktable_amaze(
 );
 
 std::int32_t run_darktable_lmmse(
-    const std::uint16_t* mosaic,
-    std::uint32_t        width,
-    std::uint32_t        height,
-    std::uint32_t        filters,
-    std::uint16_t*       output
-);
-
-std::int32_t run_rawtherapee_ahd(
     const std::uint16_t* mosaic,
     std::uint32_t        width,
     std::uint32_t        height,

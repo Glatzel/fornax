@@ -14,11 +14,7 @@ struct Algorithm {
     demosaic: Demosaic,
 }
 
-const ALGORITHMS: [Algorithm; 8] = [
-    Algorithm {
-        name: "AHD",
-        demosaic: Demosaic::Ahd,
-    },
+const ALGORITHMS: [Algorithm; 7] = [
     Algorithm {
         name: "AMaZE",
         demosaic: Demosaic::Amaze,
@@ -77,25 +73,11 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
             Expected::NotApplicable("Phase 0 classifies only Linear as shift-invariant.")
         }
         Invariant::Shift => Expected::Pass,
-        Invariant::Scale
-            if !matches!(
-                algorithm,
-                "Linear" | "PPG" | "RCD" | "AMaZE" | "VNG" | "VNG4" | "LMMSE"
-            ) =>
-        {
-            Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
-        }
         Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
-        }
-        Invariant::NegativePreservation if matches!(algorithm, "AHD") => {
-            Expected::Fail("fixed-range conversion or a zero floor removes negative values")
-        }
-        Invariant::HdrPreservation if matches!(algorithm, "AHD") => {
-            Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }
         _ => Expected::Pass,
     }

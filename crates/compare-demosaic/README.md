@@ -254,55 +254,6 @@ difference is a practical floor for meaningful reference agreement.
   - `colorchart-5D2-6000K.dng`: 5634x3753, native `RGGB`, reference scale `1.000000`, sha256 `fcf04ee83ae2c6bdee5b2e324e0ee7c51284cff1671c1f0dbbbbbbc6377fd660`.
 <!-- compare-demosaic:end legend -->
 
-## AHD
-
-<!-- compare-demosaic:begin algo:ahd -->
-| Reference | Pattern | Crop | Native | Verdict | MAE | RMSE | Max | Mean signed | P99 | P99.9 | Within 64 | >64 B/E/F | >1024 (border) | Floor | GT evidence |
-| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | BGGR | [1, 1] | no | ❌ | 0.245669 | 4.455163 | 1220 | 0.019065 | 1 | 68 | 0.997771 | 189/10797/35654 | 1 (0) | no | worse |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GBRG | [0, 1] | no | ⚠️ | 0.245649 | 4.454854 | 1220 | 0.019062 | 1 | 68 | 0.997771 | 190/10797/35656 | 1 (0) | no | none |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | GRBG | [1, 0] | no | ⚖️ | 0.245644 | 4.454735 | 1220 | 0.019059 | 1 | 68 | 0.997771 | 196/10797/35656 | 1 (0) | no | not worse |
-| [libraw](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/ahd_demosaic.cpp#L293) | RGGB | [0, 0] | yes | ⚖️ | 0.245623 | 4.454426 | 1220 | 0.019057 | 1 | 68 | 0.997771 | 197/10797/35658 | 1 (0) | no | not worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | BGGR | [1, 1] | no | ⚖️ | 2.916957 | 15.395501 | 1796 | -0.097034 | 73 | 183 | 0.974380 | 3651/83112/450690 | 12 (0) | no | not worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GBRG | [0, 1] | no | ⚖️ | 2.916920 | 15.395109 | 1796 | -0.097009 | 73 | 183 | 0.974381 | 3642/83119/450777 | 12 (0) | no | not worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | GRBG | [1, 0] | no | ⚖️ | 2.916866 | 15.394919 | 1796 | -0.097034 | 73 | 183 | 0.974382 | 3677/83112/450806 | 12 (0) | no | not worse |
-| [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/ahd_demosaic_RT.cc#L44) | RGGB | [0, 0] | yes | ❌ | 2.916829 | 15.394527 | 1796 | -0.097010 | 73 | 183 | 0.974382 | 3668/83119/450893 | 12 (0) | no | worse |
-
-**Automatic ⚖️ evidence:** libraw GRBG: 1 divergent synthetic samples; Fornax MAE/P99 3.000000/3.000000 codes versus reference 5323.000000/5323.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** libraw RGGB: 10 divergent synthetic samples; Fornax MAE/P99 24158.800000/37410.000000 codes versus reference 27521.900000/42949.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee BGGR: 98 divergent synthetic samples; Fornax MAE/P99 6120.765306/48576.000000 codes versus reference 6748.000000/48584.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee GBRG: 44 divergent synthetic samples; Fornax MAE/P99 750.704545/5328.000000 codes versus reference 911.113636/5330.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee GRBG: 36 divergent synthetic samples; Fornax MAE/P99 700.111111/5318.000000 codes versus reference 1077.055556/10655.000000; reference-floor match: no.
-<!-- compare-demosaic:end algo:ahd -->
-
-### LibRaw `ahd_interpolate`
-
-**Why this reference:** it is the established AHD implementation used by
-other RAW processors and has a stable pinned source revision.
-
-**Why we match:** Fornax builds horizontal and vertical green candidates,
-evaluates both in Lab with the same homogeneity idea and neighbor threshold
-comparisons, then selects the locally consistent direction.
-
-**Known differences:** Fornax uses the published camera-to-XYZ matrix,
-512-pixel working tiles, floor intermediates and nearest-neighbor output
-quantization. LibRaw owns its tile, clipping and final quantization
-conventions. Sparse high-error decisions can remain different at chart edges.
-
-### RawTherapee `ahd_demosaic`
-
-**Why this reference:** it provides an independently maintained AHD pipeline
-with RawTherapee's own tile and Lab conventions.
-
-**Why we match:** both reconstruct horizontal and vertical green candidates,
-evaluate directional homogeneity in Lab, and select the locally consistent
-direction for the remaining channels.
-
-**Known differences:** RawTherapee normally receives channel-scaled working
-data after `scaleColors`, while the comparison supplies the common active
-mosaic without white balance. Its tile boundaries, matrix handling, clipping,
-and final quantization also differ from Fornax.
-
 ## AMaZE
 
 <!-- compare-demosaic:begin algo:amaze -->

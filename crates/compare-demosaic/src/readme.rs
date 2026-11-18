@@ -375,7 +375,7 @@ fn render_ground_truth(report: &GroundTruthReport) -> String {
         }
     ));
     output.push_str(
-        "- Literature expectation: advanced directional or MMSE methods (AMaZE, LMMSE, RCD) should generally beat the bilinear floor; AHD and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
+        "- Literature expectation: advanced directional or MMSE methods (AMaZE, LMMSE, RCD) should generally beat the bilinear floor; VNG is the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
     );
     output.trim_end().to_owned()
 }
@@ -883,7 +883,7 @@ mod tests {
 
     fn waiver() -> Waiver {
         Waiver {
-            algorithm: "ahd",
+            algorithm: "rcd",
             reference: ReferenceBackend::LibRaw,
             pattern: None,
             input: None,
@@ -899,7 +899,7 @@ mod tests {
         let directory = tempfile::tempdir().expect("temporary directory");
         let path = directory.path().join("README.md");
         std::fs::write(&path, shell())?;
-        let report = report("ahd");
+        let report = report("rcd");
         write(&report, "usage", Some(&path))?;
         let first = std::fs::read_to_string(&path)?;
         write(&report, "usage", Some(&path))?;
@@ -914,7 +914,7 @@ mod tests {
         let directory = tempfile::tempdir().expect("temporary directory");
         let path = directory.path().join("README.md");
         std::fs::write(&path, shell())?;
-        let mut report = report("ahd");
+        let mut report = report("rcd");
         let mut rawtherapee = report.rows[0].clone();
         rawtherapee.reference = "rawtherapee".to_owned();
         rawtherapee.pattern = "GBRG".to_owned();
@@ -940,7 +940,7 @@ mod tests {
         let directory = tempfile::tempdir().expect("temporary directory");
         let path = directory.path().join("README.md");
         std::fs::write(&path, shell())?;
-        let mut report = report("ahd");
+        let mut report = report("rcd");
         report.rows[0].all.count_gt1024 = 1;
         report.rows[0].all.max = 1_500;
         let waivers = [waiver()];
@@ -949,13 +949,13 @@ mod tests {
         assert!(first_result.issues.is_empty(), "{}", first_result.render());
         let first = std::fs::read_to_string(&path)?;
         assert!(first.contains("| Rank | Algorithm | Relative mean |"));
-        let table = region_body(&first, "algo:ahd").expect("generated algorithm table");
+        let table = region_body(&first, "algo:rcd").expect("generated algorithm table");
         write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert_eq!(std::fs::read_to_string(&path)?, first);
         assert!(first.contains("| ⚖️ |"));
         assert!(!table.contains("Accepted outliers"));
         assert!(first.contains(
-            "**Accepted outliers:** ahd vs LibRaw, all patterns: at most 1 samples above 1024, maximum error at most 1500."
+            "**Accepted outliers:** rcd vs LibRaw, all patterns: at most 1 samples above 1024, maximum error at most 1500."
         ));
         assert!(first.contains("Reason: Near-tie direction decisions differ"));
         assert!(first.contains("Evidence: The stage diff first diverges"));
@@ -983,7 +983,7 @@ mod tests {
             checked
                 .issues
                 .iter()
-                .all(|issue| !issue.contains("waiver for ahd"))
+                .all(|issue| !issue.contains("waiver for rcd"))
         );
 
         report.rows[0].all.max = 1_501;
@@ -1004,7 +1004,7 @@ mod tests {
         let directory = tempfile::tempdir().expect("temporary directory");
         let path = directory.path().join("README.md");
         std::fs::write(&path, shell())?;
-        let report = report("ahd");
+        let report = report("rcd");
         write(&report, "usage", Some(&path))?;
         let mut text = std::fs::read_to_string(&path)?;
         text = text.replace("| yes |", "| no |");
@@ -1033,14 +1033,14 @@ mod tests {
 
     #[test]
     fn check_requires_one_section_per_reference() {
-        let id = "algo:ahd";
+        let id = "algo:rcd";
         let document = format!(
             "{}\n\
              | [libraw](https://example.com/libraw) | row |\n\
              | [rawtherapee](https://example.com/rawtherapee) | row |\n\
              {}\n\
              \n\
-             ### LibRaw `ahd_interpolate`\n\
+             ### LibRaw `rcd_interpolate`\n\
              \n\
              **Why this reference:** explanatory.\n\
              \n\
@@ -1051,7 +1051,7 @@ mod tests {
             end_marker(id),
         );
         let mut issues = Vec::new();
-        check_note(&document, "ahd", id, &[], &mut issues);
+        check_note(&document, "rcd", id, &[], &mut issues);
         assert!(
             issues.iter().any(|issue| issue.contains("rawtherapee")),
             "a combined note must not satisfy multiple references: {issues:?}"
@@ -1060,7 +1060,7 @@ mod tests {
 
     #[test]
     fn check_requires_waiver_under_matching_reference() {
-        let id = "algo:ahd";
+        let id = "algo:rcd";
         let fields = "**Why this reference:** explanatory.\n\
                       \n\
                       **Why we match:** explanatory.\n\
@@ -1071,7 +1071,7 @@ mod tests {
              | [libraw](https://example.com/libraw) | row |\n\
              {}\n\
              \n\
-             ### LibRaw `ahd_interpolate`\n\
+             ### LibRaw `rcd_interpolate`\n\
              \n\
              {fields}",
             begin_marker(id),
@@ -1079,7 +1079,7 @@ mod tests {
         );
         let waivers = [waiver()];
         let mut issues = Vec::new();
-        check_note(&document, "ahd", id, &waivers, &mut issues);
+        check_note(&document, "rcd", id, &waivers, &mut issues);
         assert!(
             issues
                 .iter()
@@ -1089,7 +1089,7 @@ mod tests {
 
         let document = format!("{document}\n{}", render_waiver(&waiver()));
         issues.clear();
-        check_note(&document, "ahd", id, &waivers, &mut issues);
+        check_note(&document, "rcd", id, &waivers, &mut issues);
         assert!(issues.is_empty(), "{issues:?}");
     }
 
@@ -1097,8 +1097,8 @@ mod tests {
     fn partial_reports_are_refused() -> mischief::Result<()> {
         let directory = tempfile::tempdir().expect("temporary directory");
         let path = directory.path().join("partial.json");
-        let mut report = report("ahd");
-        report.meta.selection.algorithm = vec!["ahd".to_owned()];
+        let mut report = report("rcd");
+        report.meta.selection.algorithm = vec!["rcd".to_owned()];
         report.write(&path)?;
         assert!(load(&path).is_err());
         Ok(())
@@ -1106,10 +1106,10 @@ mod tests {
 
     #[test]
     fn marker_ids_are_discoverable() {
-        let text = begin_marker("algo:ahd");
+        let text = begin_marker("algo:rcd");
         assert_eq!(
             note_algorithm_names(&text).into_iter().collect::<Vec<_>>(),
-            vec!["ahd"]
+            vec!["rcd"]
         );
     }
 }

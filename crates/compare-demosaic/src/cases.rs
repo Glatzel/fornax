@@ -55,11 +55,6 @@ pub struct Case {
     pub run_fornax: FornaxRunner,
 }
 
-const LIBRAW_AHD_URL: &str = concat!(
-    "https://github.com/LibRaw/LibRaw/blob/",
-    env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
-    "/src/demosaic/ahd_demosaic.cpp#L293"
-);
 const LIBRAW_LINEAR_URL: &str = concat!(
     "https://github.com/LibRaw/LibRaw/blob/",
     env!("COMPARE_DEMOSAIC_LIBRAW_COMMIT"),
@@ -105,11 +100,6 @@ const DARKTABLE_VNG_URL: &str = concat!(
     env!("COMPARE_DEMOSAIC_DARKTABLE_COMMIT"),
     "/src/iop/demosaicing/vng.c#L171"
 );
-const RAWTHERAPEE_AHD_URL: &str = concat!(
-    "https://github.com/RawTherapee/RawTherapee/blob/",
-    env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
-    "/rtengine/ahd_demosaic_RT.cc#L44"
-);
 const RAWTHERAPEE_AMAZE_URL: &str = concat!(
     "https://github.com/RawTherapee/RawTherapee/blob/",
     env!("COMPARE_DEMOSAIC_RAWTHERAPEE_COMMIT"),
@@ -131,14 +121,6 @@ const RAWTHERAPEE_VNG4_URL: &str = concat!(
     "/rtengine/vng4_demosaic_RT.cc#L64"
 );
 
-const AHD: Case = Case {
-    name: "AHD",
-    source_url: LIBRAW_AHD_URL,
-    reference_backend: ReferenceBackend::LibRaw,
-    algorithm: 2,
-    tolerance: ROBUST,
-    run_fornax: run_ahd,
-};
 const AMAZE: Case = Case {
     name: "AMaZE",
     source_url: DARKTABLE_AMAZE_URL,
@@ -211,14 +193,6 @@ const VNG4_LIBRAW: Case = Case {
     tolerance: ROBUST,
     run_fornax: run_vng4,
 };
-const AHD_RAWTHERAPEE: Case = Case {
-    name: "AHD",
-    source_url: RAWTHERAPEE_AHD_URL,
-    reference_backend: ReferenceBackend::RawTherapee,
-    algorithm: 1,
-    tolerance: ROBUST,
-    run_fornax: run_ahd,
-};
 const AMAZE_RAWTHERAPEE: Case = Case {
     name: "AMaZE",
     source_url: RAWTHERAPEE_AMAZE_URL,
@@ -253,7 +227,6 @@ const VNG4_RAWTHERAPEE: Case = Case {
 };
 
 pub const CASES: &[Case] = &[
-    AHD,
     AMAZE,
     LINEAR,
     LMMSE,
@@ -263,7 +236,6 @@ pub const CASES: &[Case] = &[
     VNG_DARKTABLE,
     VNG_LIBRAW,
     VNG4_LIBRAW,
-    AHD_RAWTHERAPEE,
     AMAZE_RAWTHERAPEE,
     LMMSE_RAWTHERAPEE,
     RCD_RAWTHERAPEE,
@@ -336,9 +308,7 @@ pub fn source_url(algorithm: &str, reference: &str) -> Option<&'static str> {
 }
 
 pub(crate) fn demosaic_for(algorithm: &str) -> Option<Demosaic> {
-    if algorithm.eq_ignore_ascii_case("AHD") {
-        Some(Demosaic::Ahd)
-    } else if algorithm.eq_ignore_ascii_case("AMaZE") {
+    if algorithm.eq_ignore_ascii_case("AMaZE") {
         Some(Demosaic::Amaze)
     } else if algorithm.eq_ignore_ascii_case("Linear") {
         Some(Demosaic::Linear)
@@ -439,7 +409,6 @@ macro_rules! runner {
     };
 }
 
-runner!(run_ahd, Demosaic::Ahd);
 runner!(run_amaze, Demosaic::Amaze);
 runner!(run_linear, Demosaic::Linear);
 runner!(run_lmmse, Demosaic::lmmse());
@@ -466,7 +435,7 @@ mod tests {
 
     #[test]
     fn rawtherapee_covers_shared_algorithms_without_dual() {
-        for algorithm in ["ahd", "amaze", "lmmse", "rcd", "vng4"] {
+        for algorithm in ["amaze", "lmmse", "rcd", "vng4"] {
             assert!(
                 case_for(algorithm, "rawtherapee").is_some(),
                 "missing RawTherapee comparison for {algorithm}"

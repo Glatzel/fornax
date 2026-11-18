@@ -248,3 +248,11 @@ those values changes the decision algorithm rather than porting it, and the
 algorithm ranked below Linear before Phase C. The public variant, implementation,
 tests, both comparison cases, adapters, snapshots, and build dependencies are
 removed. Its reference and licence notes remain.
+
+### AHD: removed
+
+AHD shares AAHD's bounded gamma/Lab homogeneity model and adds explicit
+flooring and quantization in its measured-sample reconstruction. That scoring
+model is not a removable numerical detail, and AHD ranked below the retained
+directional methods. The public variant, implementation, tests, both comparison
+cases, adapters, snapshots, and build/setup dependencies are removed.

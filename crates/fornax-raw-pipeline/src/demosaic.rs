@@ -1,4 +1,3 @@
-mod ahd;
 mod amaze;
 mod buffer;
 mod linear;
@@ -11,7 +10,6 @@ mod vng;
 
 use std::num::NonZeroU8;
 
-use ahd::{AhdLazy, DemosaicAhd};
 use amaze::DemosaicAmaze;
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
@@ -37,8 +35,6 @@ use vng::DemosaicVng;
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Demosaic {
-    /// Adaptive homogeneity-directed demosaicing.
-    Ahd,
     /// Aliasing minimization and zipper elimination.
     Amaze,
     /// Bilinear interpolation.
@@ -104,7 +100,6 @@ impl Demosaic {
 }
 
 pub enum AnyLazy<'a, T: Primitive> {
-    Ahd(AhdLazy<T>),
     Amaze(buffer::DenseLazy<T>),
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
@@ -117,7 +112,6 @@ pub enum AnyLazy<'a, T: Primitive> {
 impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) {
         match self {
-            Self::Ahd(a) => a.dimensions(),
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
@@ -127,7 +121,6 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
         match self {
-            Self::Ahd(a) => a.fill_rows(y0, out),
             Self::Linear(l) => l.fill_rows(y0, out),
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
@@ -138,7 +131,6 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
 
     fn collect_with(&self, post: impl Fn(usize, &mut [T]) + Sync) -> fornax_raw_core::RgbImage<T> {
         match self {
-            Self::Ahd(a) => a.collect_with(post),
             Self::Linear(l) => l.collect_with(post),
             Self::Ppg(p) => p.collect_with(post),
             Self::Rcd(r) => r.collect_with(post),
@@ -159,7 +151,6 @@ impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
         pattern: BayerPattern,
     ) -> Result<AnyLazy<'a, T>, DemosaicError> {
         Ok(match self {
-            Self::Ahd => AnyLazy::Ahd(DemosaicAhd.lazy(bayer, pattern)?),
             Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse { mode } => {
@@ -199,7 +190,6 @@ mod rust_algorithm_tests {
         {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [
-                Demosaic::Ahd,
                 Demosaic::Amaze,
                 Demosaic::Linear,
                 Demosaic::Lmmse {

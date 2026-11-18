@@ -532,7 +532,7 @@ mod tests {
 
     #[test]
     fn identical_reports_have_no_differences() {
-        let report = report(vec![row("ahd", Verdict::Pass, 1.0)]);
+        let report = report(vec![row("ppg", Verdict::Pass, 1.0)]);
         let diff = compare(&report, &report, false).expect("comparable");
         assert_eq!(diff.exit_code(), 0);
         assert!(diff.changes.is_empty());
@@ -540,7 +540,7 @@ mod tests {
 
     #[test]
     fn ground_truth_changes_fail_full_diff_but_not_verdict_only() {
-        let baseline = report(vec![row("ahd", Verdict::Pass, 1.0)]);
+        let baseline = report(vec![row("ppg", Verdict::Pass, 1.0)]);
         let mut current = baseline.clone();
         current.ground_truth.algorithms[0].relative.mean = 1.0;
 
@@ -557,14 +557,14 @@ mod tests {
     #[test]
     fn verdicts_removals_additions_and_statistics_are_reported() {
         let baseline = report(vec![
-            row("ahd", Verdict::Pass, 1.0),
+            row("ppg", Verdict::Pass, 1.0),
             row("rcd", Verdict::Fail, 3.0),
             row("vng", Verdict::Pass, 1.0),
         ]);
         let current = report(vec![
-            row("ahd", Verdict::Fail, 3.0),
+            row("ppg", Verdict::Fail, 3.0),
             row("rcd", Verdict::Pass, 1.0),
-            row("ppg", Verdict::Pass, 1.0),
+            row("amaze", Verdict::Pass, 1.0),
         ]);
         let diff = compare(&baseline, &current, false).expect("comparable");
         assert_eq!(diff.changes[0].kind, ChangeKind::Regression);
@@ -585,11 +585,11 @@ mod tests {
     #[test]
     fn partial_new_ignores_missing_baseline_rows_and_partial_baseline_is_rejected() {
         let baseline = report(vec![
-            row("ahd", Verdict::Pass, 1.0),
+            row("ppg", Verdict::Pass, 1.0),
             row("rcd", Verdict::Pass, 1.0),
         ]);
-        let mut partial = report(vec![row("ahd", Verdict::Pass, 1.0)]);
-        partial.meta.selection.algorithm = vec!["ahd".to_owned()];
+        let mut partial = report(vec![row("ppg", Verdict::Pass, 1.0)]);
+        partial.meta.selection.algorithm = vec!["ppg".to_owned()];
         assert!(
             compare(&baseline, &partial, false)
                 .expect("partial new")
@@ -598,14 +598,14 @@ mod tests {
         );
 
         let mut partial_baseline = baseline;
-        partial_baseline.meta.selection.algorithm = vec!["ahd".to_owned()];
+        partial_baseline.meta.selection.algorithm = vec!["ppg".to_owned()];
         assert!(compare(&partial_baseline, &partial, false).is_err());
     }
 
     #[test]
     fn meta_mismatch_is_an_error_and_verdict_only_ignores_statistics() {
-        let baseline = report(vec![row("ahd", Verdict::Pass, 1.0)]);
-        let mut changed = report(vec![row("ahd", Verdict::Pass, 1.1)]);
+        let baseline = report(vec![row("ppg", Verdict::Pass, 1.0)]);
+        let mut changed = report(vec![row("ppg", Verdict::Pass, 1.1)]);
         let full = compare(&baseline, &changed, false).expect("comparable");
         assert_eq!(full.changes[0].kind, ChangeKind::Statistics);
         assert_eq!(full.exit_code(), 1);
