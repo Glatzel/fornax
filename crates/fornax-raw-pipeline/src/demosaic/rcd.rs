@@ -501,9 +501,7 @@ where
                 for col in first_col..last_col {
                     let index = (row - row_start) * TILE_SIZE + col - col_start;
                     let output_index = (row * width + col) * 3;
-                    for channel in 0..3 {
-                        output[output_index + channel] = rgb[index][channel];
-                    }
+                    output[output_index..output_index + 3].copy_from_slice(&rgb[index]);
                 }
             }
         }
