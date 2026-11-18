@@ -10,7 +10,7 @@ use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::LmmseMode;
-use super::buffer::{DenseLazy, channel, codes, dense_from_codes};
+use super::buffer::{DenseLazy, channel, dense_from_reference_codes, reference_codes};
 use super::ppg::DemosaicPpg;
 use crate::LazyDemosaic;
 
@@ -52,7 +52,7 @@ impl DemosaicLmmse {
     {
         let width = image.width() as usize;
         let height = image.height() as usize;
-        let input = codes(image);
+        let input = reference_codes(image)?;
         let ppg_samples = input
             .iter()
             .map(|sample| f32::from(*sample) / f32::from(u16::MAX))
@@ -72,7 +72,7 @@ impl DemosaicLmmse {
             interpolate(&input, &mut output, width, height, pattern, mode);
         }
 
-        Ok(DenseLazy::new(dense_from_codes(
+        Ok(DenseLazy::new(dense_from_reference_codes(
             image.width(),
             image.height(),
             output,

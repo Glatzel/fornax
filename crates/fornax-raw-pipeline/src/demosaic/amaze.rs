@@ -14,7 +14,7 @@ use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
 use super::buffer::{DenseLazy, channel};
 use super::ppg::DemosaicPpg;
-use super::protocol::{dense_from_f32_owned, normalized_f32};
+use super::protocol::{dense_from_f32_workspace, linear_f32};
 use crate::LazyDemosaic;
 
 const RED: usize = 0;
@@ -55,28 +55,28 @@ impl DemosaicAmaze {
         // The tiled corner reflection reads the first in-bounds sample at
         // offset 32, so a dimension of exactly 32 cannot seed the halo.
         if image.width() <= 32 || image.height() <= 32 {
-            let samples = normalized_f32(image);
-            let fallback = MonoImage::from_raw(image.width(), image.height(), samples.into_owned())
-                .ok_or_else(|| {
+            let samples = linear_f32(image)?;
+            let fallback =
+                MonoImage::from_raw(image.width(), image.height(), samples).ok_or_else(|| {
                     DemosaicError::InvalidInput("AMaZE could not copy the Bayer mosaic".into())
                 })?;
             let rgb: fornax_raw_core::RgbImage<f32> =
                 DemosaicPpg.lazy(&fallback, pattern)?.collect();
-            return Ok(DenseLazy::new(dense_from_f32_owned(
+            return Ok(DenseLazy::new(dense_from_f32_workspace(
                 image.width(),
                 image.height(),
                 rgb.into_raw(),
             )));
         }
 
-        let input = normalized_f32(image);
+        let input = linear_f32(image)?;
         let output = run(
             &input,
             image.width() as usize,
             image.height() as usize,
             pattern,
         );
-        Ok(DenseLazy::new(dense_from_f32_owned(
+        Ok(DenseLazy::new(dense_from_f32_workspace(
             image.width(),
             image.height(),
             output,

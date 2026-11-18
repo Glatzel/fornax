@@ -12,7 +12,7 @@ use std::sync::LazyLock;
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
 
-use super::buffer::{DenseLazy, codes, dense_from_codes};
+use super::buffer::{DenseLazy, dense_from_reference_codes, reference_codes};
 
 const MARGIN: usize = 4;
 const HOT: u8 = 8;
@@ -62,8 +62,9 @@ impl DemosaicAahd {
             ));
         }
 
-        let output = Aahd::new(&codes(image), width, height, pattern).process(pattern);
-        Ok(DenseLazy::new(dense_from_codes(
+        let input = reference_codes(image)?;
+        let output = Aahd::new(&input, width, height, pattern).process(pattern);
+        Ok(DenseLazy::new(dense_from_reference_codes(
             image.width(),
             image.height(),
             output,

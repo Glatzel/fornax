@@ -104,6 +104,11 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
         }
+        Invariant::Finite
+            if matches!(algorithm, "AAHD" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4") =>
+        {
+            Expected::Fail("the explicit reference-precision adapter rejects out-of-range samples")
+        }
         Invariant::NegativePreservation
             if matches!(
                 algorithm,
@@ -338,12 +343,12 @@ fn constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), Stri
 
 fn linear_ramp(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
     let mosaic = (0..SIZE)
-        .flat_map(|y| (0..SIZE).map(move |x| 0.1 + 0.01 * x as f32 + 0.005 * y as f32))
+        .flat_map(|y| (0..SIZE).map(move |x| 0.1 + 0.005 * x as f32 + 0.0025 * y as f32))
         .collect::<Vec<_>>();
     let actual = run(algorithm, &mosaic, pattern)?;
     for y in 8..SIZE - 8 {
         for x in 8..SIZE - 8 {
-            let expected = 0.1 + 0.01 * x as f32 + 0.005 * y as f32;
+            let expected = 0.1 + 0.005 * x as f32 + 0.0025 * y as f32;
             let start = ((y * SIZE + x) * 3) as usize;
             let expected = [expected; 3];
             assert_close(

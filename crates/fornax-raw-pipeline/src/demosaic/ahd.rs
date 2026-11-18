@@ -11,7 +11,7 @@ use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage
 use rayon::prelude::*;
 
 use super::linear::DemosaicLinear;
-use super::protocol::{dense_from_f32_owned, f32_codes_into, normalized_f32};
+use super::protocol::{dense_from_f32_workspace, linear_f32};
 use crate::LazyDemosaic;
 
 const TILE_SIZE: usize = 512;
@@ -71,18 +71,38 @@ impl DemosaicAhd {
         let linear = DemosaicLinear.lazy(bayer, pattern)?.collect();
         let width = bayer.width() as usize;
         let height = bayer.height() as usize;
-        let raw = normalized_f32(bayer)
-            .iter()
-            .map(|sample| *sample * 65_535.0)
+        let raw = linear_f32(bayer)?
+            .into_iter()
+            .map(|sample| sample * 65_535.0)
             .collect::<Vec<_>>();
-        let mut output = f32_codes_into(linear);
+        let mut output = linear_codes_from_owned(linear)?;
 
         process_ahd(&raw, &mut output, width, height, pattern);
         output.par_iter_mut().for_each(|code| *code /= 65_535.0);
 
-        let image = dense_from_f32_owned(bayer.width(), bayer.height(), output);
+        let image = dense_from_f32_workspace(bayer.width(), bayer.height(), output);
         Ok(AhdLazy { image })
     }
+}
+
+fn linear_codes_from_owned<T>(image: RgbImage<T>) -> Result<Vec<f32>, DemosaicError>
+where
+    T: Primitive,
+{
+    image
+        .into_raw()
+        .into_iter()
+        .enumerate()
+        .map(|(index, sample)| {
+            num_traits::cast::<T, f32>(sample)
+                .map(|value| value * 65_535.0)
+                .ok_or_else(|| {
+                    DemosaicError::InvalidInput(
+                        format!("AHD sample {index} does not fit its f32 workspace").into(),
+                    )
+                })
+        })
+        .collect()
 }
 
 fn process_ahd(

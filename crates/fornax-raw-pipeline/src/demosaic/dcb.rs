@@ -7,7 +7,7 @@
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
-use super::buffer::{DenseLazy, codes, dense_from_codes};
+use super::buffer::{DenseLazy, dense_from_reference_codes, reference_codes};
 
 type DcbPixel = [u16; 4];
 
@@ -44,8 +44,9 @@ impl DemosaicDcb {
         }
         let width = image.width() as usize;
         let height = image.height() as usize;
-        let output = run_with_options(&codes(image), width, height, pattern, iterations, enhance);
-        Ok(DenseLazy::new(dense_from_codes(
+        let input = reference_codes(image)?;
+        let output = run_with_options(&input, width, height, pattern, iterations, enhance);
+        Ok(DenseLazy::new(dense_from_reference_codes(
             image.width(),
             image.height(),
             output,

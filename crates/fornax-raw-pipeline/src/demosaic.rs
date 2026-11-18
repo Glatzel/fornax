@@ -6,6 +6,7 @@ mod dcb;
 mod dht;
 mod linear;
 mod lmmse;
+mod numerics;
 mod ppg;
 mod protocol;
 mod rcd;

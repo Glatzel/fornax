@@ -7,8 +7,11 @@ use crate::error::{PostProcessError, PreprocessError};
 use crate::metadata::Levels;
 use crate::protocol::{IPostProcessMetadata, IPostProcessor, IPreprocessor};
 
-/// The type of each channel in a pixel.
-/// Including `u8`, `u16`, `f32`, `f64`.
+/// A floating-point image sample type.
+///
+/// The trait intentionally includes [`num_traits::Float`], so integer image
+/// types cannot enter processing stages that require arithmetic, comparisons,
+/// and mathematical functions.
 pub trait Primitive:
     image::Primitive + image::Enlargeable + Float + bytemuck::Zeroable + Send + Sync + Debug + 'static
 {

@@ -1,7 +1,7 @@
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 
-use super::buffer::{DenseLazy, codes, dense_from_codes};
+use super::buffer::{DenseLazy, dense_from_reference_codes, reference_codes};
 
 const MARGIN: usize = 4;
 const HVSH: u8 = 1;
@@ -736,9 +736,9 @@ impl DemosaicDht {
             ));
         }
 
-        let input = codes(image);
+        let input = reference_codes(image)?;
         let output = Dht::new(&input, width, height, pattern).process(&input);
-        Ok(DenseLazy::new(dense_from_codes(
+        Ok(DenseLazy::new(dense_from_reference_codes(
             image.width(),
             image.height(),
             output,
