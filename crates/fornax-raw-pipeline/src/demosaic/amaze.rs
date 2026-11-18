@@ -52,7 +52,9 @@ impl DemosaicAmaze {
     where
         T: Primitive + Send + Sync,
     {
-        if image.width() < 32 || image.height() < 32 {
+        // The tiled corner reflection reads the first in-bounds sample at
+        // offset 32, so a dimension of exactly 32 cannot seed the halo.
+        if image.width() <= 32 || image.height() <= 32 {
             let samples = normalized_f32(image);
             let fallback = MonoImage::from_raw(image.width(), image.height(), samples.into_owned())
                 .ok_or_else(|| {
@@ -320,6 +322,8 @@ fn fill_tile(
             true,
             0,
             0,
+            top,
+            left,
             tile_height,
             tile_width,
         );
@@ -333,6 +337,8 @@ fn fill_tile(
             false,
             row_max,
             col_max,
+            top,
+            left,
             tile_height,
             tile_width,
         );
@@ -346,6 +352,8 @@ fn fill_tile(
             false,
             0,
             col_max,
+            top,
+            left,
             tile_height,
             tile_width,
         );
@@ -359,6 +367,8 @@ fn fill_tile(
             true,
             row_max,
             0,
+            top,
+            left,
             tile_height,
             tile_width,
         );
@@ -373,6 +383,8 @@ fn fill_corner(
     left_edge: bool,
     row_offset: usize,
     col_offset: usize,
+    top: i32,
+    left: i32,
     tile_height: usize,
     tile_width: usize,
 ) {
@@ -381,12 +393,12 @@ fn fill_corner(
     for rr in 0..(HALO as usize).min(tile_height - row_offset) {
         for cc in 0..(HALO as usize).min(tile_width - col_offset) {
             let row = if upper {
-                32 - rr as i32
+                -top - rr as i32
             } else {
                 height as i32 - rr as i32 - 2
             };
             let col = if left_edge {
-                32 - cc as i32
+                -left - cc as i32
             } else {
                 width as i32 - cc as i32 - 2
             };
