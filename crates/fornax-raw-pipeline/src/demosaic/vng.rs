@@ -188,11 +188,7 @@ fn interpolate<T: Primitive>(
                                 (pixels[pixel][channel] + sample(&pixels, pixel, alternate))
                                     / num!(2.0)
                             } else {
-                                sample(
-                                    &pixels,
-                                    pixel,
-                                    (y * width as i32 + x) * 4 + channel as i32,
-                                )
+                                sample(&pixels, pixel, (y * width as i32 + x) * 4 + channel as i32)
                             };
                     }
                     count += 1;
