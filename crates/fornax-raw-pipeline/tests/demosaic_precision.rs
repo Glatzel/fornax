@@ -2,8 +2,8 @@ use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
 use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 use num_traits::cast;
 
-const WIDTH: u32 = 32;
-const HEIGHT: u32 = 32;
+const WIDTH: u32 = 64;
+const HEIGHT: u32 = 64;
 const F64_RELATIVE_TOLERANCE: f64 = 2.0e-10;
 const F64_ABSOLUTE_TOLERANCE: f64 = 1.0e-12;
 
@@ -66,7 +66,11 @@ fn linear_f64_is_scale_homogeneous_across_sensor_dynamic_ranges() {
 fn linear_f64_preserves_negative_hdr_and_sub_f32_values() {
     let sub_f32 = 1.0 + 2.0_f64.powi(-40);
     for value in [-4.0, sub_f32, 2.0e6] {
-        let output = run(Demosaic::Linear, vec![sample::<f64>(value); 32 * 32]).unwrap();
+        let output = run(
+            Demosaic::Linear,
+            vec![sample::<f64>(value); (WIDTH * HEIGHT) as usize],
+        )
+        .unwrap();
         let expected = vec![value; output.len()];
         assert_close(
             &output,
@@ -74,7 +78,11 @@ fn linear_f64_preserves_negative_hdr_and_sub_f32_values() {
             &format!("Linear f64 constant {value:?}"),
         );
     }
-    let sub_f32_output = run(Demosaic::Linear, vec![sample::<f64>(sub_f32); 32 * 32]).unwrap();
+    let sub_f32_output = run(
+        Demosaic::Linear,
+        vec![sample::<f64>(sub_f32); (WIDTH * HEIGHT) as usize],
+    )
+    .unwrap();
     assert!(sub_f32_output[0] > 1.0);
 }
 
@@ -96,7 +104,11 @@ fn ppg_f64_retains_scale_equivariance_above_one() {
 #[test]
 fn ppg_f64_preserves_negative_constant_fields() {
     let expected = -0.25_f64;
-    let output = run(Demosaic::Ppg, vec![sample::<f64>(expected); 32 * 32]).unwrap();
+    let output = run(
+        Demosaic::Ppg,
+        vec![sample::<f64>(expected); (WIDTH * HEIGHT) as usize],
+    )
+    .unwrap();
     assert_close(
         &output,
         &vec![expected; output.len()],
@@ -108,7 +120,11 @@ fn ppg_f64_preserves_negative_constant_fields() {
 fn rcd_f64_preserves_constant_precision_and_hdr_magnitude() {
     let sub_f32 = 1.0 + 2.0_f64.powi(-40);
     for value in [0.5, sub_f32, 4.0] {
-        let output = run(Demosaic::Rcd, vec![sample::<f64>(value); 32 * 32]).unwrap();
+        let output = run(
+            Demosaic::Rcd,
+            vec![sample::<f64>(value); (WIDTH * HEIGHT) as usize],
+        )
+        .unwrap();
         let expected = vec![value; output.len()];
         assert_close(&output, &expected, &format!("RCD f64 constant {value:?}"));
     }
@@ -126,6 +142,33 @@ fn rcd_f64_is_scale_homogeneous() {
             .map(|value| *value * factor)
             .collect::<Vec<_>>();
         assert_close(&actual, &expected, &format!("RCD f64 scale {factor:e}"));
+    }
+}
+
+#[test]
+fn amaze_f64_is_scale_homogeneous_and_preserves_range() {
+    let mosaic = seeded_mosaic::<f64>(0.05, 1.5);
+    let baseline = run(Demosaic::Amaze, mosaic.clone()).unwrap();
+    for factor in [1.0e-3, 1.0, 1.0e3, 1.0e6] {
+        let scaled = mosaic.iter().map(|value| *value * factor).collect();
+        let actual = run(Demosaic::Amaze, scaled).unwrap();
+        let expected = baseline
+            .iter()
+            .map(|value| *value * factor)
+            .collect::<Vec<_>>();
+        assert_close(&actual, &expected, &format!("AMaZE f64 scale {factor:e}"));
+    }
+    for value in [-0.25, 2.0, 1.0e4] {
+        let output = run(
+            Demosaic::Amaze,
+            vec![sample::<f64>(value); (WIDTH * HEIGHT) as usize],
+        )
+        .unwrap();
+        assert_close(
+            &output,
+            &vec![value; output.len()],
+            &format!("AMaZE f64 constant {value}"),
+        );
     }
 }
 

@@ -11,10 +11,11 @@
 
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
+use generic_num::num;
 
-use super::buffer::{DenseLazy, channel};
+use super::buffer::{DenseLazy, channel, dense_from_vec};
+use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
-use super::protocol::{dense_from_f32_workspace, linear_f32};
 use crate::LazyDemosaic;
 
 const RED: usize = 0;
@@ -24,12 +25,12 @@ const TILE_SIZE: i32 = 160;
 const TILE_STRIDE: i32 = TILE_SIZE - 32;
 const HALO: i32 = 16;
 const TILE_PIXELS: usize = TILE_SIZE as usize * TILE_SIZE as usize;
-const EPS: f32 = 1.0e-5;
-const EPS_SQUARED: f32 = 1.0e-10;
-const ADAPTIVE_RATIO_THRESHOLD: f32 = 0.75;
+const EPS: f64 = 1.0e-5;
+const EPS_SQUARED: f64 = 1.0e-10;
+const ADAPTIVE_RATIO_THRESHOLD: f64 = 0.75;
 
-const GAUSS_ODD: [f32; 4] = [0.146_597_28, 0.103_592_716, 0.073_203_616, 0.036_554_355];
-const GAUSS_GRADIENT: [f32; 6] = [
+const GAUSS_ODD: [f64; 4] = [0.146_597_28, 0.103_592_716, 0.073_203_616, 0.036_554_355];
+const GAUSS_GRADIENT: [f64; 6] = [
     0.036_922_06,
     0.031_037_56,
     0.026_090_91,
@@ -37,8 +38,8 @@ const GAUSS_GRADIENT: [f32; 6] = [
     0.015_498_661,
     0.009_206_597,
 ];
-const GAUSS_EVEN: [f32; 2] = [0.137_194_94, 0.056_402_528];
-const GAUSS_QUINCUNX: [f32; 4] = [0.169_917, 0.108_947, 0.069_855, 0.028_718_2];
+const GAUSS_EVEN: [f64; 2] = [0.137_194_94, 0.056_402_528];
+const GAUSS_QUINCUNX: [f64; 4] = [0.169_917, 0.108_947, 0.069_855, 0.028_718_2];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicAmaze;
@@ -55,28 +56,16 @@ impl DemosaicAmaze {
         // The tiled corner reflection reads the first in-bounds sample at
         // offset 32, so a dimension of exactly 32 cannot seed the halo.
         if image.width() <= 32 || image.height() <= 32 {
-            let samples = linear_f32(image)?;
-            let fallback =
-                MonoImage::from_raw(image.width(), image.height(), samples).ok_or_else(|| {
-                    DemosaicError::InvalidInput("AMaZE could not copy the Bayer mosaic".into())
-                })?;
-            let rgb: fornax_raw_core::RgbImage<f32> =
-                DemosaicPpg.lazy(&fallback, pattern)?.collect();
-            return Ok(DenseLazy::new(dense_from_f32_workspace(
-                image.width(),
-                image.height(),
-                rgb.into_raw(),
-            )));
+            return Ok(DenseLazy::new(DemosaicPpg.lazy(image, pattern)?.collect()));
         }
 
-        let input = linear_f32(image)?;
         let output = run(
-            &input,
+            image.as_raw(),
             image.width() as usize,
             image.height() as usize,
             pattern,
         );
-        Ok(DenseLazy::new(dense_from_f32_workspace(
+        Ok(DenseLazy::new(dense_from_vec(
             image.width(),
             image.height(),
             output,
@@ -84,73 +73,82 @@ impl DemosaicAmaze {
     }
 }
 
-struct Workspace {
-    cfa: Vec<f32>,
-    green: Vec<f32>,
-    gradient_squared_sum: Vec<f32>,
-    vertical_weights: Vec<f32>,
-    horizontal_weights: Vec<f32>,
-    vertical_difference: Vec<f32>,
-    horizontal_difference: Vec<f32>,
-    vertical_alternative: Vec<f32>,
-    horizontal_alternative: Vec<f32>,
-    difference_squared: Vec<f32>,
-    horizontal_vertical_weight: Vec<f32>,
-    plus_gradient: Vec<f32>,
-    minus_gradient: Vec<f32>,
-    red_blue_interpolated: Vec<f32>,
-    green_curvature: Vec<[f32; 2]>,
-    vertical_green_delta: Vec<f32>,
-    horizontal_green_delta: Vec<f32>,
-    diagonal_minus_variance: Vec<f32>,
-    diagonal_plus_variance: Vec<f32>,
-    plus_minus_weight: Vec<f32>,
-    red_blue_minus: Vec<f32>,
-    red_blue_plus: Vec<f32>,
+struct Workspace<T: Primitive> {
+    signal_scale: T,
+    eps: T,
+    eps_squared: T,
+    highlight_threshold: T,
+    cfa: Vec<T>,
+    green: Vec<T>,
+    gradient_squared_sum: Vec<T>,
+    vertical_weights: Vec<T>,
+    horizontal_weights: Vec<T>,
+    vertical_difference: Vec<T>,
+    horizontal_difference: Vec<T>,
+    vertical_alternative: Vec<T>,
+    horizontal_alternative: Vec<T>,
+    difference_squared: Vec<T>,
+    horizontal_vertical_weight: Vec<T>,
+    plus_gradient: Vec<T>,
+    minus_gradient: Vec<T>,
+    red_blue_interpolated: Vec<T>,
+    green_curvature: Vec<[T; 2]>,
+    vertical_green_delta: Vec<T>,
+    horizontal_green_delta: Vec<T>,
+    diagonal_minus_variance: Vec<T>,
+    diagonal_plus_variance: Vec<T>,
+    plus_minus_weight: Vec<T>,
+    red_blue_minus: Vec<T>,
+    red_blue_plus: Vec<T>,
     nyquist: Vec<u8>,
     nyquist_refined: Vec<u8>,
-    nyquist_test: Vec<f32>,
-    green_minus_red: Vec<f32>,
-    green_minus_blue: Vec<f32>,
+    nyquist_test: Vec<T>,
+    green_minus_red: Vec<T>,
+    green_minus_blue: Vec<T>,
 }
 
-impl Workspace {
-    fn new() -> Self {
+impl<T: Primitive> Workspace<T> {
+    fn new(signal_scale: T) -> Self {
         Self {
-            cfa: vec![0.0; TILE_PIXELS],
-            green: vec![0.0; TILE_PIXELS],
-            gradient_squared_sum: vec![0.0; TILE_PIXELS],
-            vertical_weights: vec![0.0; TILE_PIXELS],
-            horizontal_weights: vec![0.0; TILE_PIXELS],
-            vertical_difference: vec![0.0; TILE_PIXELS],
-            horizontal_difference: vec![0.0; TILE_PIXELS],
-            vertical_alternative: vec![0.0; TILE_PIXELS],
-            horizontal_alternative: vec![0.0; TILE_PIXELS],
-            difference_squared: vec![0.0; TILE_PIXELS],
-            horizontal_vertical_weight: vec![0.0; TILE_PIXELS],
-            plus_gradient: vec![0.0; TILE_PIXELS],
-            minus_gradient: vec![0.0; TILE_PIXELS],
-            red_blue_interpolated: vec![0.0; TILE_PIXELS],
-            green_curvature: vec![[0.0; 2]; TILE_PIXELS],
-            vertical_green_delta: vec![0.0; TILE_PIXELS],
-            horizontal_green_delta: vec![0.0; TILE_PIXELS],
-            diagonal_minus_variance: vec![0.0; TILE_PIXELS],
-            diagonal_plus_variance: vec![0.0; TILE_PIXELS],
-            plus_minus_weight: vec![0.0; TILE_PIXELS],
-            red_blue_minus: vec![0.0; TILE_PIXELS],
-            red_blue_plus: vec![0.0; TILE_PIXELS],
+            signal_scale,
+            eps: signal_scale * num!(EPS),
+            eps_squared: signal_scale * signal_scale * num!(EPS_SQUARED),
+            highlight_threshold: signal_scale * num!(0.8),
+            cfa: vec![num!(0.0); TILE_PIXELS],
+            green: vec![num!(0.0); TILE_PIXELS],
+            gradient_squared_sum: vec![num!(0.0); TILE_PIXELS],
+            vertical_weights: vec![num!(0.0); TILE_PIXELS],
+            horizontal_weights: vec![num!(0.0); TILE_PIXELS],
+            vertical_difference: vec![num!(0.0); TILE_PIXELS],
+            horizontal_difference: vec![num!(0.0); TILE_PIXELS],
+            vertical_alternative: vec![num!(0.0); TILE_PIXELS],
+            horizontal_alternative: vec![num!(0.0); TILE_PIXELS],
+            difference_squared: vec![num!(0.0); TILE_PIXELS],
+            horizontal_vertical_weight: vec![num!(0.0); TILE_PIXELS],
+            plus_gradient: vec![num!(0.0); TILE_PIXELS],
+            minus_gradient: vec![num!(0.0); TILE_PIXELS],
+            red_blue_interpolated: vec![num!(0.0); TILE_PIXELS],
+            green_curvature: vec![[num!(0.0); 2]; TILE_PIXELS],
+            vertical_green_delta: vec![num!(0.0); TILE_PIXELS],
+            horizontal_green_delta: vec![num!(0.0); TILE_PIXELS],
+            diagonal_minus_variance: vec![num!(0.0); TILE_PIXELS],
+            diagonal_plus_variance: vec![num!(0.0); TILE_PIXELS],
+            plus_minus_weight: vec![num!(0.0); TILE_PIXELS],
+            red_blue_minus: vec![num!(0.0); TILE_PIXELS],
+            red_blue_plus: vec![num!(0.0); TILE_PIXELS],
             nyquist: vec![0; TILE_PIXELS],
             nyquist_refined: vec![0; TILE_PIXELS],
-            nyquist_test: vec![0.0; TILE_PIXELS],
-            green_minus_red: vec![0.0; TILE_PIXELS],
-            green_minus_blue: vec![0.0; TILE_PIXELS],
+            nyquist_test: vec![num!(0.0); TILE_PIXELS],
+            green_minus_red: vec![num!(0.0); TILE_PIXELS],
+            green_minus_blue: vec![num!(0.0); TILE_PIXELS],
         }
     }
 }
 
-fn run(input: &[f32], width: usize, height: usize, pattern: BayerPattern) -> Vec<f32> {
-    let mut output = vec![0.0; width * height * 3];
-    let mut workspace = Workspace::new();
+fn run<T: Primitive>(input: &[T], width: usize, height: usize, pattern: BayerPattern) -> Vec<T> {
+    let scale = normalization_scale(input);
+    let mut output = vec![num!(0.0); width * height * 3];
+    let mut workspace = Workspace::new(scale);
     for (left, top) in tile_origins(width as u32, height as u32) {
         process_tile(
             input,
@@ -166,10 +164,10 @@ fn run(input: &[f32], width: usize, height: usize, pattern: BayerPattern) -> Vec
     output
 }
 
-fn process_tile(
-    input: &[f32],
-    output: &mut [f32],
-    workspace: &mut Workspace,
+fn process_tile<T: Primitive>(
+    input: &[T],
+    output: &mut [T],
+    workspace: &mut Workspace<T>,
     width: usize,
     height: usize,
     pattern: BayerPattern,
@@ -240,9 +238,9 @@ fn process_tile(
     );
 }
 
-fn fill_tile(
-    input: &[f32],
-    workspace: &mut Workspace,
+fn fill_tile<T: Primitive>(
+    input: &[T],
+    workspace: &mut Workspace<T>,
     width: usize,
     height: usize,
     left: i32,
@@ -375,9 +373,9 @@ fn fill_tile(
     }
 }
 
-fn fill_corner(
-    input: &[f32],
-    workspace: &mut Workspace,
+fn fill_corner<T: Primitive>(
+    input: &[T],
+    workspace: &mut Workspace<T>,
     width: usize,
     upper: bool,
     left_edge: bool,
@@ -416,18 +414,22 @@ const fn source_index(width: usize, col: i32, row: i32) -> usize {
     row as usize * width + col as usize
 }
 
-fn calculate_gradients(workspace: &mut Workspace, tile_height: usize, tile_width: usize) {
+fn calculate_gradients<T: Primitive>(
+    workspace: &mut Workspace<T>,
+    tile_height: usize,
+    tile_width: usize,
+) {
     let ts = TILE_SIZE as usize;
     for rr in 2..tile_height - 2 {
         for cc in 2..tile_width - 2 {
             let index = rr * ts + cc;
             let horizontal = (workspace.cfa[index + 1] - workspace.cfa[index - 1]).abs();
             let vertical = (workspace.cfa[index + ts] - workspace.cfa[index - ts]).abs();
-            workspace.vertical_weights[index] = EPS
+            workspace.vertical_weights[index] = workspace.eps
                 + (workspace.cfa[index + 2 * ts] - workspace.cfa[index]).abs()
                 + (workspace.cfa[index] - workspace.cfa[index - 2 * ts]).abs()
                 + vertical;
-            workspace.horizontal_weights[index] = EPS
+            workspace.horizontal_weights[index] = workspace.eps
                 + (workspace.cfa[index + 2] - workspace.cfa[index]).abs()
                 + (workspace.cfa[index] - workspace.cfa[index - 2]).abs()
                 + horizontal;
@@ -436,8 +438,8 @@ fn calculate_gradients(workspace: &mut Workspace, tile_height: usize, tile_width
     }
 }
 
-fn interpolate_differences(
-    workspace: &mut Workspace,
+fn interpolate_differences<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -458,6 +460,7 @@ fn interpolate_differences(
                 workspace.vertical_weights[index - 2 * ts],
                 workspace.cfa[index - 2 * ts],
                 workspace.vertical_weights[index],
+                workspace.eps,
             );
             let ratio_down = color_ratio(
                 center,
@@ -465,6 +468,7 @@ fn interpolate_differences(
                 workspace.vertical_weights[index + 2 * ts],
                 workspace.cfa[index + 2 * ts],
                 workspace.vertical_weights[index],
+                workspace.eps,
             );
             let ratio_left = color_ratio(
                 center,
@@ -472,6 +476,7 @@ fn interpolate_differences(
                 workspace.horizontal_weights[index - 2],
                 workspace.cfa[index - 2],
                 workspace.horizontal_weights[index],
+                workspace.eps,
             );
             let ratio_right = color_ratio(
                 center,
@@ -479,6 +484,7 @@ fn interpolate_differences(
                 workspace.horizontal_weights[index + 2],
                 workspace.cfa[index + 2],
                 workspace.horizontal_weights[index],
+                workspace.eps,
             );
 
             let up_ha = up + half(center - workspace.cfa[index - 2 * ts]);
@@ -516,7 +522,9 @@ fn interpolate_differences(
                 workspace.horizontal_alternative[index] = horizontal_ha - center;
             }
 
-            let highlight = center > 0.8 || vertical_ha > 0.8 || horizontal_ha > 0.8;
+            let highlight = center > workspace.highlight_threshold
+                || vertical_ha > workspace.highlight_threshold
+                || horizontal_ha > workspace.highlight_threshold;
             if highlight {
                 workspace.vertical_difference[index] = workspace.vertical_alternative[index];
                 workspace.horizontal_difference[index] = workspace.horizontal_alternative[index];
@@ -536,8 +544,8 @@ fn interpolate_differences(
     }
 }
 
-fn correct_highlight_differences(
-    workspace: &mut Workspace,
+fn correct_highlight_differences<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -546,7 +554,7 @@ fn correct_highlight_differences(
     for rr in 4..tile_height - 4 {
         for cc in 4..tile_width - 4 {
             let index = rr * ts + cc;
-            let horizontal_variance = 3.0
+            let horizontal_variance = num!(3.0)
                 * (square(workspace.horizontal_difference[index - 2])
                     + square(workspace.horizontal_difference[index])
                     + square(workspace.horizontal_difference[index + 2]))
@@ -555,7 +563,7 @@ fn correct_highlight_differences(
                         + workspace.horizontal_difference[index]
                         + workspace.horizontal_difference[index + 2],
                 );
-            let horizontal_alternative_variance = 3.0
+            let horizontal_alternative_variance = num!(3.0)
                 * (square(workspace.horizontal_alternative[index - 2])
                     + square(workspace.horizontal_alternative[index])
                     + square(workspace.horizontal_alternative[index + 2]))
@@ -564,7 +572,7 @@ fn correct_highlight_differences(
                         + workspace.horizontal_alternative[index]
                         + workspace.horizontal_alternative[index + 2],
                 );
-            let vertical_variance = 3.0
+            let vertical_variance = num!(3.0)
                 * (square(workspace.vertical_difference[index - 2 * ts])
                     + square(workspace.vertical_difference[index])
                     + square(workspace.vertical_difference[index + 2 * ts]))
@@ -573,7 +581,7 @@ fn correct_highlight_differences(
                         + workspace.vertical_difference[index]
                         + workspace.vertical_difference[index + 2 * ts],
                 );
-            let vertical_alternative_variance = 3.0
+            let vertical_alternative_variance = num!(3.0)
                 * (square(workspace.vertical_alternative[index - 2 * ts])
                     + square(workspace.vertical_alternative[index])
                     + square(workspace.vertical_alternative[index + 2 * ts]))
@@ -610,10 +618,10 @@ fn correct_highlight_differences(
     }
 }
 
-fn bound_highlight_difference(
-    workspace: &mut Workspace,
+fn bound_highlight_difference<T: Primitive>(
+    workspace: &mut Workspace<T>,
     index: usize,
-    green: f32,
+    green: T,
     horizontal: bool,
     green_site: bool,
 ) {
@@ -637,29 +645,29 @@ fn bound_highlight_difference(
     let mut corrected = difference;
 
     if green_site {
-        if corrected > 0.0 {
-            if 3.0 * corrected > green + center {
+        if corrected > num!(0.0) {
+            if num!(3.0) * corrected > green + center {
                 corrected = -ulim(green, first, second) + center;
             } else {
-                let weight = 1.0 - 3.0 * corrected / (EPS + green + center);
-                corrected =
-                    weight * corrected + (1.0 - weight) * (-ulim(green, first, second) + center);
+                let weight = num!(1.0) - num!(3.0) * corrected / (workspace.eps + green + center);
+                corrected = weight * corrected
+                    + (num!(1.0) - weight) * (-ulim(green, first, second) + center);
             }
         }
-        if green > 1.0 {
+        if green > workspace.signal_scale {
             corrected = -ulim(green, first, second) + center;
         }
     } else {
-        if corrected < 0.0 {
-            if 3.0 * corrected < -(green + center) {
+        if corrected < num!(0.0) {
+            if num!(3.0) * corrected < -(green + center) {
                 corrected = ulim(green, first, second) - center;
             } else {
-                let weight = 1.0 + 3.0 * corrected / (EPS + green + center);
-                corrected =
-                    weight * corrected + (1.0 - weight) * (ulim(green, first, second) - center);
+                let weight = num!(1.0) + num!(3.0) * corrected / (workspace.eps + green + center);
+                corrected = weight * corrected
+                    + (num!(1.0) - weight) * (ulim(green, first, second) - center);
             }
         }
-        if green > 1.0 {
+        if green > workspace.signal_scale {
             corrected = ulim(green, first, second) - center;
         }
     }
@@ -671,40 +679,31 @@ fn bound_highlight_difference(
     }
 }
 
-fn color_ratio(
-    center: f32,
-    neighbor: f32,
-    neighbor_weight: f32,
-    two_away: f32,
-    center_weight: f32,
-) -> f32 {
+fn color_ratio<T: Primitive>(
+    center: T,
+    neighbor: T,
+    neighbor_weight: T,
+    two_away: T,
+    center_weight: T,
+    eps: T,
+) -> T {
     neighbor * (neighbor_weight + center_weight)
-        / (neighbor_weight * (EPS + center) + center_weight * (EPS + two_away))
+        / (neighbor_weight * (eps + center) + center_weight * (eps + two_away))
 }
 
-const fn interpolate(weight: f32, first: f32, second: f32) -> f32 {
+fn interpolate<T: Primitive>(weight: T, first: T, second: T) -> T {
     weight * (first - second) + second
 }
 
-const fn half(value: f32) -> f32 { 0.5 * value }
+fn half<T: Primitive>(value: T) -> T { num!(0.5) * value }
 
-fn div_exponent(value: f32, shift: u32) -> f32 {
-    if value == 0.0 {
-        value
-    } else {
-        f32::from_bits(value.to_bits() - (shift << 23))
-    }
+fn div_exponent<T: Primitive>(value: T, shift: u32) -> T {
+    value / num!(2.0).powi(i32::try_from(shift).expect("exponent shift fits i32"))
 }
 
-fn mul_exponent(value: f32) -> f32 {
-    if value == 0.0 {
-        value
-    } else {
-        f32::from_bits(value.to_bits() + (1 << 23))
-    }
-}
+fn mul_exponent<T: Primitive>(value: T) -> T { value * num!(2.0) }
 
-fn ulim(value: f32, first: f32, second: f32) -> f32 {
+fn ulim<T: Primitive>(value: T, first: T, second: T) -> T {
     if first < second {
         value.clamp(first, second)
     } else {
@@ -712,7 +711,7 @@ fn ulim(value: f32, first: f32, second: f32) -> f32 {
     }
 }
 
-fn square(value: f32) -> f32 { value * value }
+fn square<T: Primitive>(value: T) -> T { value * value }
 
 const fn is_green(pattern: BayerPattern, x: usize, y: usize) -> bool {
     channel(pattern, x as u32, y as u32) == GREEN
@@ -730,8 +729,8 @@ struct NyquistRegion {
     col_end: usize,
 }
 
-fn calculate_horizontal_vertical_weights(
-    workspace: &mut Workspace,
+fn calculate_horizontal_vertical_weights<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -783,12 +782,12 @@ fn calculate_horizontal_vertical_weights(
                 workspace.vertical_weights[index - ts],
                 workspace.vertical_weights[index + ts],
             );
-            let vertical_color_variance = EPS_SQUARED
+            let vertical_color_variance = workspace.eps_squared
                 + vertical_weight * down_variance
-                + (1.0 - vertical_weight) * up_variance;
-            let horizontal_color_variance = EPS_SQUARED
+                + (num!(1.0) - vertical_weight) * up_variance;
+            let horizontal_color_variance = workspace.eps_squared
                 + horizontal_weight * right_variance
-                + (1.0 - horizontal_weight) * left_variance;
+                + (num!(1.0) - horizontal_weight) * left_variance;
 
             let up_fluctuation = workspace.vertical_green_delta[index]
                 + workspace.vertical_green_delta[index - ts]
@@ -802,20 +801,20 @@ fn calculate_horizontal_vertical_weights(
             let right_fluctuation = workspace.horizontal_green_delta[index]
                 + workspace.horizontal_green_delta[index + 1]
                 + workspace.horizontal_green_delta[index + 2];
-            let vertical_fluctuation = EPS_SQUARED
+            let vertical_fluctuation = workspace.eps_squared
                 + vertical_weight * down_fluctuation
-                + (1.0 - vertical_weight) * up_fluctuation;
-            let horizontal_fluctuation = EPS_SQUARED
+                + (num!(1.0) - vertical_weight) * up_fluctuation;
+            let horizontal_fluctuation = workspace.eps_squared
                 + horizontal_weight * right_fluctuation
-                + (1.0 - horizontal_weight) * left_fluctuation;
+                + (num!(1.0) - horizontal_weight) * left_fluctuation;
 
             let variance_weight =
                 horizontal_color_variance / (vertical_color_variance + horizontal_color_variance);
             let fluctuation_weight =
                 horizontal_fluctuation / (vertical_fluctuation + horizontal_fluctuation);
             workspace.horizontal_vertical_weight[pair(index)] =
-                if (0.5 - variance_weight) * (0.5 - fluctuation_weight) > 0.0
-                    && (0.5 - fluctuation_weight).abs() < (0.5 - variance_weight).abs()
+                if (num!(0.5) - variance_weight) * (num!(0.5) - fluctuation_weight) > num!(0.0)
+                    && (num!(0.5) - fluctuation_weight).abs() < (num!(0.5) - variance_weight).abs()
                 {
                     variance_weight
                 } else {
@@ -825,8 +824,8 @@ fn calculate_horizontal_vertical_weights(
     }
 }
 
-fn detect_nyquist_texture(
-    workspace: &mut Workspace,
+fn detect_nyquist_texture<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -844,40 +843,40 @@ fn detect_nyquist_texture(
             let index_p2 = offset(index, p2);
             let index_m1 = offset(index, -p1);
             let index_m2 = offset(index, -p2);
-            workspace.nyquist_test[pair(index)] = GAUSS_ODD[0]
+            workspace.nyquist_test[pair(index)] = num!(GAUSS_ODD[0])
                 * workspace.difference_squared[index]
-                + GAUSS_ODD[1]
+                + num!(GAUSS_ODD[1])
                     * (workspace.difference_squared[index - m1]
                         + workspace.difference_squared[index_p1]
                         + workspace.difference_squared[index_m1]
                         + workspace.difference_squared[index + m1])
-                + GAUSS_ODD[2]
+                + num!(GAUSS_ODD[2])
                     * (workspace.difference_squared[index - 2 * ts]
                         + workspace.difference_squared[index - 2]
                         + workspace.difference_squared[index + 2]
                         + workspace.difference_squared[index + 2 * ts])
-                + GAUSS_ODD[3]
+                + num!(GAUSS_ODD[3])
                     * (workspace.difference_squared[index - m2]
                         + workspace.difference_squared[index_p2]
                         + workspace.difference_squared[index_m2]
                         + workspace.difference_squared[index + m2])
-                - (GAUSS_GRADIENT[0] * workspace.gradient_squared_sum[index]
-                    + GAUSS_GRADIENT[1]
+                - (num!(GAUSS_GRADIENT[0]) * workspace.gradient_squared_sum[index]
+                    + num!(GAUSS_GRADIENT[1])
                         * (workspace.gradient_squared_sum[index - ts]
                             + workspace.gradient_squared_sum[index + 1]
                             + workspace.gradient_squared_sum[index - 1]
                             + workspace.gradient_squared_sum[index + ts])
-                    + GAUSS_GRADIENT[2]
+                    + num!(GAUSS_GRADIENT[2])
                         * (workspace.gradient_squared_sum[index - m1]
                             + workspace.gradient_squared_sum[index_p1]
                             + workspace.gradient_squared_sum[index_m1]
                             + workspace.gradient_squared_sum[index + m1])
-                    + GAUSS_GRADIENT[3]
+                    + num!(GAUSS_GRADIENT[3])
                         * (workspace.gradient_squared_sum[index - 2 * ts]
                             + workspace.gradient_squared_sum[index - 2]
                             + workspace.gradient_squared_sum[index + 2]
                             + workspace.gradient_squared_sum[index + 2 * ts])
-                    + GAUSS_GRADIENT[4]
+                    + num!(GAUSS_GRADIENT[4])
                         * (workspace.gradient_squared_sum[index - 2 * ts - 1]
                             + workspace.gradient_squared_sum[index - 2 * ts + 1]
                             + workspace.gradient_squared_sum[index - ts - 2]
@@ -886,7 +885,7 @@ fn detect_nyquist_texture(
                             + workspace.gradient_squared_sum[index + ts + 2]
                             + workspace.gradient_squared_sum[index + 2 * ts - 1]
                             + workspace.gradient_squared_sum[index + 2 * ts + 1])
-                    + GAUSS_GRADIENT[5]
+                    + num!(GAUSS_GRADIENT[5])
                         * (workspace.gradient_squared_sum[index - m2]
                             + workspace.gradient_squared_sum[index_p2]
                             + workspace.gradient_squared_sum[index_m2]
@@ -902,7 +901,7 @@ fn detect_nyquist_texture(
         let start = 6 + (channel(pattern, 2, rr as u32) & 1);
         for cc in (start..tile_width - 6).step_by(2) {
             let index = rr * ts + cc;
-            if workspace.nyquist_test[pair(index)] > 0.0 {
+            if workspace.nyquist_test[pair(index)] > num!(0.0) {
                 workspace.nyquist[pair(index)] = 1;
                 if start_row == 0 {
                     start_row = rr;
@@ -934,7 +933,11 @@ fn detect_nyquist_texture(
     })
 }
 
-fn refine_nyquist_texture(workspace: &mut Workspace, region: NyquistRegion, pattern: BayerPattern) {
+fn refine_nyquist_texture<T: Primitive>(
+    workspace: &mut Workspace<T>,
+    region: NyquistRegion,
+    pattern: BayerPattern,
+) {
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     for rr in region.row_start..region.row_end {
@@ -964,12 +967,12 @@ fn refine_nyquist_texture(workspace: &mut Workspace, region: NyquistRegion, patt
             if workspace.nyquist_refined[pair(index)] == 0 {
                 continue;
             }
-            let mut cfa_sum = 0.0;
-            let mut horizontal_sum = 0.0;
-            let mut vertical_sum = 0.0;
-            let mut horizontal_squared_sum = 0.0;
-            let mut vertical_squared_sum = 0.0;
-            let mut area_weight = 0.0;
+            let mut cfa_sum = num!(0.0);
+            let mut horizontal_sum = num!(0.0);
+            let mut vertical_sum = num!(0.0);
+            let mut horizontal_squared_sum = num!(0.0);
+            let mut vertical_squared_sum = num!(0.0);
+            let mut area_weight = num!(0.0);
             for dy in (-6..=6).step_by(2) {
                 for dx in (-6..=6).step_by(2) {
                     let sample = (index as i32 + dy * TILE_SIZE + dx) as usize;
@@ -977,22 +980,26 @@ fn refine_nyquist_texture(workspace: &mut Workspace, region: NyquistRegion, patt
                         continue;
                     }
                     let value = workspace.cfa[sample];
-                    cfa_sum += value;
-                    horizontal_sum += workspace.cfa[sample - 1] + workspace.cfa[sample + 1];
-                    vertical_sum += workspace.cfa[sample - ts] + workspace.cfa[sample + ts];
-                    horizontal_squared_sum += square(value - workspace.cfa[sample - 1])
+                    cfa_sum = cfa_sum + value;
+                    horizontal_sum =
+                        horizontal_sum + workspace.cfa[sample - 1] + workspace.cfa[sample + 1];
+                    vertical_sum =
+                        vertical_sum + workspace.cfa[sample - ts] + workspace.cfa[sample + ts];
+                    horizontal_squared_sum = horizontal_squared_sum
+                        + square(value - workspace.cfa[sample - 1])
                         + square(value - workspace.cfa[sample + 1]);
-                    vertical_squared_sum += square(value - workspace.cfa[sample - ts])
+                    vertical_squared_sum = vertical_squared_sum
+                        + square(value - workspace.cfa[sample - ts])
                         + square(value - workspace.cfa[sample + ts]);
-                    area_weight += 1.0;
+                    area_weight = area_weight + num!(1.0);
                 }
             }
             horizontal_sum = cfa_sum - half(horizontal_sum);
             vertical_sum = cfa_sum - half(vertical_sum);
             area_weight = half(area_weight);
-            let horizontal_variance = EPS_SQUARED
+            let horizontal_variance = workspace.eps_squared
                 + (area_weight * horizontal_squared_sum - horizontal_sum * horizontal_sum).abs();
-            let vertical_variance = EPS_SQUARED
+            let vertical_variance = workspace.eps_squared
                 + (area_weight * vertical_squared_sum - vertical_sum * vertical_sum).abs();
             workspace.horizontal_vertical_weight[pair(index)] =
                 horizontal_variance / (vertical_variance + horizontal_variance);
@@ -1000,8 +1007,8 @@ fn refine_nyquist_texture(workspace: &mut Workspace, region: NyquistRegion, patt
     }
 }
 
-fn interpolate_green_at_red_blue(
-    workspace: &mut Workspace,
+fn interpolate_green_at_red_blue<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -1022,8 +1029,8 @@ fn interpolate_green_at_red_blue(
                     + workspace.horizontal_vertical_weight[pair(index + m1)],
                 2,
             );
-            if (0.5 - workspace.horizontal_vertical_weight[pair(index)]).abs()
-                < (0.5 - alternate).abs()
+            if (num!(0.5) - workspace.horizontal_vertical_weight[pair(index)]).abs()
+                < (num!(0.5) - alternate).abs()
             {
                 workspace.horizontal_vertical_weight[pair(index)] = alternate;
             }
@@ -1043,13 +1050,17 @@ fn interpolate_green_at_red_blue(
                         - half(workspace.green[index - ts] + workspace.green[index + ts]),
                 );
             } else {
-                workspace.green_curvature[pair(index)] = [0.0; 2];
+                workspace.green_curvature[pair(index)] = [num!(0.0); 2];
             }
         }
     }
 }
 
-fn refine_nyquist_green(workspace: &mut Workspace, region: NyquistRegion, pattern: BayerPattern) {
+fn refine_nyquist_green<T: Primitive>(
+    workspace: &mut Workspace<T>,
+    region: NyquistRegion,
+    pattern: BayerPattern,
+) {
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     let m2 = 2 * ts + 2;
@@ -1060,21 +1071,25 @@ fn refine_nyquist_green(workspace: &mut Workspace, region: NyquistRegion, patter
             if workspace.nyquist_refined[pair(index)] == 0 {
                 continue;
             }
-            let mut horizontal_variance = EPS_SQUARED;
-            let mut vertical_variance = EPS_SQUARED;
-            horizontal_variance += GAUSS_QUINCUNX[0] * workspace.green_curvature[pair(index)][0];
-            vertical_variance += GAUSS_QUINCUNX[0] * workspace.green_curvature[pair(index)][1];
+            let mut horizontal_variance = workspace.eps_squared;
+            let mut vertical_variance = workspace.eps_squared;
+            horizontal_variance = horizontal_variance
+                + num!(GAUSS_QUINCUNX[0]) * workspace.green_curvature[pair(index)][0];
+            vertical_variance = vertical_variance
+                + num!(GAUSS_QUINCUNX[0]) * workspace.green_curvature[pair(index)][1];
             for offset in [-(m1 as i32), 1 - ts as i32, ts as i32 - 1, m1 as i32] {
                 let sample = offset_index(index, offset);
-                horizontal_variance +=
-                    GAUSS_QUINCUNX[1] * workspace.green_curvature[pair(sample)][0];
-                vertical_variance += GAUSS_QUINCUNX[1] * workspace.green_curvature[pair(sample)][1];
+                horizontal_variance = horizontal_variance
+                    + num!(GAUSS_QUINCUNX[1]) * workspace.green_curvature[pair(sample)][0];
+                vertical_variance = vertical_variance
+                    + num!(GAUSS_QUINCUNX[1]) * workspace.green_curvature[pair(sample)][1];
             }
             for offset in [-(2 * ts as i32), -2, 2, 2 * ts as i32] {
                 let sample = offset_index(index, offset);
-                horizontal_variance +=
-                    GAUSS_QUINCUNX[2] * workspace.green_curvature[pair(sample)][0];
-                vertical_variance += GAUSS_QUINCUNX[2] * workspace.green_curvature[pair(sample)][1];
+                horizontal_variance = horizontal_variance
+                    + num!(GAUSS_QUINCUNX[2]) * workspace.green_curvature[pair(sample)][0];
+                vertical_variance = vertical_variance
+                    + num!(GAUSS_QUINCUNX[2]) * workspace.green_curvature[pair(sample)][1];
             }
             for offset in [
                 -(m2 as i32),
@@ -1083,9 +1098,10 @@ fn refine_nyquist_green(workspace: &mut Workspace, region: NyquistRegion, patter
                 m2 as i32,
             ] {
                 let sample = offset_index(index, offset);
-                horizontal_variance +=
-                    GAUSS_QUINCUNX[3] * workspace.green_curvature[pair(sample)][0];
-                vertical_variance += GAUSS_QUINCUNX[3] * workspace.green_curvature[pair(sample)][1];
+                horizontal_variance = horizontal_variance
+                    + num!(GAUSS_QUINCUNX[3]) * workspace.green_curvature[pair(sample)][0];
+                vertical_variance = vertical_variance
+                    + num!(GAUSS_QUINCUNX[3]) * workspace.green_curvature[pair(sample)][1];
             }
             workspace.green_minus_red[pair(index)] = (workspace.horizontal_difference[index]
                 * vertical_variance
@@ -1102,8 +1118,8 @@ const fn offset_index(index: usize, delta: i32) -> usize { (index as i32 + delta
 
 const fn pair(index: usize) -> usize { index / 2 }
 
-fn prepare_diagonal_interpolation(
-    workspace: &mut Workspace,
+fn prepare_diagonal_interpolation<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -1146,12 +1162,12 @@ fn prepare_diagonal_interpolation(
     }
 }
 
-fn diagonal_ratio(neighbor: f32, center: f32, two_away: f32) -> f32 {
-    mul_exponent(neighbor) / (EPS + center + two_away)
+fn diagonal_ratio<T: Primitive>(neighbor: T, center: T, two_away: T, eps: T) -> T {
+    mul_exponent(neighbor) / (eps + center + two_away)
 }
 
-fn interpolate_diagonal_red_blue(
-    workspace: &mut Workspace,
+fn interpolate_diagonal_red_blue<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -1170,21 +1186,25 @@ fn interpolate_diagonal_red_blue(
                 workspace.cfa[offset(index, m1)],
                 center,
                 workspace.cfa[offset(index, m2)],
+                workspace.eps,
             );
             let ratio_nw = diagonal_ratio(
                 workspace.cfa[offset(index, -m1)],
                 center,
                 workspace.cfa[offset(index, -m2)],
+                workspace.eps,
             );
             let ratio_ne = diagonal_ratio(
                 workspace.cfa[offset(index, p1)],
                 center,
                 workspace.cfa[offset(index, p2)],
+                workspace.eps,
             );
             let ratio_sw = diagonal_ratio(
                 workspace.cfa[offset(index, -p1)],
                 center,
                 workspace.cfa[offset(index, -p2)],
+                workspace.eps,
             );
 
             let rb_se = adaptive_green(
@@ -1210,19 +1230,19 @@ fn interpolate_diagonal_red_blue(
                     + half(center - workspace.cfa[offset(index, -p2)]),
             );
 
-            let weight_se = EPS
+            let weight_se = workspace.eps
                 + workspace.minus_gradient[pair(index)]
                 + workspace.minus_gradient[pair(offset(index, m1))]
                 + workspace.minus_gradient[pair(offset(index, m2))];
-            let weight_nw = EPS
+            let weight_nw = workspace.eps
                 + workspace.minus_gradient[pair(index)]
                 + workspace.minus_gradient[pair(offset(index, -m1))]
                 + workspace.minus_gradient[pair(offset(index, -m2))];
-            let weight_ne = EPS
+            let weight_ne = workspace.eps
                 + workspace.plus_gradient[pair(index)]
                 + workspace.plus_gradient[pair(offset(index, p1))]
                 + workspace.plus_gradient[pair(offset(index, p2))];
-            let weight_sw = EPS
+            let weight_sw = workspace.eps
                 + workspace.plus_gradient[pair(index)]
                 + workspace.plus_gradient[pair(offset(index, -p1))]
                 + workspace.plus_gradient[pair(offset(index, -p2))];
@@ -1231,10 +1251,10 @@ fn interpolate_diagonal_red_blue(
             workspace.red_blue_plus[pair(index)] =
                 (weight_ne * rb_sw + weight_sw * rb_ne) / (weight_ne + weight_sw);
 
-            let minus_variance =
-                EPS_SQUARED + diagonal_variance(&workspace.diagonal_minus_variance, index, ts);
-            let plus_variance =
-                EPS_SQUARED + diagonal_variance(&workspace.diagonal_plus_variance, index, ts);
+            let minus_variance = workspace.eps_squared
+                + diagonal_variance(&workspace.diagonal_minus_variance, index, ts);
+            let plus_variance = workspace.eps_squared
+                + diagonal_variance(&workspace.diagonal_plus_variance, index, ts);
             workspace.plus_minus_weight[pair(index)] =
                 minus_variance / (plus_variance + minus_variance);
 
@@ -1244,13 +1264,13 @@ fn interpolate_diagonal_red_blue(
     }
 }
 
-fn diagonal_variance(values: &[f32], index: usize, ts: usize) -> f32 {
-    GAUSS_EVEN[0]
+fn diagonal_variance<T: Primitive>(values: &[T], index: usize, ts: usize) -> T {
+    num!(GAUSS_EVEN[0])
         * (values[pair(index - ts)]
             + values[pair(index - 1)]
             + values[pair(index + 1)]
             + values[pair(index + ts)])
-        + GAUSS_EVEN[1]
+        + num!(GAUSS_EVEN[1])
             * (values[pair(offset(index, -2 * ts as i32 - 1))]
                 + values[pair(offset(index, -2 * ts as i32 + 1))]
                 + values[pair(offset(index, -2 - ts as i32))]
@@ -1261,7 +1281,7 @@ fn diagonal_variance(values: &[f32], index: usize, ts: usize) -> f32 {
                 + values[pair(offset(index, 2 * ts as i32 + 1))])
 }
 
-fn clamp_diagonal(workspace: &mut Workspace, index: usize, center: f32, plus: bool) {
+fn clamp_diagonal<T: Primitive>(workspace: &mut Workspace<T>, index: usize, center: T, plus: bool) {
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let m1 = ts as i32 + 1;
@@ -1283,11 +1303,11 @@ fn clamp_diagonal(workspace: &mut Workspace, index: usize, center: f32, plus: bo
         if mul_exponent(result) < center {
             result = ulim(result, first, second);
         } else {
-            let weight = mul_exponent(center - result) / (EPS + result + center);
-            result = weight * result + (1.0 - weight) * ulim(result, first, second);
+            let weight = mul_exponent(center - result) / (workspace.eps + result + center);
+            result = weight * result + (num!(1.0) - weight) * ulim(result, first, second);
         }
     }
-    if result > 1.0 {
+    if result > workspace.signal_scale {
         result = ulim(result, first, second);
     }
     if plus {
@@ -1297,8 +1317,8 @@ fn clamp_diagonal(workspace: &mut Workspace, index: usize, center: f32, plus: bo
     }
 }
 
-fn refine_green_from_red_blue(
-    workspace: &mut Workspace,
+fn refine_green_from_red_blue<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -1317,13 +1337,15 @@ fn refine_green_from_red_blue(
                     + workspace.plus_minus_weight[pair(offset(index, m1))],
                 2,
             );
-            if (0.5 - workspace.plus_minus_weight[pair(index)]).abs() < (0.5 - alternate).abs() {
+            if (num!(0.5) - workspace.plus_minus_weight[pair(index)]).abs()
+                < (num!(0.5) - alternate).abs()
+            {
                 workspace.plus_minus_weight[pair(index)] = alternate;
             }
             workspace.red_blue_interpolated[pair(index)] = half(
                 workspace.cfa[index]
                     + workspace.red_blue_minus[pair(index)]
-                        * (1.0 - workspace.plus_minus_weight[pair(index)])
+                        * (num!(1.0) - workspace.plus_minus_weight[pair(index)])
                     + workspace.red_blue_plus[pair(index)]
                         * workspace.plus_minus_weight[pair(index)],
             );
@@ -1334,21 +1356,21 @@ fn refine_green_from_red_blue(
         let start = 12 + (channel(pattern, 2, rr as u32) & 1);
         for cc in (start..tile_width - 12).step_by(2) {
             let index = rr * ts + cc;
-            if (0.5 - workspace.plus_minus_weight[pair(index)]).abs()
-                < (0.5 - workspace.horizontal_vertical_weight[pair(index)]).abs()
+            if (num!(0.5) - workspace.plus_minus_weight[pair(index)]).abs()
+                < (num!(0.5) - workspace.horizontal_vertical_weight[pair(index)]).abs()
             {
                 continue;
             }
             let pair_index = pair(index);
             let rb = workspace.red_blue_interpolated[pair_index];
-            let ratio_up = workspace.cfa[index - ts] * 2.0
-                / (EPS + rb + workspace.red_blue_interpolated[pair_index - ts]);
-            let ratio_down = workspace.cfa[index + ts] * 2.0
-                / (EPS + rb + workspace.red_blue_interpolated[pair_index + ts]);
-            let ratio_left = workspace.cfa[index - 1] * 2.0
-                / (EPS + rb + workspace.red_blue_interpolated[pair_index - 1]);
-            let ratio_right = workspace.cfa[index + 1] * 2.0
-                / (EPS + rb + workspace.red_blue_interpolated[pair_index + 1]);
+            let ratio_up = workspace.cfa[index - ts] * num!(2.0)
+                / (workspace.eps + rb + workspace.red_blue_interpolated[pair_index - ts]);
+            let ratio_down = workspace.cfa[index + ts] * num!(2.0)
+                / (workspace.eps + rb + workspace.red_blue_interpolated[pair_index + ts]);
+            let ratio_left = workspace.cfa[index - 1] * num!(2.0)
+                / (workspace.eps + rb + workspace.red_blue_interpolated[pair_index - 1]);
+            let ratio_right = workspace.cfa[index + 1] * num!(2.0)
+                / (workspace.eps + rb + workspace.red_blue_interpolated[pair_index + 1]);
 
             let green_up = adaptive_green(
                 rb,
@@ -1388,39 +1410,50 @@ fn refine_green_from_red_blue(
                 rb,
                 workspace.cfa[index - ts],
                 workspace.cfa[index + ts],
+                workspace.eps,
+                workspace.signal_scale,
             );
             green_horizontal = clamp_green_against_neighbors(
                 green_horizontal,
                 rb,
                 workspace.cfa[index - 1],
                 workspace.cfa[index + 1],
+                workspace.eps,
+                workspace.signal_scale,
             );
             workspace.green[index] = green_horizontal
-                * (1.0 - workspace.horizontal_vertical_weight[pair(index)])
+                * (num!(1.0) - workspace.horizontal_vertical_weight[pair(index)])
                 + green_vertical * workspace.horizontal_vertical_weight[pair(index)];
             workspace.green_minus_red[pair(index)] = workspace.green[index] - workspace.cfa[index];
         }
     }
 }
 
-fn clamp_green_against_neighbors(green: f32, rb: f32, first: f32, second: f32) -> f32 {
+fn clamp_green_against_neighbors<T: Primitive>(
+    green: T,
+    rb: T,
+    first: T,
+    second: T,
+    eps: T,
+    signal_scale: T,
+) -> T {
     let mut result = green;
     if result < rb {
-        if 2.0 * result < rb {
+        if num!(2.0) * result < rb {
             result = ulim(result, first, second);
         } else {
-            let weight = 2.0 * (rb - result) / (EPS + result + rb);
-            result = weight * result + (1.0 - weight) * ulim(result, first, second);
+            let weight = num!(2.0) * (rb - result) / (eps + result + rb);
+            result = weight * result + (num!(1.0) - weight) * ulim(result, first, second);
         }
     }
-    if result > 1.0 {
+    if result > signal_scale {
         result = ulim(result, first, second);
     }
     result
 }
 
-fn split_green_differences(
-    workspace: &mut Workspace,
+fn split_green_differences<T: Primitive>(
+    workspace: &mut Workspace<T>,
     pattern: BayerPattern,
     tile_height: usize,
     tile_width: usize,
@@ -1432,15 +1465,15 @@ fn split_green_differences(
         while cc < tile_width as i32 - 12 {
             let index = pair((rr * TILE_SIZE + cc) as usize);
             workspace.green_minus_blue[index] = workspace.green_minus_red[index];
-            workspace.green_minus_red[index] = 0.0;
+            workspace.green_minus_red[index] = num!(0.0);
             cc += 2;
         }
         rr += 2;
     }
 }
 
-fn interpolate_chroma(
-    workspace: &mut Workspace,
+fn interpolate_chroma<T: Primitive>(
+    workspace: &mut Workspace<T>,
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
@@ -1460,46 +1493,46 @@ fn interpolate_chroma(
             } else {
                 &workspace.green_minus_blue
             };
-            let weight_nw = 1.0
-                / (EPS
+            let weight_nw = num!(1.0)
+                / (workspace.eps
                     + (values[pair(offset(index, -m1))] - values[pair(offset(index, m1))]).abs()
                     + (values[pair(offset(index, -m1))] - values[pair(offset(index, -m3))]).abs()
                     + (values[pair(offset(index, m1))] - values[pair(offset(index, -m3))]).abs());
-            let weight_ne = 1.0
-                / (EPS
+            let weight_ne = num!(1.0)
+                / (workspace.eps
                     + (values[pair(offset(index, p1))] - values[pair(offset(index, -p1))]).abs()
                     + (values[pair(offset(index, p1))] - values[pair(offset(index, p3))]).abs()
                     + (values[pair(offset(index, -p1))] - values[pair(offset(index, p3))]).abs());
-            let weight_sw = 1.0
-                / (EPS
+            let weight_sw = num!(1.0)
+                / (workspace.eps
                     + (values[pair(offset(index, -p1))] - values[pair(offset(index, p1))]).abs()
                     + (values[pair(offset(index, -p1))] - values[pair(offset(index, m3))]).abs()
                     + (values[pair(offset(index, p1))] - values[pair(offset(index, -p3))]).abs());
-            let weight_se = 1.0
-                / (EPS
+            let weight_se = num!(1.0)
+                / (workspace.eps
                     + (values[pair(offset(index, m1))] - values[pair(offset(index, -m1))]).abs()
                     + (values[pair(offset(index, m1))] - values[pair(offset(index, -p3))]).abs()
                     + (values[pair(offset(index, -m1))] - values[pair(offset(index, m3))]).abs());
             let value = (weight_nw
-                * (1.325 * values[pair(offset(index, -m1))]
-                    - 0.175 * values[pair(offset(index, -m3))]
-                    - 0.075 * values[pair(offset(index, -m1 - 2))]
-                    - 0.075 * values[pair(offset(index, -m1 + -2 * ts as i32))])
+                * (num!(1.325) * values[pair(offset(index, -m1))]
+                    - num!(0.175) * values[pair(offset(index, -m3))]
+                    - num!(0.075) * values[pair(offset(index, -m1 - 2))]
+                    - num!(0.075) * values[pair(offset(index, -m1 + -2 * ts as i32))])
                 + weight_ne
-                    * (1.325 * values[pair(offset(index, p1))]
-                        - 0.175 * values[pair(offset(index, p3))]
-                        - 0.075 * values[pair(offset(index, p1 + 2))]
-                        - 0.075 * values[pair(offset(index, p1 + 2 * ts as i32))])
+                    * (num!(1.325) * values[pair(offset(index, p1))]
+                        - num!(0.175) * values[pair(offset(index, p3))]
+                        - num!(0.075) * values[pair(offset(index, p1 + 2))]
+                        - num!(0.075) * values[pair(offset(index, p1 + 2 * ts as i32))])
                 + weight_sw
-                    * (1.325 * values[pair(offset(index, -p1))]
-                        - 0.175 * values[pair(offset(index, -p3))]
-                        - 0.075 * values[pair(offset(index, -p1 - 2))]
-                        - 0.075 * values[pair(offset(index, -p1 + -2 * ts as i32))])
+                    * (num!(1.325) * values[pair(offset(index, -p1))]
+                        - num!(0.175) * values[pair(offset(index, -p3))]
+                        - num!(0.075) * values[pair(offset(index, -p1 - 2))]
+                        - num!(0.075) * values[pair(offset(index, -p1 + -2 * ts as i32))])
                 + weight_se
-                    * (1.325 * values[pair(offset(index, m1))]
-                        - 0.175 * values[pair(offset(index, m3))]
-                        - 0.075 * values[pair(offset(index, m1 + 2))]
-                        - 0.075 * values[pair(offset(index, m1 + 2 * ts as i32))]))
+                    * (num!(1.325) * values[pair(offset(index, m1))]
+                        - num!(0.175) * values[pair(offset(index, m3))]
+                        - num!(0.075) * values[pair(offset(index, m1 + 2))]
+                        - num!(0.075) * values[pair(offset(index, m1 + 2 * ts as i32))]))
                 / (weight_nw + weight_ne + weight_sw + weight_se);
             if c == 0 {
                 workspace.green_minus_red[pair(index)] = value;
@@ -1510,9 +1543,9 @@ fn interpolate_chroma(
     }
 }
 
-fn write_rgb(
-    output: &mut [f32],
-    workspace: &Workspace,
+fn write_rgb<T: Primitive>(
+    output: &mut [T],
+    workspace: &Workspace<T>,
     width: usize,
     height: usize,
     pattern: BayerPattern,
@@ -1535,45 +1568,36 @@ fn write_rgb(
             let index = rr * ts + cc;
             let pixel = (row as usize * width + col as usize) * 3;
             if is_green(pattern, cc, rr) {
-                let temp = 1.0
-                    / (workspace.horizontal_vertical_weight[pair(index - ts)] + 2.0
+                let temp = num!(1.0)
+                    / (workspace.horizontal_vertical_weight[pair(index - ts)] + num!(2.0)
                         - workspace.horizontal_vertical_weight[pair(index + 1)]
                         - workspace.horizontal_vertical_weight[pair(index - 1)]
                         + workspace.horizontal_vertical_weight[pair(index + ts)]);
                 let red_sum = workspace.horizontal_vertical_weight[pair(index - ts)]
                     * workspace.green_minus_red[pair(index - ts)]
-                    + (1.0 - workspace.horizontal_vertical_weight[pair(index + 1)])
+                    + (num!(1.0) - workspace.horizontal_vertical_weight[pair(index + 1)])
                         * workspace.green_minus_red[pair(index + 1)]
-                    + (1.0 - workspace.horizontal_vertical_weight[pair(index - 1)])
+                    + (num!(1.0) - workspace.horizontal_vertical_weight[pair(index - 1)])
                         * workspace.green_minus_red[pair(index - 1)]
                     + workspace.horizontal_vertical_weight[pair(index + ts)]
                         * workspace.green_minus_red[pair(index + ts)];
                 let blue_sum = workspace.horizontal_vertical_weight[pair(index - ts)]
                     * workspace.green_minus_blue[pair(index - ts)]
-                    + (1.0 - workspace.horizontal_vertical_weight[pair(index + 1)])
+                    + (num!(1.0) - workspace.horizontal_vertical_weight[pair(index + 1)])
                         * workspace.green_minus_blue[pair(index + 1)]
-                    + (1.0 - workspace.horizontal_vertical_weight[pair(index - 1)])
+                    + (num!(1.0) - workspace.horizontal_vertical_weight[pair(index - 1)])
                         * workspace.green_minus_blue[pair(index - 1)]
                     + workspace.horizontal_vertical_weight[pair(index + ts)]
                         * workspace.green_minus_blue[pair(index + ts)];
-                output[pixel] = clamp_nan(workspace.green[index] - red_sum * temp);
-                output[pixel + 2] = clamp_nan(workspace.green[index] - blue_sum * temp);
+                output[pixel] = workspace.green[index] - red_sum * temp;
+                output[pixel + 2] = workspace.green[index] - blue_sum * temp;
             } else {
-                output[pixel] =
-                    clamp_nan(workspace.green[index] - workspace.green_minus_red[pair(index)]);
+                output[pixel] = workspace.green[index] - workspace.green_minus_red[pair(index)];
                 output[pixel + 2] =
-                    clamp_nan(workspace.green[index] - workspace.green_minus_blue[pair(index)]);
+                    workspace.green[index] - workspace.green_minus_blue[pair(index)];
             }
-            output[pixel + 1] = clamp_nan(workspace.green[index]);
+            output[pixel + 1] = workspace.green[index];
         }
-    }
-}
-
-const fn clamp_nan(value: f32) -> f32 {
-    if value.is_nan() {
-        0.5
-    } else {
-        value.clamp(0.0, 1.0)
     }
 }
 
@@ -1607,15 +1631,15 @@ fn tile_origins(width: u32, height: u32) -> Vec<(i32, i32)> {
     origins
 }
 
-fn adaptive_green(center: f32, ratio: f32, hamilton_adams: f32) -> f32 {
-    if (1.0 - ratio).abs() < ADAPTIVE_RATIO_THRESHOLD {
+fn adaptive_green<T: Primitive>(center: T, ratio: T, hamilton_adams: T) -> T {
+    if (num!(1.0) - ratio).abs() < num!(ADAPTIVE_RATIO_THRESHOLD) {
         center * ratio
     } else {
         hamilton_adams
     }
 }
 
-fn directional_weight(first: f32, second: f32) -> f32 { first / (first + second) }
+fn directional_weight<T: Primitive>(first: T, second: T) -> T { first / (first + second) }
 
 #[cfg(test)]
 mod tests {
