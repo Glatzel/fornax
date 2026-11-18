@@ -4,6 +4,9 @@ use std::path::{Path, PathBuf};
 use fornax_raw_core::BayerPattern;
 use serde::{Deserialize, Serialize};
 
+use crate::ground_truth::GroundTruthReport;
+
+pub const SCHEMA_VERSION: u32 = 2;
 pub const CANONICAL_FILE: &str = "target/compare-demosaic/canonical.json";
 pub const BASELINE_FILE: &str = "crates/compare-demosaic/baseline/canonical.json";
 pub const BORDER_PX: u32 = 16;
@@ -18,7 +21,9 @@ pub const LIMITS: Limits = Limits {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Report {
+    pub schema_version: u32,
     pub meta: Meta,
+    pub ground_truth: GroundTruthReport,
     pub rows: Vec<Row>,
 }
 
@@ -178,9 +183,14 @@ pub struct WorstSample {
 }
 
 impl Report {
-    pub fn new(meta: Meta, mut rows: Vec<Row>) -> Self {
+    pub fn new(meta: Meta, ground_truth: GroundTruthReport, mut rows: Vec<Row>) -> Self {
         rows.sort_unstable_by(row_order);
-        Self { meta, rows }
+        Self {
+            schema_version: SCHEMA_VERSION,
+            meta,
+            ground_truth,
+            rows,
+        }
     }
 
     pub fn read(path: &Path) -> mischief::Result<Self> {
@@ -203,8 +213,12 @@ impl Report {
         let mut writer = BufWriter::new(file);
         let meta = serde_json::to_string(&self.meta)
             .map_err(|error| mischief::mischief!("cannot serialize metadata: {error}"))?;
+        let ground_truth = serde_json::to_string(&self.ground_truth)
+            .map_err(|error| mischief::mischief!("cannot serialize ground truth: {error}"))?;
         writeln!(writer, "{{")?;
+        writeln!(writer, "  \"schema_version\": {},", self.schema_version)?;
         writeln!(writer, "  \"meta\": {meta},")?;
+        writeln!(writer, "  \"ground_truth\": {ground_truth},")?;
         writeln!(writer, "  \"rows\": [")?;
         for (index, row) in self.rows.iter().enumerate() {
             let row = serde_json::to_string(row)
@@ -234,9 +248,16 @@ impl Report {
     }
 
     pub fn validate(&self) -> mischief::Result<()> {
+        if self.schema_version != SCHEMA_VERSION {
+            return Err(mischief::mischief!(
+                "unsupported canonical schema version {}",
+                self.schema_version
+            ));
+        }
         if self.rows.is_empty() {
             return Err(mischief::mischief!("report has no rows"));
         }
+        self.ground_truth.validate()?;
         if self.meta.inputs.is_empty() {
             return Err(mischief::mischief!("report has no inputs"));
         }
@@ -606,6 +627,7 @@ mod tests {
                 pattern_source: PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
+            GroundTruthReport::test_fixture(),
             vec![row],
         )
     }
@@ -637,11 +659,22 @@ mod tests {
         let report = report(Verdict::Pass, 0.5);
         report.write(&path)?;
         let text = std::fs::read_to_string(&path)?;
-        assert_eq!(text.lines().count(), 6);
+        assert_eq!(text.lines().count(), 8);
+        assert!(text.contains("\"schema_version\": 2"));
+        assert!(text.contains("\"ground_truth\":"));
         assert_eq!(Report::read(&path)?, report);
 
         let tampered = text.replacen("\"border_px\":0", "\"border_px\":0,\"unexpected\":true", 1);
         std::fs::write(&path, tampered)?;
+        assert!(Report::read(&path).is_err());
+
+        let missing_schema = text.replacen("  \"schema_version\": 2,\n", "", 1);
+        std::fs::write(&path, missing_schema)?;
+        assert!(Report::read(&path).is_err());
+
+        let missing_ground_truth =
+            text.replacen("  \"ground_truth\": {", "  \"unused_ground_truth\": {", 1);
+        std::fs::write(&path, missing_ground_truth)?;
         assert!(Report::read(&path).is_err());
         Ok(())
     }

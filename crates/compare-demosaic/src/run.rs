@@ -152,6 +152,15 @@ pub(crate) fn execute_with_inputs(
             .collect::<Vec<mischief::Result<Row>>>()
     });
     let rows = computed.into_iter().collect::<mischief::Result<Vec<_>>>()?;
+    let ground_truth_algorithms = if algorithms.is_empty() {
+        cases::algorithm_names()
+            .into_iter()
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>()
+    } else {
+        algorithms.clone()
+    };
+    let ground_truth = crate::ground_truth::evaluate(&ground_truth_algorithms)?;
     let selection = Selection {
         algorithm: algorithms,
         reference: references,
@@ -179,6 +188,7 @@ pub(crate) fn execute_with_inputs(
             pattern_source: PatternSource::ShiftedCrops,
             selection,
         },
+        ground_truth,
         rows,
     );
     let path = output_path(request)?;

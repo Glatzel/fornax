@@ -207,8 +207,8 @@ mod tests {
     }
 
     fn report(rows: Vec<Row>) -> Report {
-        Report {
-            meta: Meta {
+        Report::new(
+            Meta {
                 inputs: vec![InputMeta {
                     name: "input.raw".to_owned(),
                     sha256: "00".repeat(32),
@@ -235,8 +235,9 @@ mod tests {
                 pattern_source: PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
+            crate::ground_truth::GroundTruthReport::test_fixture(),
             rows,
-        }
+        )
     }
 
     #[test]

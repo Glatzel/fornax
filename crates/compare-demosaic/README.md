@@ -9,6 +9,9 @@ as generated below are derived from that JSON. Text outside the markers and the
 notes beside each algorithm are written by the author and reviewed with the
 implementation.
 
+Canonical schema version 2 adds the reference-independent `ground_truth`
+section described below.
+
 The verdict tables distinguish measured warnings from reviewed decisions. A
 reviewed/accepted verdict means the row passes every limit and its remaining
 high-error outliers were accepted by a person for explicit count and
@@ -144,6 +147,38 @@ The channel and sampled/interpolated-site scopes show where those errors live.
 Only the native-pattern row is an independent fidelity test. The other three
 patterns use the smallest one-pixel shift that makes their CFA layout valid,
 and are consistency checks against the same image.
+
+## Ground truth
+
+Reference agreement is one signal, not the definition of correctness. This
+section compares each demosaic implementation with deterministic synthetic
+truth and with half-resolution truth binned directly from fixed RAW corpus
+quads. Both metrics are scene-linear and HDR-safe; no PSNR peak of one is used.
+
+<!-- compare-demosaic:begin ground-truth -->
+| Rank | Algorithm | Relative mean | Relative p99 | Relative p99.9 | Log2 mean | Zipper mean | False-color mean | Vs Linear | Worst |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | RCD | 0.065586 | 0.931822 | 0.975703 | 0.194254 | 0.126813 | 0.444795 | 0.886x | slanted_edge (78, 1, c2) border |
+| 2 | PPG | 0.067768 | 0.931838 | 1.000000 | 0.203377 | 0.129063 | 0.462044 | 0.916x | slanted_edge (78, 1, c2) border |
+| 3 | Linear | 0.073991 | 0.931821 | 0.939347 | 0.213540 | 0.144554 | 0.486986 | 1.000x | hdr_blocks (64, 43, c2) edge |
+| 4 | DHT | 0.093205 | 0.931859 | 0.937500 | 0.277186 | 0.131179 | 0.415780 | 1.260x | colored_edges (99, 0, c0) border |
+| 5 | LMMSE | 0.099534 | 0.931853 | 0.937500 | 0.295187 | 0.135028 | 0.453509 | 1.345x | slanted_edge (78, 1, c2) border |
+| 6 | AAHD | 0.100549 | 0.931878 | 1.000000 | 0.300270 | 0.136247 | 0.461066 | 1.359x | slanted_edge (79, 1, c2) border |
+| 7 | AMaZE | 0.100583 | 0.931894 | 1.000000 | 0.301081 | 0.136620 | 0.464231 | 1.359x | slanted_edge (79, 1, c2) border |
+| 8 | AHD | 0.100721 | 0.931911 | 1.000000 | 0.301827 | 0.135293 | 0.463964 | 1.361x | slanted_edge (77, 5, c0) border |
+| 9 | DCB | 0.101240 | 0.931890 | 1.000000 | 0.303590 | 0.134674 | 0.457065 | 1.368x | slanted_edge (78, 1, c2) border |
+| 10 | VNG | 0.103990 | 0.931853 | 0.984253 | 0.304693 | 0.147521 | 0.450235 | 1.405x | slanted_edge (78, 4, c0) border |
+| 11 | VNG4 | 0.103990 | 0.931853 | 0.984253 | 0.304693 | 0.147521 | 0.450235 | 1.405x | slanted_edge (78, 4, c0) border |
+
+- Relative error uses denominator `max(|truth|, |output|, 0.001000)`; log2 error floors both values at `0.001000`. Lower is better.
+- Relative, log2, zipper, and false-color summaries exclude the 8 px border. Worst pixels are selected over the full frame and report their location.
+- Zipper is relative luma error on interior edge pixels. False color is the magnitude of output-minus-truth `R-G`/`B-G` chroma relative to luma.
+- Linear is the required floor. An algorithm is suspicious when its per-scene relative mean is over 1.0% worse than Linear on a zone-plate or edge scene.
+- Pattern `GBRG`; synthetic and half-resolution corpus sources are evaluated at 128x128.
+- Suspicious versus Linear: PPG: colored_edges; LMMSE: colored_edges; AAHD: colored_edges; AMaZE: colored_edges; AHD: colored_edges; DCB: colored_edges; VNG: colored_edges; VNG4: colored_edges.
+- Corpus sources: Canon/EOS 5D Mark III/M24-1221_000202.dng (evaluated); Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG (evaluated); Nikon/D80/DSC_0143.dng (evaluated).
+- Literature expectation: advanced directional or MMSE methods (AMaZE, DCB, DHT, LMMSE, RCD) should generally beat the bilinear floor; AHD, AAHD, and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.
+<!-- compare-demosaic:end ground-truth -->
 
 ## Summary
 

@@ -3,6 +3,29 @@ $root = (Resolve-Path "$PSScriptRoot/../../..").Path
 Set-Location $root
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
+if (!(Test-Path external/raw.pixls.us/filelist.sha256))
+{
+    $env:GIT_LFS_SKIP_SMUDGE = "1"
+    git -c filter.lfs.required=false `
+        -c submodule.external/raw.pixls.us.branch=master `
+        submodule update --init --remote external/raw.pixls.us
+    Remove-Item Env:GIT_LFS_SKIP_SMUDGE
+}
+
+$corpusFiles = @(
+    "Canon/EOS 5D Mark III/M24-1221_000202.dng"
+    "Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG"
+    "Nikon/D80/DSC_0143.dng"
+)
+git -C external/raw.pixls.us lfs install --local
+git -C external/raw.pixls.us lfs fetch origin --include ($corpusFiles -join ",")
+if ($LASTEXITCODE -ne 0) {
+    throw "failed to fetch ground-truth corpus files"
+}
+git -C external/raw.pixls.us lfs checkout @corpusFiles
+if ($LASTEXITCODE -ne 0) {
+    throw "failed to materialize ground-truth corpus files"
+}
 
 foreach ($file in @(
     "src/iop/demosaicing/amaze.cc",

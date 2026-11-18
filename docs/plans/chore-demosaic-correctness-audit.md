@@ -38,7 +38,7 @@ Out of scope:
 
 - [x] Phase 0: audit range assumptions, CFA assumptions, and invariance classes.
 - [x] Phase 1: add fast seeded invariant tests and record expected failures.
-- [ ] Phase 2: add deterministic synthetic and optional corpus-binned ground
+- [x] Phase 2: add deterministic synthetic and optional corpus-binned ground
   truth, HDR-safe metrics, ranking, schema versioning, and README output.
 - [ ] Phase 3: make reference comparison valid-range aware, mask borders, report
   disagreement floors and distributions, and derive evidenced `⚖️`.
@@ -49,8 +49,8 @@ Out of scope:
 
 - This plan, updated after each phase with its short report.
 - Phase 1: `crates/fornax-raw-pipeline/tests/demosaic_invariants.rs` only.
-- Phase 2: `compare-demosaic` run/report/metrics/readme code,
-  `baseline/canonical.json`, and generated README regions.
+- Phase 2: `compare-demosaic` ground-truth/report/diff/readme/run code,
+  setup scripts, `baseline/canonical.json`, and generated README regions.
 - Phase 3: `compare-demosaic` run/report/status/readme code, baseline, and
   generated README regions.
 - Phase 4: this plan only.
@@ -267,3 +267,90 @@ Notable observations:
 - A stricter ad hoc clippy command without the legacy `too_many_arguments`
   exception failed on eight existing AMaZE/LMMSE function signatures. The
   repository-configured clippy stage passed.
+
+## Phase 2 ground-truth harness
+
+Canonical schema version 2 adds a `ground_truth` section. The section records
+its own version, canonical pattern, parameters, synthetic source names, corpus
+availability, and one row per algorithm. `Report::validate` checks the schema,
+ground-truth parameters, ranks, metrics, and worst coordinates. Full `diff`
+fails when ground truth changes; `--verdict-only` continues to ignore
+numeric-only changes. Partial runs compare only their selected ground-truth
+algorithms and the required Linear floor.
+
+Ground-truth generation uses 128x128 GBRG data and an 8-pixel border:
+
+- Six deterministic synthetic scenes: zone plate, slanted edge, colored edges,
+  fine lines, smooth gradient, and HDR blocks from `2^-8` to `16`.
+- Three fixed corpus files, decoded at run time, cropped to 128x128, binned by
+  their native 2x2 Bayer quads to 64x64 RGB truth, nearest-expanded back to
+  128x128, re-mosaiced, and demosaiced.
+- Corpus paths are `Canon/EOS 5D Mark III/M24-1221_000202.dng`,
+  `Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG`, and
+  `Nikon/D80/DSC_0143.dng`. The setup scripts materialize only these LFS
+  objects. Runtime marks them evaluated, missing, or too small.
+
+Metrics are scene-linear:
+
+- Relative error divides by `max(|truth|, |output|, 1e-3)`.
+- Log2 error floors both truth and output at `1e-3`.
+- Zipper is relative luma error on interior edge pixels.
+- False color is the magnitude of output-minus-truth `R-G`/`B-G` chroma,
+  normalized by luma.
+- Aggregate relative/log/edge metrics exclude the 8-pixel border. Worst pixels
+  scan the whole frame and report edge, flat, or border class.
+- An algorithm is suspicious if a zone-plate or edge scene has a relative mean
+  more than 1% worse than Linear.
+
+Final aggregate ranking:
+
+| Rank | Algorithm | Relative mean | Relative p99 | Relative p99.9 | Log2 mean | Zipper | False color | Vs Linear | Suspicious scenes |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | RCD | 0.065586 | 0.931822 | 0.975703 | 0.194254 | 0.126813 | 0.444795 | 0.886x | none |
+| 2 | PPG | 0.067768 | 0.931838 | 1.000000 | 0.203377 | 0.129063 | 0.462044 | 0.916x | colored edges |
+| 3 | Linear | 0.073991 | 0.931821 | 0.939347 | 0.213540 | 0.144554 | 0.486986 | 1.000x | floor |
+| 4 | DHT | 0.093205 | 0.931859 | 0.937500 | 0.277186 | 0.131179 | 0.415780 | 1.260x | none |
+| 5 | LMMSE | 0.099534 | 0.931853 | 0.937500 | 0.295187 | 0.135028 | 0.453509 | 1.345x | colored edges |
+| 6 | AAHD | 0.100549 | 0.931878 | 1.000000 | 0.300270 | 0.136247 | 0.461066 | 1.359x | colored edges |
+| 7 | AMaZE | 0.100583 | 0.931894 | 1.000000 | 0.301081 | 0.136620 | 0.464231 | 1.359x | colored edges |
+| 8 | AHD | 0.100721 | 0.931911 | 1.000000 | 0.301827 | 0.135293 | 0.463964 | 1.361x | colored edges |
+| 9 | DCB | 0.101240 | 0.931890 | 1.000000 | 0.303590 | 0.134674 | 0.457065 | 1.368x | colored edges |
+| 10 | VNG | 0.103990 | 0.931853 | 0.984253 | 0.304693 | 0.147521 | 0.450235 | 1.405x | colored edges |
+| 11 | VNG4 | 0.103990 | 0.931853 | 0.984253 | 0.304693 | 0.147521 | 0.450235 | 1.405x | colored edges |
+
+Literature expects advanced directional/MMSE algorithms to beat bilinear on
+edge detail. Only RCD and PPG do so in this aggregate, while DHT and the rest are
+materially worse; that is a surprise and remains visible rather than being
+tuned away. Every non-Linear worst pixel is at a border. Because aggregate
+metrics exclude the border, those worst locations are separate border evidence,
+not the cause of the ranking.
+
+The README contains the generated table, metric definitions, corpus status,
+suspicious-scene list, and literature comparison. The heavy all-algorithm and
+corpus checks are marked `#[ignore]`; they do not run during default
+`cargo test`. Synthetic scene generation, binning, summary math, ranking,
+selection-aware diffing, schema rejection, and README generation remain in the
+normal fast suite.
+
+### Phase 2 validation
+
+- `cargo test -p compare-demosaic`: 153 library tests and 3 binary tests
+  passed; the two heavy ground-truth tests were skipped as intended.
+- The heavy tests passed explicitly with `--ignored`: deterministic ranking and
+  all three fixed corpus files.
+- Full canonical run: 76 reference rows plus 11 ground-truth rows completed;
+  canonical schema version 2 and ground-truth version 1 were written.
+- `compare-demosaic diff` over the refreshed full baseline reports no
+  differences.
+- A partial `--algorithm linear --reference libraw --pattern GBRG` run also
+  diffs cleanly against the full baseline.
+- `compare-demosaic readme --check` reports the README is up to date.
+- Nightly package rustfmt and `cargo insta test -p compare-demosaic` passed.
+- `cargo clippy -p compare-demosaic --all-targets` completed with only the
+  existing `too_many_arguments` warning in `artifacts::write`.
+- `scripts/agent-validation.sh` passed, including workspace tests, rustdoc,
+  workspace/compare clippy, benchmark compilation, compare setup, and compare
+  tests. An earlier run failed because the historical corpus submodule commit
+  was no longer available upstream; the setup path now reuses an existing
+  checkout or initializes current `master` and fetches only the three required
+  LFS files.

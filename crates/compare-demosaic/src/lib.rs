@@ -1,6 +1,7 @@
 pub mod artifacts;
 pub mod cases;
 pub mod diff;
+pub mod ground_truth;
 pub mod metrics;
 pub mod readme;
 pub mod reference;

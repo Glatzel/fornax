@@ -7,6 +7,22 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 
 pixi install -e dev
 git submodule update --init external/libraw external/raw-images
+if [[ ! -f external/raw.pixls.us/filelist.sha256 ]]; then
+    GIT_LFS_SKIP_SMUDGE=1 \
+        git -c filter.lfs.required=false \
+        -c submodule.external/raw.pixls.us.branch=master \
+        submodule update --init --remote external/raw.pixls.us
+fi
+
+corpus_files=(
+    "Canon/EOS 5D Mark III/M24-1221_000202.dng"
+    "Sigma/fp/A002_653_20240229_000001_2k_8bit.DNG"
+    "Nikon/D80/DSC_0143.dng"
+)
+git -C external/raw.pixls.us lfs install --local
+git -C external/raw.pixls.us lfs fetch origin \
+    --include "$(IFS=,; printf '%s' "${corpus_files[*]}")"
+git -C external/raw.pixls.us lfs checkout "${corpus_files[@]}"
 
 files=(
     "src/iop/demosaicing/amaze.cc"

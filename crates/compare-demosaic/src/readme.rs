@@ -1,13 +1,14 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use crate::ground_truth::{CorpusStatus, GroundTruthReport, PixelClass};
 use crate::report::{InputMeta, Report, Row};
 use crate::status::{self, Status};
 use crate::waivers::{WAIVERS, Waiver};
 
 pub const README_FILE: &str = "crates/compare-demosaic/README.md";
 
-const REQUIRED_REGIONS: &[&str] = &["usage", "legend", "summary"];
+const REQUIRED_REGIONS: &[&str] = &["usage", "legend", "summary", "ground-truth"];
 const NOTE_FIELDS: &[&str] = &["Why this reference", "Why we match", "Known differences"];
 
 #[derive(Clone, Debug, Default)]
@@ -135,6 +136,10 @@ fn generated_regions_with_waivers(
     regions.insert("usage".to_owned(), render_usage(usage));
     regions.insert("legend".to_owned(), render_legend(report));
     regions.insert("summary".to_owned(), render_summary(report, waivers));
+    regions.insert(
+        "ground-truth".to_owned(),
+        render_ground_truth(&report.ground_truth),
+    );
     for (algorithm, rows) in algorithms(report) {
         regions.insert(
             format!("algo:{}", algorithm_id(algorithm)),
@@ -249,6 +254,95 @@ fn render_summary(report: &Report, waivers: &[Waiver]) -> String {
             native,
         ));
     }
+    output.trim_end().to_owned()
+}
+
+fn render_ground_truth(report: &GroundTruthReport) -> String {
+    let mut output = String::from(
+        "| Rank | Algorithm | Relative mean | Relative p99 | Relative p99.9 | Log2 mean | Zipper mean | False-color mean | Vs Linear | Worst |\n\
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |\n",
+    );
+    for row in &report.algorithms {
+        let location = match row.worst.location {
+            PixelClass::Edge => "edge",
+            PixelClass::Flat => "flat",
+            PixelClass::Border => "border",
+        };
+        output.push_str(&format!(
+            "| {} | {} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.6} | {:.3}x | {} ({}, {}, c{}) {} |\n",
+            row.rank,
+            crate::cases::display_name(&row.algorithm),
+            row.relative.mean,
+            row.relative.p99,
+            row.relative.p999,
+            row.log2.mean,
+            row.zipper.mean,
+            row.false_color.mean,
+            row.vs_linear.relative_mean_ratio,
+            row.worst.source,
+            row.worst.x,
+            row.worst.y,
+            row.worst.channel,
+            location,
+        ));
+    }
+    output.push_str(&format!(
+        "\n- Relative error uses denominator `max(|truth|, |output|, {:.6})`; log2 error floors both values at `{:.6}`. Lower is better.\n\
+- Relative, log2, zipper, and false-color summaries exclude the {} px border. Worst pixels are selected over the full frame and report their location.\n\
+- Zipper is relative luma error on interior edge pixels. False color is the magnitude of output-minus-truth `R-G`/`B-G` chroma relative to luma.\n\
+- Linear is the required floor. An algorithm is suspicious when its per-scene relative mean is over {:.1}% worse than Linear on a zone-plate or edge scene.\n\
+- Pattern `{}`; synthetic and half-resolution corpus sources are evaluated at {}x{}.\n",
+        report.relative_noise_floor,
+        report.log_noise_floor,
+        report.border_px,
+        report.suspicious_margin * 100.0,
+        report.pattern,
+        report.width,
+        report.height,
+    ));
+    let suspicious = report
+        .algorithms
+        .iter()
+        .filter(|row| !row.suspicious_sources.is_empty())
+        .map(|row| {
+            format!(
+                "{}: {}",
+                crate::cases::display_name(&row.algorithm),
+                row.suspicious_sources.join(", ")
+            )
+        })
+        .collect::<Vec<_>>();
+    output.push_str(&format!(
+        "- Suspicious versus Linear: {}.\n",
+        if suspicious.is_empty() {
+            "none".to_owned()
+        } else {
+            suspicious.join("; ")
+        }
+    ));
+    let corpus = report
+        .corpus_sources
+        .iter()
+        .map(|source| {
+            let status = match source.status {
+                CorpusStatus::Evaluated => "evaluated",
+                CorpusStatus::Missing => "missing",
+                CorpusStatus::TooSmall => "too small",
+            };
+            format!("{} ({status})", source.path)
+        })
+        .collect::<Vec<_>>();
+    output.push_str(&format!(
+        "- Corpus sources: {}.\n",
+        if corpus.is_empty() {
+            "none".to_owned()
+        } else {
+            corpus.join("; ")
+        }
+    ));
+    output.push_str(
+        "- Literature expectation: advanced directional or MMSE methods (AMaZE, DCB, DHT, LMMSE, RCD) should generally beat the bilinear floor; AHD, AAHD, and VNG are the next comparison tier, followed by PPG. Surprises are retained in the ranking rather than waived.\n",
+    );
     output.trim_end().to_owned()
 }
 
@@ -663,19 +757,22 @@ mod tests {
                 pattern_source: crate::report::PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
+            GroundTruthReport::test_fixture(),
             vec![row],
         )
     }
 
     fn shell() -> String {
         format!(
-            "# test\n\n{}rust\nusage\n{}\n{}legend\n{}\n{}summary\n{}\n",
+            "# test\n\n{}rust\nusage\n{}\n{}legend\n{}\n{}summary\n{}\n{}ground-truth\n{}\n",
             begin_marker("usage"),
             end_marker("usage"),
             begin_marker("legend"),
             end_marker("legend"),
             begin_marker("summary"),
             end_marker("summary"),
+            begin_marker("ground-truth"),
+            end_marker("ground-truth"),
         )
     }
 
@@ -718,7 +815,11 @@ mod tests {
         rawtherapee.pattern = "GBRG".to_owned();
         rawtherapee.native = false;
         report.rows.push(rawtherapee);
-        report = Report::new(report.meta.clone(), report.rows);
+        report = Report::new(
+            report.meta.clone(),
+            report.ground_truth.clone(),
+            report.rows,
+        );
 
         write(&report, "usage", Some(&path))?;
         let document = std::fs::read_to_string(&path)?;
@@ -741,6 +842,7 @@ mod tests {
         let first_result = write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert!(first_result.issues.is_empty(), "{}", first_result.render());
         let first = std::fs::read_to_string(&path)?;
+        assert!(first.contains("| Rank | Algorithm | Relative mean |"));
         let table = region_body(&first, "algo:ahd").expect("generated algorithm table");
         write_with_waivers(&report, "usage", &waivers, Some(&path))?;
         assert_eq!(std::fs::read_to_string(&path)?, first);

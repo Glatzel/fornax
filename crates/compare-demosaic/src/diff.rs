@@ -58,6 +58,7 @@ pub struct DiffReport {
     pub differences: usize,
     pub regressions: usize,
     pub improvements: usize,
+    pub ground_truth_changed: bool,
     pub changes: Vec<Change>,
 }
 
@@ -82,7 +83,11 @@ impl DiffReport {
     pub fn render_text(&self) -> String {
         let mut output = String::new();
         if self.changes.is_empty() {
-            output.push_str("no differences\n");
+            if self.ground_truth_changed {
+                output.push_str("ground truth changed\n");
+            } else {
+                output.push_str("no differences\n");
+            }
             return output;
         }
         output.push_str(
@@ -114,6 +119,9 @@ impl DiffReport {
             "\n{} differences: {} regressions, {} improvements\n",
             self.differences, self.regressions, self.improvements
         ));
+        if self.ground_truth_changed {
+            output.push_str("ground truth changed\n");
+        }
         output
     }
 
@@ -223,17 +231,27 @@ pub fn compare(
         .iter()
         .filter(|change| change.kind == ChangeKind::Improvement)
         .count();
+    let ground_truth_changed = !baseline
+        .ground_truth
+        .matches_selection(&new.ground_truth, &new.meta.selection.algorithm);
     Ok(DiffReport {
         verdict_only,
-        differences: changes.len(),
+        differences: changes.len() + usize::from(ground_truth_changed),
         regressions,
         improvements,
+        ground_truth_changed,
         changes,
     })
 }
 
 fn check_comparable(baseline: &Report, new: &Report) -> mischief::Result<()> {
     let mut differences = Vec::new();
+    if baseline.schema_version != new.schema_version {
+        differences.push(format!(
+            "schema_version {} != {}",
+            baseline.schema_version, new.schema_version
+        ));
+    }
     if baseline.meta.references != new.meta.references {
         differences.push(format!(
             "references {:?} != {:?}",
@@ -392,6 +410,7 @@ const fn kind_name(kind: ChangeKind) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ground_truth::GroundTruthReport;
     use crate::report::{
         Channels, InputMeta, Kind, Limits, Meta, PatternSource, References, Selection, Sites,
         WorstSample,
@@ -480,6 +499,7 @@ mod tests {
                 pattern_source: PatternSource::ShiftedCrops,
                 selection: Selection::default(),
             },
+            GroundTruthReport::test_fixture(),
             rows,
         )
     }
@@ -490,6 +510,22 @@ mod tests {
         let diff = compare(&report, &report, false).expect("comparable");
         assert_eq!(diff.exit_code(), 0);
         assert!(diff.changes.is_empty());
+    }
+
+    #[test]
+    fn ground_truth_changes_fail_full_diff_but_not_verdict_only() {
+        let baseline = report(vec![row("ahd", Verdict::Pass, 1.0)]);
+        let mut current = baseline.clone();
+        current.ground_truth.algorithms[0].relative.mean = 1.0;
+
+        let full = compare(&baseline, &current, false).expect("comparable");
+        assert_eq!(full.exit_code(), 1);
+        assert_eq!(full.differences, 1);
+        assert!(full.ground_truth_changed);
+
+        let verdict_only = compare(&baseline, &current, true).expect("comparable");
+        assert_eq!(verdict_only.exit_code(), 0);
+        assert!(verdict_only.ground_truth_changed);
     }
 
     #[test]
