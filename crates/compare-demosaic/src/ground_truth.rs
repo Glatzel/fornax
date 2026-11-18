@@ -385,6 +385,8 @@ impl SourceKind {
 struct Source {
     name: String,
     kind: SourceKind,
+    width: u32,
+    height: u32,
     truth: Vec<[f32; 3]>,
     edge: Vec<bool>,
     mosaic: Vec<f32>,
@@ -506,15 +508,169 @@ fn synthetic_sources() -> Vec<Source> {
     ]
 }
 
+fn evidence_sources() -> Vec<Source> {
+    const DIMENSIONS: [(u32, u32); 3] = [(96, 80), (126, 94), (160, 128)];
+    const ZONE_NAMES: [&str; 3] = [
+        "evidence_zone_plate_a",
+        "evidence_zone_plate_b",
+        "evidence_zone_plate_c",
+    ];
+    const EDGE_NAMES: [&str; 3] = [
+        "evidence_slanted_edge_a",
+        "evidence_slanted_edge_b",
+        "evidence_slanted_edge_c",
+    ];
+    const COLORED_NAMES: [&str; 3] = [
+        "evidence_colored_edges_a",
+        "evidence_colored_edges_b",
+        "evidence_colored_edges_c",
+    ];
+    const LINE_NAMES: [&str; 3] = [
+        "evidence_fine_lines_a",
+        "evidence_fine_lines_b",
+        "evidence_fine_lines_c",
+    ];
+    const GRADIENT_NAMES: [&str; 3] = [
+        "evidence_smooth_gradient_a",
+        "evidence_smooth_gradient_b",
+        "evidence_smooth_gradient_c",
+    ];
+    const HDR_NAMES: [&str; 3] = [
+        "evidence_hdr_blocks_a",
+        "evidence_hdr_blocks_b",
+        "evidence_hdr_blocks_c",
+    ];
+
+    let mut sources = synthetic_sources();
+    for (variant, (width, height)) in DIMENSIONS.into_iter().enumerate() {
+        let variant_u32 = variant as u32;
+        let seed = 0x7d_00 + u64::from(variant_u32);
+        sources.push(scene_sized(
+            ZONE_NAMES[variant],
+            SourceKind::ZonePlate,
+            seed,
+            width,
+            height,
+            move |x, y| {
+                let cx = width as f32 / 2.0;
+                let cy = height as f32 / 2.0;
+                let nx = (x as f32 - cx) / cx;
+                let ny = (y as f32 - cy) / cy;
+                let frequency = 31.0 + 7.0 * variant_u32 as f32;
+                let value = 0.48 + 0.38 * (frequency * (nx * nx + ny * ny)).cos();
+                [value; 3]
+            },
+        ));
+        sources.push(scene_sized(
+            EDGE_NAMES[variant],
+            SourceKind::Edge,
+            seed + 0x10,
+            width,
+            height,
+            move |x, y| {
+                let threshold = width as f32 * (0.58 + 0.03 * variant_u32 as f32);
+                let slope = 0.24 + 0.13 * variant_u32 as f32;
+                if x as f32 + slope * (y as f32) < threshold {
+                    [0.03, 0.07, 0.02]
+                } else {
+                    [0.76 + 0.03 * variant_u32 as f32, 0.61, 0.42]
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            COLORED_NAMES[variant],
+            SourceKind::ColoredEdge,
+            seed + 0x20,
+            width,
+            height,
+            move |x, y| {
+                let block_x = 14 + 5 * variant_u32;
+                let block_y = 19 + 4 * variant_u32;
+                match (x / block_x + y / block_y) % 4 {
+                    0 => [0.82, 0.06, 0.04],
+                    1 => [0.04, 0.69, 0.09],
+                    2 => [0.03, 0.08, 0.84],
+                    _ => [0.78, 0.67, 0.05],
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            LINE_NAMES[variant],
+            SourceKind::FineLines,
+            seed + 0x30,
+            width,
+            height,
+            move |x, y| {
+                let bright = match variant_u32 {
+                    0 => (x + y * 3) & 1 == 0,
+                    1 => (x / 2 + y / 4) & 1 == 0,
+                    _ => (x + 2 * y) % 5 < 2,
+                };
+                if bright {
+                    [0.84, 0.16, 0.68]
+                } else {
+                    [0.05, 0.43, 0.07]
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            GRADIENT_NAMES[variant],
+            SourceKind::Gradient,
+            seed + 0x40,
+            width,
+            height,
+            move |x, y| {
+                let x = x as f32 / (width - 1) as f32;
+                let y = y as f32 / (height - 1) as f32;
+                match variant_u32 {
+                    0 => [0.02 + 0.7 * x, 0.04 + 0.55 * y, 0.01 + 0.3 * x + 0.25 * y],
+                    1 => [0.03 + 0.55 * y, 0.02 + 0.62 * x, 0.04 + 0.24 * x + 0.31 * y],
+                    _ => [
+                        0.02 + 0.36 * x + 0.32 * y,
+                        0.03 + 0.28 * x + 0.41 * y,
+                        0.01 + 0.58 * x + 0.12 * y,
+                    ],
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            HDR_NAMES[variant],
+            SourceKind::Hdr,
+            seed + 0x50,
+            width,
+            height,
+            move |x, y| {
+                let levels = [1.0 / 256.0, 1.0 / 16.0, 1.0, 2.0, 4.0, 16.0];
+                let block_x = 16 + 5 * variant_u32;
+                let block_y = 20 + 4 * variant_u32;
+                let level = levels[((x / block_x) + 4 * (y / block_y)) as usize % levels.len()];
+                [level, level * 0.7, level * 0.45]
+            },
+        ));
+    }
+    sources
+}
+
 fn scene(
     name: &'static str,
     kind: SourceKind,
     seed: u64,
     value: impl Fn(u32, u32) -> [f32; 3],
 ) -> Source {
-    let mut truth = Vec::with_capacity((WIDTH * HEIGHT) as usize);
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
+    scene_sized(name, kind, seed, WIDTH, HEIGHT, value)
+}
+
+fn scene_sized(
+    name: &'static str,
+    kind: SourceKind,
+    seed: u64,
+    width: u32,
+    height: u32,
+    value: impl Fn(u32, u32) -> [f32; 3],
+) -> Source {
+    let mut truth = Vec::with_capacity((width * height) as usize);
+    for y in 0..height {
+        for x in 0..width {
             let mut pixel = value(x, y);
             for (channel, sample) in pixel.iter_mut().enumerate() {
                 *sample += 1.0e-4 * noise(seed, x, y, channel as u32);
@@ -522,11 +678,13 @@ fn scene(
             truth.push(pixel);
         }
     }
-    let edge = derive_edges(&truth);
-    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN);
+    let edge = derive_edges(&truth, width, height);
+    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN, width);
     Source {
         name: name.to_owned(),
         kind,
+        width,
+        height,
         truth,
         edge,
         mosaic,
@@ -546,24 +704,24 @@ fn noise(seed: u64, x: u32, y: u32, channel: u32) -> f32 {
     ((value >> 40) as u32) as f32 / ((1_u32 << 24) as f32) * 2.0 - 1.0
 }
 
-fn derive_edges(truth: &[[f32; 3]]) -> Vec<bool> {
+fn derive_edges(truth: &[[f32; 3]], width: u32, height: u32) -> Vec<bool> {
     let mut edges = vec![false; truth.len()];
-    for y in 0..HEIGHT as usize {
-        for x in 0..WIDTH as usize {
-            let center = truth[y * WIDTH as usize + x];
+    for y in 0..height as usize {
+        for x in 0..width as usize {
+            let center = truth[y * width as usize + x];
             let mut neighbour_max = [0.0_f64; 3];
             let mut neighbour = Vec::with_capacity(4);
             if x > 0 {
-                neighbour.push(truth[y * WIDTH as usize + x - 1]);
+                neighbour.push(truth[y * width as usize + x - 1]);
             }
-            if x + 1 < WIDTH as usize {
-                neighbour.push(truth[y * WIDTH as usize + x + 1]);
+            if x + 1 < width as usize {
+                neighbour.push(truth[y * width as usize + x + 1]);
             }
             if y > 0 {
-                neighbour.push(truth[(y - 1) * WIDTH as usize + x]);
+                neighbour.push(truth[(y - 1) * width as usize + x]);
             }
-            if y + 1 < HEIGHT as usize {
-                neighbour.push(truth[(y + 1) * WIDTH as usize + x]);
+            if y + 1 < height as usize {
+                neighbour.push(truth[(y + 1) * width as usize + x]);
             }
             let mut gradient = 0.0_f64;
             for pixel in neighbour {
@@ -578,19 +736,19 @@ fn derive_edges(truth: &[[f32; 3]]) -> Vec<bool> {
             let scale = neighbour_max
                 .into_iter()
                 .fold(RELATIVE_NOISE_FLOOR, f64::max);
-            edges[y * WIDTH as usize + x] = gradient > EDGE_RELATIVE_THRESHOLD * scale;
+            edges[y * width as usize + x] = gradient > EDGE_RELATIVE_THRESHOLD * scale;
         }
     }
     edges
 }
 
-fn re_mosaic(truth: &[[f32; 3]], pattern: BayerPattern) -> Vec<f32> {
+fn re_mosaic(truth: &[[f32; 3]], pattern: BayerPattern, width: u32) -> Vec<f32> {
     truth
         .iter()
         .enumerate()
         .map(|(index, pixel)| {
-            let x = index as u32 % WIDTH;
-            let y = index as u32 / WIDTH;
+            let x = index as u32 % width;
+            let y = index as u32 / width;
             let channel = match pattern.channel_at(x, y) {
                 BayerChannel::R => 0,
                 BayerChannel::GRedRow | BayerChannel::GBlueRow => 1,
@@ -611,7 +769,11 @@ pub(crate) fn evaluate_reference_evidence(
 ) -> mischief::Result<OutlierEvidence> {
     let mut fornax_errors = Vec::new();
     let mut reference_errors = Vec::new();
-    let sources = synthetic_sources();
+    let sources = if case.name.eq_ignore_ascii_case("AMaZE") {
+        evidence_sources()
+    } else {
+        synthetic_sources()
+    };
     for source in &sources {
         let maximum = source
             .truth
@@ -624,7 +786,7 @@ pub(crate) fn evaluate_reference_evidence(
             .iter()
             .map(|pixel| pixel.map(|sample| sample * scale))
             .collect::<Vec<_>>();
-        let mosaic = re_mosaic(&scaled_truth, pattern);
+        let mosaic = re_mosaic(&scaled_truth, pattern, source.width);
         let codes = mosaic
             .iter()
             .map(|sample| (sample * f32::from(u16::MAX)).round() as u16)
@@ -637,20 +799,20 @@ pub(crate) fn evaluate_reference_evidence(
             case.reference_backend,
             case.algorithm,
             &codes,
-            WIDTH,
-            HEIGHT,
+            source.width,
+            source.height,
             crate::reference::libraw_filters(pattern),
         )?;
         let fornax = (case.run_fornax)(
             &codes,
-            WIDTH,
-            HEIGHT,
+            source.width,
+            source.height,
             pattern,
             crate::cases::SampleType::F32,
         )?;
-        for y in BORDER_PX..HEIGHT - BORDER_PX {
-            for x in BORDER_PX..WIDTH - BORDER_PX {
-                let pixel = y as usize * WIDTH as usize + x as usize;
+        for y in BORDER_PX..source.height - BORDER_PX {
+            for x in BORDER_PX..source.width - BORDER_PX {
+                let pixel = y as usize * source.width as usize + x as usize;
                 for channel in 0..3 {
                     let index = pixel * 3 + channel;
                     if fornax[index].abs_diff(reference[index]) > crate::metrics::TOLERANCE_CODES {
@@ -925,7 +1087,7 @@ fn evaluate_algorithm(
 }
 
 fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<SourceErrors> {
-    let image = MonoImage::from_raw(WIDTH, HEIGHT, source.mosaic.clone())
+    let image = MonoImage::from_raw(source.width, source.height, source.mosaic.clone())
         .ok_or_else(|| mischief::mischief!("cannot construct ground-truth mosaic"))?;
     let output = demosaic
         .demosaic(&image, CANONICAL_PATTERN)
@@ -955,9 +1117,9 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
         fornax: 0.0,
         relative_error: -1.0,
     };
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
-            let pixel = y as usize * WIDTH as usize + x as usize;
+    for y in 0..source.height {
+        for x in 0..source.width {
+            let pixel = y as usize * source.width as usize + x as usize;
             let truth = source.truth[pixel];
             let actual = [
                 output[pixel * 3],
@@ -1030,9 +1192,13 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
 }
 
 fn pixel_class(source: &Source, x: u32, y: u32) -> PixelClass {
-    if x < BORDER_PX || y < BORDER_PX || x >= WIDTH - BORDER_PX || y >= HEIGHT - BORDER_PX {
+    if x < BORDER_PX
+        || y < BORDER_PX
+        || x >= source.width - BORDER_PX
+        || y >= source.height - BORDER_PX
+    {
         PixelClass::Border
-    } else if source.edge[y as usize * WIDTH as usize + x as usize] {
+    } else if source.edge[y as usize * source.width as usize + x as usize] {
         PixelClass::Edge
     } else {
         PixelClass::Flat
@@ -1125,11 +1291,13 @@ fn corpus_source(relative: &str, input: crate::reference::ActiveArea) -> Source 
             (0..WIDTH).map(move |x| half_truth[(y / 2 * half_width + x / 2) as usize])
         })
         .collect::<Vec<_>>();
-    let edge = derive_edges(&truth);
-    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN);
+    let edge = derive_edges(&truth, WIDTH, HEIGHT);
+    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN, WIDTH);
     Source {
         name: format!("corpus:{relative}"),
         kind: SourceKind::Corpus,
+        width: WIDTH,
+        height: HEIGHT,
         truth,
         edge,
         mosaic,
@@ -1170,6 +1338,28 @@ mod tests {
             .fold(f32::INFINITY, f32::min);
         assert!(maximum >= 16.0);
         assert!(minimum <= 1.0 / 256.0);
+    }
+
+    #[test]
+    fn amaze_evidence_covers_multiple_variants_seeds_and_sizes() {
+        let first = evidence_sources();
+        let second = evidence_sources();
+        assert_eq!(first, second);
+        assert_eq!(first.len(), 24);
+        assert_eq!(first[..6], synthetic_sources()[..]);
+        let dimensions = first[6..]
+            .iter()
+            .map(|source| (source.width, source.height))
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            dimensions,
+            [(96, 80), (126, 94), (160, 128)].into_iter().collect()
+        );
+        let names = first
+            .iter()
+            .map(|source| source.name.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(names.len(), first.len());
     }
 
     #[test]

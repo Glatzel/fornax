@@ -258,14 +258,14 @@ difference is a practical floor for meaningful reference agreement.
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | GRBG | [1, 0] | no | ⚖️ | 0.684360 | 6.365938 | 2252 | -0.017827 | 14 | 87 | 0.996317 | 56/56688/20070 | 47 (0) | no | not worse |
 | [rawtherapee](https://github.com/RawTherapee/RawTherapee/blob/1924179107995b01b73cdc7f4fe91e44fc8227a7/rtengine/amaze_demosaic_RT.cc#L48) | RGGB | [0, 0] | yes | ⚖️ | 0.684282 | 6.365276 | 2252 | -0.017869 | 14 | 87 | 0.996317 | 55/56691/20075 | 47 (0) | no | not worse |
 
-**Automatic ⚖️ evidence:** darktable BGGR: 9028 divergent synthetic samples; Fornax MAE/P99 1275.694506/6827.000000 codes versus reference 1480.436088/7104.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** darktable GBRG: 8136 divergent synthetic samples; Fornax MAE/P99 1224.592060/5586.000000 codes versus reference 1445.823378/5905.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** darktable GRBG: 8097 divergent synthetic samples; Fornax MAE/P99 1143.940842/5211.000000 codes versus reference 1366.232061/5483.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** darktable RGGB: 9030 divergent synthetic samples; Fornax MAE/P99 1150.368771/6430.000000 codes versus reference 1352.468882/6803.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee BGGR: 9028 divergent synthetic samples; Fornax MAE/P99 1275.694506/6827.000000 codes versus reference 1480.436088/7104.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee GBRG: 8136 divergent synthetic samples; Fornax MAE/P99 1224.592060/5586.000000 codes versus reference 1445.823378/5905.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee GRBG: 8097 divergent synthetic samples; Fornax MAE/P99 1143.940842/5211.000000 codes versus reference 1366.232061/5483.000000; reference-floor match: no.
-**Automatic ⚖️ evidence:** rawtherapee RGGB: 9030 divergent synthetic samples; Fornax MAE/P99 1150.368771/6430.000000 codes versus reference 1352.468882/6803.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** darktable BGGR: 68324 divergent synthetic samples; Fornax MAE/P99 14900.188001/52178.000000 codes versus reference 14934.316477/52561.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** darktable GBRG: 67553 divergent synthetic samples; Fornax MAE/P99 15160.925940/52178.000000 codes versus reference 15183.719346/52561.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** darktable GRBG: 66600 divergent synthetic samples; Fornax MAE/P99 14812.042282/52179.000000 codes versus reference 14865.809144/52562.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** darktable RGGB: 68193 divergent synthetic samples; Fornax MAE/P99 14850.458419/52178.000000 codes versus reference 14916.977637/52561.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** rawtherapee BGGR: 68324 divergent synthetic samples; Fornax MAE/P99 14900.188001/52178.000000 codes versus reference 14934.316477/52561.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** rawtherapee GBRG: 67553 divergent synthetic samples; Fornax MAE/P99 15160.925940/52178.000000 codes versus reference 15183.719346/52561.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** rawtherapee GRBG: 66600 divergent synthetic samples; Fornax MAE/P99 14812.042282/52179.000000 codes versus reference 14865.809144/52562.000000; reference-floor match: no.
+**Automatic ⚖️ evidence:** rawtherapee RGGB: 68193 divergent synthetic samples; Fornax MAE/P99 14850.458419/52178.000000 codes versus reference 14916.977637/52561.000000; reference-floor match: no.
 <!-- compare-demosaic:end algo:amaze -->
 
 ### darktable `amaze_demosaic`
@@ -284,6 +284,9 @@ mosaic. Fornax preserves signed and HDR values with scale-relative thresholds;
 the bounded reference makes different decisions where those values are
 quantized for comparison.
 
+**Open issues:** the broad horizontal-flip invariant still exposes a
+direction-selection asymmetry at the image border.
+
 ### RawTherapee `amaze_demosaic_RT`
 
 **Why this reference:** it exercises RawTherapee's independently optimized
@@ -298,6 +301,9 @@ data from `scaleColors`; the comparison deliberately omits white balance.
 Fornax uses generic floating-point powers of two and scale-relative highlight
 thresholds without clipping. Reference quantization and different bounded
 highlight decisions account for the remaining differences.
+
+**Open issues:** the broad horizontal-flip invariant still exposes a
+direction-selection asymmetry at the image border.
 
 ## Linear
 
@@ -357,6 +363,9 @@ continuation above one. The generic kernel preserves `T` internally and
 quantizes only at the bounded reference boundary; measured Bayer sites remain
 exact.
 
+**Open issues:** divergent-sample evidence is marginally worse than the
+reference despite the stronger aggregate ground-truth rank.
+
 ### RawTherapee `lmmse_interpolate_omp`
 
 **Why this reference:** it provides a second maintained LMMSE implementation
@@ -369,6 +378,9 @@ apply the nine-tap MMSE blend, and reconstruct red and blue from green.
 iteration without white balance or its preprocess/output stages. These table
 and pipeline conventions can leave larger differences than darktable while
 sampled Bayer sites remain exact.
+
+**Open issues:** reconstructed samples are evidence-worse than the bounded
+RawTherapee reference on divergent pixels.
 
 ## PPG
 
@@ -441,6 +453,8 @@ floating-point Rust with a scale-relative epsilon and preserves signed HDR
 output. The darktable bridge quantizes at the bounded reference boundary.
 Border fill and the surrounding metadata pipeline are not shared.
 
+**Open issues:** horizontal-flip symmetry remains direction-sensitive.
+
 ### RawTherapee `rcd_demosaic`
 
 **Why this reference:** it provides an independently optimized RCD pipeline
@@ -454,6 +468,9 @@ color differences.
 balance or its preprocess/output stages. Fornax targets darktable's normalized
 `f32` RCD path, so RawTherapee's near-tie decisions can produce a larger
 interpolated-sample outlier tail.
+
+**Open issues:** divergent-sample P99 remains worse than RawTherapee even
+though aggregate DNG agreement improved substantially.
 
 ## VNG
 
@@ -488,6 +505,9 @@ differences even when the aggregate error is small. See
 [the VNG reference notes](../../docs/reference/algorithms/vng.md) for source links and
 implementation details.
 
+**Open issues:** float direction decisions are evidence-worse than darktable
+and are about 18% slower than the former integer kernel.
+
 ### LibRaw `vng_interpolate`
 
 **Why this reference:** it is retained as informational evidence for the
@@ -500,6 +520,9 @@ green-referenced neighbor differences.
 **Known differences:** LibRaw's comparison adapter sets `four_color_rgb = 0`,
 so it retains one green plane and intentionally produces a materially
 different result from Fornax's split-green darktable-compatible path.
+
+**Open issues:** the practical reference floor is met, but synthetic evidence
+is worse on the divergent samples.
 
 ## VNG4
 
@@ -535,6 +558,8 @@ The comparison adapter sets LibRaw's four-color option before
 `pre_interpolate` and performs the documented post-interpolation green mix.
 No source code is copied into the postprocessor.
 
+**Open issues:** shared VNG evidence and performance limitations remain.
+
 ### RawTherapee `vng4_demosaic`
 
 **Why this reference:** it provides a second split-green VNG implementation
@@ -547,3 +572,6 @@ interpolation and combine them only when producing final RGB.
 split-green `prefilters` mask and omits its preprocessing and output stages.
 Border interpolation and pixel-neighborhood indexing remain
 RawTherapee-specific.
+
+**Open issues:** RawTherapee evidence is accepted, but VNG4 is about 22% slower
+and is evidence-worse against LibRaw.
