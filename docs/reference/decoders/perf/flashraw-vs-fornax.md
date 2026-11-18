@@ -6,8 +6,8 @@ preprocessing, hashing, or CSV work is inside the timed region.
 
 The sample set is the stable decoder-path representatives selected from the
 [golden performance manifest](../../../../crates/decoder-tracker/golden/perf-manifest.csv),
-plus separately measured Nikon path targets. The current performance manifest
-has 33 grouped inputs. Its 20-row decoder-path matrix is
+plus separately measured Nikon path targets and R5 CRX coverage. The current
+performance manifest has 33 grouped inputs. Its 20-row decoder-path matrix is
 [golden-benchmark-matrix.csv](data/golden-benchmark-matrix.csv). Per-batch
 timings, throughput, faults, sample types, and hashes are in
 [golden-flashraw-vs-fornax-2026-11-17.csv](data/golden-flashraw-vs-fornax-2026-11-17.csv).
@@ -56,13 +56,15 @@ is the Fornax one-thread process spread.
 | Canon EOS 5D Mark III | DNG uncompressed 32-bit | 32.59 | 43.28 | 0.75x | 24.53 | 46.99 | 0.52x | 3.3% |
 | Canon EOS 5D Mark III | DNG Deflate FP32 | 337.81 | 265.19 | 1.27x | 55.41 | 47.47 | 1.17x | 4.7% |
 | Canon EOS 60D | DNG LJPEG 14-bit | 6.48 | 2.38 | 2.72x | 6.32 | 2.73 | 2.32x | 1.7% |
-| Canon EOS R6 | CR3 lossless CRX | 171.83 | 61.48 | 2.80x | 56.88 | 20.48 | 2.78x | 4.3% |
+| Canon EOS R5 | CR3 lossless CRX | 950.12 | 408.49 | 2.33x | 378.21 | 122.71 | 3.08x | 4.5% |
+| Canon EOS R6 | CR3 lossless CRX | 164.93 | 72.43 | 2.28x | 67.99 | 20.15 | 3.37x | 1.5% |
+| Canon EOS R7 | CR3 lossless CRX | 735.19 | 293.69 | 2.50x | 348.88 | 89.58 | 3.89x | 1.7% |
 | Canon PowerShot G1 X | DNG uncompressed 14-bit | 88.90 | 10.52 | 8.45x | 110.23 | 6.60 | 16.71x | 1.5% |
-| Nikon Z5 II | NEF Huffman | 33.94 | 33.14 | 1.02x | 34.26 | 11.35 | 3.02x | 1.5% |
-| Nikon D6 | NEF mode-10 packed 14-bit | 81.64 | 15.26 | 5.35x | 9.70 | 6.91 | 1.40x | 0.4% |
-| Nikon D850 | NEF Huffman | 195.16 | 141.43 | 1.38x | 194.69 | 53.46 | 3.64x | 1.9% |
-| Nikon Z7 | NEF mode-10 packed 14-bit | 178.02 | 30.47 | 5.84x | 19.95 | 13.40 | 1.49x | 1.0% |
-| Nikon Z7 | NEF Huffman | 228.88 | 153.77 | 1.49x | 228.49 | 53.47 | 4.27x | 0.5% |
+| Nikon Z5 II | NEF Huffman | 33.63 | 32.94 | 1.02x | 33.65 | 10.77 | 3.12x | 5.3% |
+| Nikon D6 | NEF mode-10 packed 14-bit | 65.83 | 15.45 | 4.26x | 7.55 | 6.89 | 1.10x | 4.5% |
+| Nikon D850 | NEF Huffman | 197.51 | 143.52 | 1.38x | 197.74 | 52.71 | 3.75x | 2.0% |
+| Nikon Z7 | NEF mode-10 packed 14-bit | 148.49 | 31.37 | 4.73x | 14.97 | 13.99 | 1.07x | 4.1% |
+| Nikon Z7 | NEF Huffman | 229.50 | 154.72 | 1.48x | 231.34 | 53.50 | 4.32x | 1.7% |
 | Nikon Z9 | NEF Huffman | 226.13 | 154.11 | 1.47x | 226.46 | 53.65 | 4.22x | 0.7% |
 | Sigma fp | DNG uncompressed 12-bit | 1.01 | 1.28 | 0.79x | 0.99 | 0.87 | 1.14x | 6.3% |
 | Sigma fp | DNG uncompressed 10-bit | 1.02 | 1.17 | 0.87x | 1.06 | 0.86 | 1.24x | 6.9% |
@@ -71,6 +73,10 @@ is the Fornax one-thread process spread.
 | Sony ILCE-7RM5 | ARW uncompressed 14-bit | 34.16 | 34.34 | 0.99x | 37.18 | 21.26 | 1.75x | 2.7% |
 | Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.27 | 5.95 | 1.05x | 5.21 | 4.34 | 1.20x | 4.7% |
 | Sony ILCE-9M3 | ARW LJPEG 14-bit | 82.85 | 59.02 | 1.40x | 17.32 | 9.78 | 1.77x | 3.2% |
+
+The final interleaved Nikon/CRX measurements, paired ranges, controls,
+throughput, and faults are in
+[golden-nikon-crx-ab-2026-11-18.csv](data/golden-nikon-crx-ab-2026-11-18.csv).
 
 The 5D3 uncompressed rows show Fornax faster than FlashRaw at sixteen threads,
 but FlashRaw's 16-thread wall time is slower than its one-thread result on this
@@ -92,15 +98,17 @@ their absolute differences are sub-millisecond to low-millisecond.
 - **DNG Deflate FP16/24/32** is 1.27-1.41x slower at one thread. At edge
   completion Fornax is slightly faster for FP16 and 1.17-1.22x slower for
   FP24/FP32.
-- **Canon CR3 CRX** is 2.80x/2.78x slower. The cached leading-zero Rice reader
-  leaves coefficient prediction, line reconstruction, and plane placement as
-  the dominant gap.
-- **Nikon Huffman** is 1.02-1.49x slower at one thread and 3.02-4.27x slower at
+- **Canon CR3 CRX** is 2.28-2.50x slower at one thread and 3.08-3.89x slower at
+  edge completion across R5/R6/R7. Fused Rice extraction and direct one-thread
+  placement reduce absolute time by 9-19%, but each sample has one lossless tile
+  with four plane tasks, so the parallel path still leaves most 16T workers
+  idle.
+- **Nikon Huffman** is 1.02-1.49x slower at one thread and 3.12-4.32x slower at
   edge completion. Z5 II is at parity at one thread; the larger D850, Z7, and
   Z9 files retain the one-thread gap.
-- **Nikon mode-10 packed** is 5.35-5.84x slower at one thread but only
-  1.40-1.49x slower at edge completion. Row parallelism closes most of the
-  multi-thread gap; the one-thread per-sample unpack remains dominant.
+- **Nikon mode-10 packed** is 4.26-4.73x slower at one thread and 1.07-1.10x
+  slower at edge completion. The grouped 8-sample kernel reduces one-thread
+  time by 18-19% and leaves a small residual multi-thread gap.
 - **Sony uncompressed** varies from parity at one thread to 1.2-2.2x slower at
   edge completion on the larger samples. **Sony LJPEG** is 1.40x/1.77x slower;
   four-component rows stream directly into the two Bayer rows without a
@@ -113,18 +121,19 @@ their absolute differences are sub-millisecond to low-millisecond.
 Ranked by measured impact and implementation leverage. Each item states the
 evidence required before work starts.
 
-1. **Nikon mode-10 one-thread kernel.** D6 and Z7 are 5.35x and 5.84x slower;
-   the scalar little-endian loop refills and extracts one sample at a time.
-   Require a release profile showing the row kernel dominates and a grouped
-   prototype that exceeds control drift at one thread without regressing 16T.
-2. **Nikon Huffman one-thread gap.** D850, Z7, and Z9 are 1.38-1.49x slower;
-   Z5 II is at parity. Suspected costs are checked stream boundaries and the
-   per-sample curve lookup. Require a release profile and separate measurements
-   for refill, identity-curve, and non-identity lookup changes.
-3. **Canon CRX reconstruction and placement.** R6 is 2.80x/2.78x slower. The
-   Rice prefix reader is complete; require a cycle split across Rice decode,
-   prediction, line reconstruction, placement/output, and allocation before
-   changing the scan.
+1. **Canon CRX edge completion.** R5/R6/R7 are 3.08-3.89x slower at 16T, but
+   each file has four plane tasks and R6 used only 2.3-4.1 CPUs. Require a
+   bounded intra-plane or speculative-start design that reconstructs every
+   predictor dependency before code changes.
+2. **Nikon Huffman edge completion.** D850, Z7, and Z9 are 3.75-4.32x slower
+   because the single strip remains sequential. Require a separately gated
+   speculative chunk/resynchronization prototype with strict fallback; the
+   estimated upside is 2-4x at 16T.
+3. **Nikon mode-10 one-thread residual.** D6 and Z7 remain 4.26x and 4.73x
+   slower. The suspected residual is grouped shift/extract work plus row
+   scheduling overhead. Require a post-grouped-kernel profile; do not stack
+   another packed extraction change without showing the new row kernel still
+   dominates.
 4. **DNG Deflate kernel.** FP32 inflate and predictor reversal dominate the
    one-thread gap. Require a both-thread-count win; zlib-rs was mixed in
    measurement and is not accepted from a one-thread result.
@@ -152,6 +161,13 @@ evidence required before work starts.
 - The shared packed-row helper parallelizes at 4,194,304 samples and assigns
   `ceil(height / (threads * 4))` rows per task. Nikon mode-10 keeps this
   threshold and task sizing.
+- Nikon's grouped packed-row kernel handles eight 12/14-bit samples from 12/14
+  little- or big-endian bytes with safe `u128::from_*_bytes`, then finishes row
+  tails scalar. The old one-sample kernel remains only as a test oracle.
+- R5/R6/R7 each contain one lossless tile and four independently coded planes.
+  Direct placement is used at one thread; the parallel path retains plane
+  buffers and interleaving to avoid unsafe aliasing. Remaining CRX work must
+  preserve those four-way tasks and measure thread utilization.
 - FlashRaw still wins where it uses unaligned 64-bit stream reads and an
   identity-curve fast path. Fornax keeps checked reads and must verify curve
   identity by value once per decode before skipping lookup.
@@ -175,6 +191,10 @@ evidence required before work starts.
 
 ## Rejected experiments
 
+- `crates/fornax-raw-nikon/src/codec.rs` checked 64-bit Huffman refill: D850 and
+  Z7 regressed 1.7-2.9% at both thread counts; dropped.
+- `crates/fornax-raw-nikon/src/codec.rs` identity-curve fast path: D850 was
+  neutral at 1T and slightly slower at 16T; dropped.
 - Historical neutral and regressed decoder experiments are indexed in the
   [decoder performance archive](../../../archive/reference/decoders/perf/);
   do not repeat one without new profile evidence. New candidates are recorded

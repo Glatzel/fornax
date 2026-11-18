@@ -87,11 +87,11 @@ Out of scope:
 
 ### Task 4: Final documentation
 
-- [ ] Run complete golden hash verification and `scripts/agent-validation.sh`.
-- [ ] Record accepted measurements in a new dated CSV.
-- [ ] Update only Results, Format findings, Improvement priorities, Notes for
+- [x] Run complete golden hash verification and `scripts/agent-validation.sh`.
+- [x] Record accepted measurements in a new dated CSV.
+- [x] Update only Results, Format findings, Improvement priorities, Notes for
   future work, and rejected experiments.
-- [ ] Run the document link checker, inspect all four commits, and commit final
+- [x] Run the document link checker, inspect all four commits, and commit final
   docs as commit 4.
 
 ## Files Expected to Change
