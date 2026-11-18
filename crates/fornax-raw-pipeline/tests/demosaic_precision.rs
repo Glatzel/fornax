@@ -6,12 +6,36 @@ const WIDTH: u32 = 64;
 const HEIGHT: u32 = 64;
 const F64_RELATIVE_TOLERANCE: f64 = 2.0e-10;
 const F64_ABSOLUTE_TOLERANCE: f64 = 1.0e-12;
+const ALGORITHMS: [(&str, Demosaic); 7] = [
+    ("AMaZE", Demosaic::Amaze),
+    ("Linear", Demosaic::Linear),
+    (
+        "LMMSE",
+        Demosaic::Lmmse {
+            mode: fornax_raw_pipeline::LmmseMode::Median,
+        },
+    ),
+    ("PPG", Demosaic::Ppg),
+    ("RCD", Demosaic::Rcd),
+    ("VNG", Demosaic::Vng),
+    ("VNG4", Demosaic::Vng4),
+];
 
 fn sample<T: Primitive>(value: f64) -> T { cast(value).expect("the test sample fits T") }
 
 fn seeded_mosaic<T: Primitive>(low: f64, high: f64) -> Vec<T> {
-    let mut state = 0x5ca1_ab1e_u64;
-    (0..WIDTH * HEIGHT)
+    seeded_mosaic_sized::<T>(0x5ca1_ab1e, WIDTH, HEIGHT, low, high)
+}
+
+fn seeded_mosaic_sized<T: Primitive>(
+    seed: u64,
+    width: u32,
+    height: u32,
+    low: f64,
+    high: f64,
+) -> Vec<T> {
+    let mut state = seed;
+    (0..width * height)
         .map(|_| {
             state = state
                 .wrapping_mul(6_364_136_223_846_793_005)
@@ -23,10 +47,20 @@ fn seeded_mosaic<T: Primitive>(low: f64, high: f64) -> Vec<T> {
 }
 
 fn run<T: Primitive + Send + Sync>(algorithm: Demosaic, samples: Vec<T>) -> Result<Vec<T>, String> {
-    let image = MonoImage::from_raw(WIDTH, HEIGHT, samples)
+    run_sized(algorithm, samples, WIDTH, HEIGHT, BayerPattern::GBRG)
+}
+
+fn run_sized<T: Primitive + Send + Sync>(
+    algorithm: Demosaic,
+    samples: Vec<T>,
+    width: u32,
+    height: u32,
+    pattern: BayerPattern,
+) -> Result<Vec<T>, String> {
+    let image = MonoImage::from_raw(width, height, samples)
         .ok_or_else(|| "failed to construct the test mosaic".to_owned())?;
     algorithm
-        .demosaic(&image, BayerPattern::GBRG)
+        .demosaic(&image, pattern)
         .map_err(|error| format!("{error:?}"))
         .map(|lazy| lazy.collect().into_raw())
 }
@@ -229,6 +263,55 @@ fn lmmse_f64_is_scale_homogeneous_and_preserves_range() {
             &vec![value; output.len()],
             &format!("LMMSE f64 constant {value}"),
         );
+    }
+}
+
+#[test]
+fn all_f64_kernels_scale_across_patterns_and_dimensions() {
+    for (name, algorithm) in ALGORITHMS {
+        for pattern in BayerPattern::ALL {
+            for (width, height, seed) in [(40, 36, 0x5ca1_ab20), (65, 47, 0x5ca1_ab21)] {
+                let mosaic = seeded_mosaic_sized::<f64>(seed, width, height, 0.05, 1.5);
+                let baseline =
+                    run_sized(algorithm, mosaic.clone(), width, height, pattern).unwrap();
+                for factor in [1.0e-3, 1.0e3] {
+                    let scaled = mosaic.iter().map(|value| *value * factor).collect();
+                    let actual = run_sized(algorithm, scaled, width, height, pattern).unwrap();
+                    let expected = baseline
+                        .iter()
+                        .map(|value| *value * factor)
+                        .collect::<Vec<_>>();
+                    assert_close(
+                        &actual,
+                        &expected,
+                        &format!("{name} f64 {pattern} {width}x{height} scale {factor:e}"),
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn all_f64_kernels_preserve_constant_signed_ranges_for_every_pattern() {
+    for (name, algorithm) in ALGORITHMS {
+        for pattern in BayerPattern::ALL {
+            for value in [-0.25, 2.0, 1.0e4] {
+                let output = run_sized(
+                    algorithm,
+                    vec![sample::<f64>(value); (48 * 40) as usize],
+                    48,
+                    40,
+                    pattern,
+                )
+                .unwrap();
+                assert_close(
+                    &output,
+                    &vec![value; output.len()],
+                    &format!("{name} f64 {pattern} constant {value}"),
+                );
+            }
+        }
     }
 }
 
