@@ -569,6 +569,120 @@ fn unpack_row(
     bits: u8,
     byte_order: ByteOrder,
 ) -> Result<(), CodecError> {
+    match byte_order {
+        ByteOrder::Little => unpack_row_grouped(source, target, bits),
+        ByteOrder::Big => unpack_row_grouped_big_endian(source, target, bits),
+    }
+}
+
+fn unpack_row_grouped(source: &[u8], target: &mut [u16], bits: u8) -> Result<(), CodecError> {
+    let group_bytes = usize::from(bits);
+    let groups = target.len() / 8;
+    let grouped_bytes = groups
+        .checked_mul(group_bytes)
+        .ok_or_else(|| invalid("Nikon packed-row group size overflow"))?;
+    if source.len() < grouped_bytes {
+        return Err(invalid("Nikon packed row is truncated"));
+    }
+    let mask = (1_u128 << bits) - 1;
+    for (group, values) in target.as_chunks_mut::<8>().0.iter_mut().enumerate() {
+        let start = group * group_bytes;
+        let mut bytes = [0_u8; 16];
+        bytes[..group_bytes].copy_from_slice(&source[start..start + group_bytes]);
+        let word = u128::from_le_bytes(bytes);
+        for (index, value) in values.iter_mut().enumerate() {
+            *value = ((word >> (index * usize::from(bits))) & mask) as u16;
+        }
+    }
+    unpack_row_little_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], bits)
+}
+
+fn unpack_row_grouped_big_endian(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+) -> Result<(), CodecError> {
+    let group_bytes = usize::from(bits);
+    let groups = target.len() / 8;
+    let grouped_bytes = groups
+        .checked_mul(group_bytes)
+        .ok_or_else(|| invalid("Nikon packed-row group size overflow"))?;
+    if source.len() < grouped_bytes {
+        return Err(invalid("Nikon packed row is truncated"));
+    }
+    let mask = (1_u128 << bits) - 1;
+    for (group, values) in target.as_chunks_mut::<8>().0.iter_mut().enumerate() {
+        let start = group * group_bytes;
+        let mut bytes = [0_u8; 16];
+        bytes[16 - group_bytes..].copy_from_slice(&source[start..start + group_bytes]);
+        let word = u128::from_be_bytes(bytes);
+        for (index, value) in values.iter_mut().enumerate() {
+            let shift = group_bytes * 8 - (index + 1) * usize::from(bits);
+            *value = ((word >> shift) & mask) as u16;
+        }
+    }
+    unpack_row_big_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], bits)
+}
+
+fn unpack_row_little_endian_tail(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+) -> Result<(), CodecError> {
+    let bits = u32::from(bits);
+    let mask = (1_u64 << bits) - 1;
+    let mut buffer = 0_u64;
+    let mut buffered = 0_u32;
+    let mut bytes = source.iter().copied();
+    for value in target {
+        while buffered < bits {
+            buffer |= u64::from(
+                bytes
+                    .next()
+                    .ok_or_else(|| invalid("Nikon packed row is truncated"))?,
+            ) << buffered;
+            buffered += 8;
+        }
+        *value = (buffer & mask) as u16;
+        buffer >>= bits;
+        buffered -= bits;
+    }
+    Ok(())
+}
+
+fn unpack_row_big_endian_tail(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+) -> Result<(), CodecError> {
+    let bits = u32::from(bits);
+    let mask = (1_u64 << bits) - 1;
+    let mut buffer = 0_u64;
+    let mut buffered = 0_u32;
+    let mut bytes = source.iter().copied();
+    for value in target {
+        while buffered < bits {
+            buffer = (buffer << 8)
+                | u64::from(
+                    bytes
+                        .next()
+                        .ok_or_else(|| invalid("Nikon packed row is truncated"))?,
+                );
+            buffered += 8;
+        }
+        buffered -= bits;
+        *value = ((buffer >> buffered) & mask) as u16;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+fn unpack_row_reference(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+    byte_order: ByteOrder,
+) -> Result<(), CodecError> {
     let bits = u32::from(bits);
     let mask = (1_u64 << bits) - 1;
     let mut buffer = 0_u64;
@@ -1341,5 +1455,104 @@ mod lossless_tests {
                 })
             })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod packed_kernel_tests {
+    use super::{unpack_row_grouped, unpack_row_grouped_big_endian, unpack_row_reference};
+    use crate::request::ByteOrder;
+
+    #[test]
+    fn grouped_little_endian_matches_reference_for_partial_groups() {
+        for bits in [12_u8, 14] {
+            for width in [1_usize, 5, 8, 9, 17] {
+                let expected = (0..width)
+                    .map(|index| ((index * 613 + 17) as u16) & ((1 << bits) - 1))
+                    .collect::<Vec<_>>();
+                let source = pack_little_endian(&expected, bits);
+                let row_bytes = (width * usize::from(bits)).div_ceil(8);
+                let mut grouped = vec![0_u16; width];
+                let mut reference = vec![0_u16; width];
+
+                unpack_row_grouped(&source[..row_bytes], &mut grouped, bits).unwrap();
+                unpack_row_reference(
+                    &source[..row_bytes],
+                    &mut reference,
+                    bits,
+                    ByteOrder::Little,
+                )
+                .unwrap();
+
+                assert_eq!(grouped, expected, "bits={bits}, width={width}");
+                assert_eq!(grouped, reference, "bits={bits}, width={width}");
+            }
+        }
+    }
+
+    #[test]
+    fn grouped_kernel_handles_padded_non_byte_aligned_rows() {
+        let expected = (0..9)
+            .map(|index| ((index * 977 + 31) as u16) & 0x3fff)
+            .collect::<Vec<_>>();
+        let packed = pack_little_endian(&expected, 14);
+        let mut source = packed.clone();
+        source.resize(24, 0xaa);
+        let mut actual = vec![0_u16; expected.len()];
+
+        unpack_row_grouped(&source[..packed.len()], &mut actual, 14).unwrap();
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn grouped_big_endian_twelve_bit_matches_reference() {
+        let expected = (0..17)
+            .map(|index| ((index * 613 + 29) as u16) & 0x0fff)
+            .collect::<Vec<_>>();
+        let source = pack_big_endian(&expected, 12);
+        let mut grouped = vec![0_u16; expected.len()];
+        let mut reference = vec![0_u16; expected.len()];
+
+        unpack_row_grouped_big_endian(&source, &mut grouped, 12).unwrap();
+        unpack_row_reference(&source, &mut reference, 12, ByteOrder::Big).unwrap();
+
+        assert_eq!(grouped, expected);
+        assert_eq!(grouped, reference);
+    }
+
+    #[test]
+    fn grouped_kernel_rejects_a_truncated_final_sample() {
+        let mut output = vec![0_u16; 5];
+        let error = unpack_row_grouped(&[0_u8; 8], &mut output, 14).unwrap_err();
+
+        assert!(matches!(error, crate::CodecError::InvalidInput(_)));
+    }
+
+    fn pack_little_endian(samples: &[u16], bits: u8) -> Vec<u8> {
+        let mut output = vec![0_u8; (samples.len() * usize::from(bits)).div_ceil(8)];
+        for (sample_index, sample) in samples.iter().copied().enumerate() {
+            for bit in 0..bits {
+                if sample & (1 << bit) != 0 {
+                    let index = sample_index * usize::from(bits) + usize::from(bit);
+                    output[index / 8] |= 1 << (index % 8);
+                }
+            }
+        }
+        output
+    }
+
+    fn pack_big_endian(samples: &[u16], bits: u8) -> Vec<u8> {
+        let mut output = vec![0_u8; (samples.len() * usize::from(bits)).div_ceil(8)];
+        let mut bit_offset = 0_usize;
+        for sample in samples {
+            for bit in (0..bits).rev() {
+                if sample & (1 << bit) != 0 {
+                    output[bit_offset / 8] |= 0x80 >> (bit_offset % 8);
+                }
+                bit_offset += 1;
+            }
+        }
+        output
     }
 }
