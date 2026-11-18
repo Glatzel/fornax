@@ -42,7 +42,7 @@ Out of scope:
   truth, HDR-safe metrics, ranking, schema versioning, and README output.
 - [x] Phase 3: make reference comparison valid-range aware, mask borders, report
   disagreement floors and distributions, and derive evidenced `⚖️`.
-- [ ] Phase 4: re-triage AAHD, AMaZE, DCB, DHT, LMMSE, and VNG; report root
+- [x] Phase 4: re-triage AAHD, AMaZE, DCB, DHT, LMMSE, and VNG; report root
   causes and propose fixes without implementing them.
 
 ## Files expected to change
@@ -453,3 +453,235 @@ ground-truth evidence.
 - `scripts/agent-validation.sh` passed, including workspace tests, rustdoc,
   workspace/compare clippy, benchmark compilation, compare setup, and all 156
   non-ignored compare tests.
+
+## Phase 4 triage
+
+No demosaic algorithm was changed in this phase.
+
+### Combined status
+
+Invariant shorthand:
+
+- `Fail` means the Phase 1 matrix requires the failure.
+- `N/A` is used only where the Phase 0 classification does not claim the
+  invariant.
+
+| Algorithm | Scale | Shift | Flip | Constant | Ramp | Tiling | Finite | Negative | HDR | GT rank / vs Linear | Reference status | Main classification |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AAHD | Fail | N/A | Fail | Fail | N/A | Pass | Pass | Fail | Fail | 6 / 1.359x | LibRaw pass with outliers; GRBG ⚖️, other patterns ❌ from GT evidence | HDR-unsafe design + real border bug |
+| AMaZE | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail | 7 / 1.359x | Both refs numerically pass; only BGGR ✅, other patterns ❌ from sparse GT evidence | HDR-unsafe design + border/scale decisions; sparse reference divergence |
+| DCB | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail | 9 / 1.368x | LibRaw pass; RawTherapee all red, BGGR ⚖️ | HDR-unsafe design + real quality/direction issues |
+| DHT | Fail | N/A | Fail | Pass | N/A | Pass | Pass | Fail | Fail | 4 / 1.260x | LibRaw exact all patterns | HDR-unsafe design; reference port is sound |
+| LMMSE | Fail | N/A | Pass | Fail | N/A | Pass | Pass | Fail | Fail | 5 / 1.345x | darktable pass; RawTherapee red and GT-worse | HDR-unsafe design + real zero-halo tile bug |
+| VNG | Fail | N/A | Pass | Pass | Pass | Pass | Pass | Fail | Fail | 10 / 1.405x | darktable near; GBRG/RGGB ✅, BGGR/GRBG ❌ by GT evidence; LibRaw red despite floor match | HDR-unsafe integer design |
+
+`Linear` is rank 3 at 1.000x. Every required algorithm is worse than Linear on
+the aggregate ground-truth metric. This remains a quality warning independent
+of reference-port fidelity.
+
+### Per-algorithm diagnosis and proposed fixes
+
+#### AAHD
+
+Evidence:
+
+- `codes()` clamps and quantizes the mosaic to `[0,1]`/u16 at
+  `buffer.rs:38`; `dense_from_codes()` converts back to normalized output.
+- The 16-bit gamma LUT and `u16`/`i32` candidate planes are at
+  `aahd.rs:25-34`, `88-118`, and `398-415`.
+- Candidate colors are repeatedly limited to the sampled channel extrema at
+  `aahd.rs:299`, `329`, and `392`.
+- A constant field already fails at `(0, 0)`. The working planes are
+  zero-initialized and only measured pixels inside `MARGIN` are populated
+  (`aahd.rs:88-110`), so edge operations consume synthetic zero padding.
+
+Classification:
+
+- **HDR-unsafe design:** fixed u16, gamma, extrema clipping, and output range.
+- **Real bug:** outside-border padding does not extend the constant value.
+- **Not acceptable divergence:** GT evidence says Fornax is worse on three of
+  four patterns.
+
+Proposed fix:
+
+1. Keep LibRaw-compatible behavior as an explicit compatibility mode.
+2. Add an HDR-safe f32 path with a scale-relative/luminance encoding for
+   homogeneity scoring and no extrema/unit clamp.
+3. Fill or reflect the working margin consistently from edge samples; require
+   a constant-field test at the outermost pixel.
+
+Effort: high.
+
+#### AMaZE
+
+Evidence:
+
+- Fixed `EPS=1e-5`, `EPS_SQUARED=1e-10`, and the `0.8` highlight switch are at
+  `amaze.rs:27-29` and `507`; these are normalized-range assumptions.
+- Final output is forced through `clamp_nan(..., 0.0, 1.0)` at
+  `amaze.rs:1547-1564`.
+- Tile halo filling uses fixed left/top and right/bottom reflection schemes
+  (`amaze.rs:241-365`). The first flip failure is on the border, so the
+  transform does not preserve that boundary construction.
+- Reference agreement is otherwise excellent: darktable/RawTherapee interior
+  MAE is about `0.0039`, P99 is zero, and the max is 321.
+
+Classification:
+
+- **HDR-unsafe design:** final clamp plus absolute highlight/epsilon
+  thresholds.
+- **Real border bug:** horizontal-flip symmetry fails at the tile/image edge.
+- **Sparse evidence divergence:** three patterns are `❌` because a handful of
+  synthetic samples have larger Fornax error. The DNG reference match itself
+  passes, so this needs a larger evidence corpus before treating it as a broad
+  algorithm regression.
+
+Proposed fix:
+
+1. Make epsilon use relative/local-scale values.
+2. Replace the normalized `0.8` branch with a scale-relative highlight test.
+3. Remove fixed-range output clamping from the production path.
+4. Make reflected borders orientation-equivariant, then add a border-only flip
+   regression.
+
+Effort: medium-high.
+
+#### DCB
+
+Evidence:
+
+- `codes()`/`dense_from_codes()` impose the u16 boundary at `dcb.rs:47-52`.
+- Clip helpers force truncating 16-bit output (`dcb.rs:321-323`) and are used
+  throughout candidate, Nyquist, color, and final refinement stages.
+- Direction and ratio refinement use integer ranges/differences
+  (`dcb.rs:310-318`, `535-596`) that lose sign and HDR scale.
+- RawTherapee is intentionally a different DCB path, but Fornax is also worse
+  than the synthetic reference on three patterns and ranks below Linear.
+
+Classification:
+
+- **HDR-unsafe design:** u16/truncation/fixed range.
+- **Real quality/direction issue:** low GT rank and evidence-worse patterns.
+- **Expected cross-reference divergence:** DCB targets LibRaw, and LibRaw
+  agrees to about 0.00014 MAE; RawTherapee disagreement alone is not treated as
+  proof against the LibRaw port.
+
+Proposed fix:
+
+1. Introduce an f32 DCB working representation while retaining the LibRaw
+   integer mode for exact comparison.
+2. Preserve directional ties with scale-relative comparisons rather than
+   integer casts/truncation.
+3. Re-evaluate enhancement and full-color neighbor limiting at HDR values.
+4. Keep RawTherapee as a divergence observation, not the acceptance target.
+
+Effort: high.
+
+#### DHT
+
+Evidence:
+
+- DHT is exact against LibRaw across every pattern and passes all reference
+  rows.
+- Input is quantized by `codes()` and padded with the absolute value `0.5`
+  (`dht.rs:57-80`, `717`).
+- Direction constants use normalized code assumptions (`64`, `256`, `1.4` at
+  `dht.rs:18-20`), and output clamps/truncates to u16 (`dht.rs:36`).
+- Internal ratio logic is already f32 (`dht.rs:22`, `390-432`), which is a
+  smaller migration than the integer candidate algorithms.
+
+Classification:
+
+- **HDR-unsafe design:** only the boundary and bounds are structurally unsafe;
+  the reference algorithm itself is working.
+- **Acceptable reference behavior:** exact LibRaw agreement.
+
+Proposed fix:
+
+1. Replace u16 input padding with a scale-relative neutral value.
+2. Keep ratio direction tests in f32 and use relative thresholds.
+3. Remove fixed u16 output conversion from the production path.
+4. Require the current exact LibRaw compatibility mode to remain available.
+
+Effort: medium.
+
+#### LMMSE
+
+Evidence:
+
+- Input and PPG seed are quantized/clamped at `lmmse.rs:55-69`.
+- Color differences and final output are clipped in user-range coordinates
+  (`lmmse.rs:288-338`, `650-657`).
+- The gamma lookup returns 0 below zero and 1 above white
+  (`lmmse.rs:663-700`), so scale and signed values are structurally lost.
+- The tile scratch is zero-initialized and only the input footprint plus fixed
+  borders is filled (`lmmse.rs:112-130`). A constant mosaic fails at `(4, 4)`,
+  which is the first written tile boundary.
+
+Classification:
+
+- **HDR-unsafe design:** u16/gamma/fixed output clamp.
+- **Real bug:** zero halo/scratch initialization changes a constant field at
+  tile boundaries.
+- **Expected cross-reference divergence:** darktable is the target and matches;
+  RawTherapee is a separately structured gamma/tile pipeline.
+
+Proposed fix:
+
+1. Extend tile halos from edge values before filtering.
+2. Add an explicit constant-field invariant over every tile boundary.
+3. Provide an HDR-safe gamma encoding domain that preserves values above one
+   and does not clamp output.
+4. Retain the darktable-compatible integer/gamma mode for fidelity runs.
+
+Effort: high.
+
+#### VNG
+
+Evidence:
+
+- VNG/VNG4 quantize to u16 before interpolation (`vng.rs:126`) and clip every
+  reconstructed channel to u16 (`vng.rs:185`, `316`).
+- Gradient scoring uses integer shifts and half-maximum selection
+  (`vng.rs:149-164`); linear interpolation truncates u16 means
+  (`vng.rs:218-247`).
+- Structurally the implementation is sound: flip symmetry, constant fields,
+  ramps, tiling, and finiteness pass.
+- It matches the LibRaw-vs-darktable disagreement floor, but GT evidence says
+  Fornax error is worse than LibRaw on those divergent samples. Against
+  darktable, two patterns are ✅ and two fail sparse evidence.
+
+Classification:
+
+- **HDR-unsafe design:** integer quantization, truncation, and clipping.
+- **Acceptable reference divergence:** the large LibRaw split-green floor is
+  expected and VNG matches it.
+- **Not acceptable by current evidence rule:** LibRaw rows remain ❌ because the
+  ground-truth error is worse.
+
+Proposed fix:
+
+1. Keep the existing split-green phase planner.
+2. Store phase samples and correction neighborhoods as f32.
+3. Use f32 gradient sums and a scale-relative threshold.
+4. Preserve exact measured samples and remove u16 output clipping.
+5. Run VNG and VNG4 against the same float kernel.
+
+Effort: medium-high.
+
+### Ranked fix list
+
+| Priority | Fix | Algorithms / scope | Effort | Expected impact |
+| ---: | --- | --- | --- | --- |
+| 1 | Define an HDR-safe demosaic workspace and remove production output clamping | Shared, AAHD, AMaZE, DCB, DHT, LMMSE, VNG/VNG4 | L | Resolves or exposes every HDR/negative invariant failure. |
+| 2 | Fix LMMSE tile halo initialization | LMMSE | S | Fixes the demonstrated constant-field/tile-boundary bug. |
+| 3 | Make AMaZE epsilon/highlight tests scale-relative and remove final clamp | AMaZE | M | Fixes scale/HDR safety and likely improves colored-edge GT. |
+| 4 | Make AAHD margin reflection consistent and remove extrema clamps | AAHD | L | Fixes border/flip/constant failures and HDR. |
+| 5 | Convert DHT boundary/bounds to scale-relative f32 while preserving exact mode | DHT | M | Retains LibRaw fidelity and adds HDR safety. |
+| 6 | Convert DCB candidate/refinement path to f32 | DCB | L | Addresses GT quality and RawTherapee evidence-worse patterns. |
+| 7 | Convert VNG/VNG4 gradient/correction kernel to f32 | VNG, VNG4 | M-L | Addresses the worst GT rank while preserving split-green topology. |
+| 8 | Expand synthetic evidence around AMaZE's sparse failures | Harness + AMaZE | S | Determines whether three-pattern evidence is real or a narrow fixture effect. |
+
+The first fix is architectural and should be designed before individual
+algorithm changes. Each algorithm should retain an explicit reference-fidelity
+mode while adding the scale-invariant HDR path.
