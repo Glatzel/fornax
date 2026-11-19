@@ -6,18 +6,18 @@
     - [MHC]
     - [RCD]
     - [PPG]
-    - [LMMSE] 
+    - [LMMSE]
   - tier2
     - [AMAZE]
     - [DHT]
     - [VNG]
     - [VNG4]
   - tier3
-    - [AHD] 
+    - [AHD]
     - [AAHD]
     - [DCB]
     - [IGV]
-    - [EAHD] 
+    - [EAHD]
     - [HPHD]
 - perf
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
