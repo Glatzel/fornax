@@ -62,26 +62,26 @@ project validation scripts.
 - Modify: `docs/CONVENTIONS.md`
 - Modify: `docs/architecture/overview.md`
 
-- [ ] Confirm `python3 scripts/check-doc-links.py` fails on the PR branch.
-- [ ] Replace active links to deleted comparison or old algorithm paths with
+- [x] Confirm `python3 scripts/check-doc-links.py` fails on the PR branch.
+- [x] Replace active links to deleted comparison or old algorithm paths with
   current `docs/reference/demosaic/` or archived-plan targets.
-- [ ] Remove the obsolete comparison skill and the comparison-guide prose that
+- [x] Remove the obsolete comparison skill and the comparison-guide prose that
   presents the removed crate as current.
-- [ ] Change only URL-bearing module-doc lines in the three Rust modules.
-- [ ] Run `python3 scripts/check-doc-links.py`; expect
+- [x] Change only URL-bearing module-doc lines in the three Rust modules.
+- [x] Run `python3 scripts/check-doc-links.py`; expect
   `documentation links: ok`.
-- [ ] Run `git diff --check`; expect no output.
+- [x] Run `git diff --check`; expect no output.
 
 ### Task 2: Add the MHC research report
 
 **Files:**
 - Create: `docs/reference/demosaic/mhc.md`
 
-- [ ] Confirm `test -e docs/reference/demosaic/mhc.md` fails.
-- [ ] Add the Malvar-He-Cutler formulation, its 5x5 equations, boundary policy,
+- [x] Confirm `test -e docs/reference/demosaic/mhc.md` fails.
+- [x] Add the Malvar-He-Cutler formulation, its 5x5 equations, boundary policy,
   absence of gamma/LUT/range dependencies, signed and scale analysis, generic
   float analysis, licensing/patent constraints, and the `Eligible` verdict.
-- [ ] Run `rg -n '^## |^### ' docs/reference/demosaic/mhc.md`; expect sections
+- [x] Run `rg -n '^## |^### ' docs/reference/demosaic/mhc.md`; expect sections
   for sources, equations, numeric properties, Fornax status, modifications,
   and unresolved questions.
 
@@ -90,14 +90,14 @@ project validation scripts.
 **Files:**
 - Create: `docs/reference/demosaic/ppg.md`
 
-- [ ] Confirm `test -e docs/reference/demosaic/ppg.md` fails.
-- [ ] Document the original 2003 Pixel Grouping formulation, the 2007
+- [x] Confirm `test -e docs/reference/demosaic/ppg.md` fails.
+- [x] Document the original 2003 Pixel Grouping formulation, the 2007
   Desbiolles/dcraw lineage, and the modern LibRaw/darktable equations
   separately.
-- [ ] Record the `Eligible` verdict for the original and modern formulations,
+- [x] Record the `Eligible` verdict for the original and modern formulations,
   the min/max and border behavior, and the separate-name rule where exact
   lineage matters.
-- [ ] Run `rg -n '^## |^### ' docs/reference/demosaic/ppg.md`; expect sections
+- [x] Run `rg -n '^## |^### ' docs/reference/demosaic/ppg.md`; expect sections
   for sources, equations, numeric properties, Fornax status, modifications,
   and unresolved questions.
 
@@ -106,14 +106,14 @@ project validation scripts.
 **Files:**
 - Create: `docs/reference/demosaic/rcd.md`
 
-- [ ] Confirm `test -e docs/reference/demosaic/rcd.md` fails.
-- [ ] Add the RCD 2.3 discrimination, low-pass, ratio-correction, and
+- [x] Confirm `test -e docs/reference/demosaic/rcd.md` fails.
+- [x] Add the RCD 2.3 discrimination, low-pass, ratio-correction, and
   red/blue equations from the pinned author source.
-- [ ] Analyze fixed epsilon, denominator crossing, reference-domain clamping,
+- [x] Analyze fixed epsilon, denominator crossing, reference-domain clamping,
   signed values, scale homogeneity, and current Fornax behavior.
-- [ ] Record the `Convertible` verdict and mandatory scale-relative
+- [x] Record the `Convertible` verdict and mandatory scale-relative
   denominator policy.
-- [ ] Run `rg -n '^## |^### ' docs/reference/demosaic/rcd.md`; expect sections
+- [x] Run `rg -n '^## |^### ' docs/reference/demosaic/rcd.md`; expect sections
   for sources, equations, numeric properties, Fornax status, modifications,
   and unresolved questions.
 
@@ -122,14 +122,14 @@ project validation scripts.
 **Files:**
 - Modify: `docs/reference/demosaic/lmmse.md`
 
-- [ ] Confirm the current report contains the incorrect DOI fragment
+- [x] Confirm the current report contains the incorrect DOI fragment
   `TIP.2005.857267` and describes the removed comparison harness as current.
-- [ ] Replace it with the Zhang-Wu primary formulation, correct DOI
+- [x] Replace it with the Zhang-Wu primary formulation, correct DOI
   `10.1109/TIP.2005.857260`, IPOL equations, directional variance fusion, and
   color-difference reconstruction.
-- [ ] Separate canonical linear-domain `LMMSE` (`Convertible`) from the current
+- [x] Separate canonical linear-domain `LMMSE` (`Convertible`) from the current
   darktable-compatible gamma workspace (`Conditional` named variant).
-- [ ] Run `rg -n '857260|Convertible|Conditional|gamma' docs/reference/demosaic/lmmse.md`;
+- [x] Run `rg -n '857260|Convertible|Conditional|gamma' docs/reference/demosaic/lmmse.md`;
   expect all four terms.
 
 ### Task 6: Complete the eligibility matrix and project index
@@ -139,28 +139,28 @@ project validation scripts.
 - Modify: `docs/README.md`
 - Modify: `docs/plans/chore-demosaic-tier1-eligibility-audit.md`
 
-- [ ] Confirm the report links or required matrix headings are absent from the
+- [x] Confirm the report links or required matrix headings are absent from the
   index.
-- [ ] Add report links, eligibility matrix, removal list, named variants,
+- [x] Add report links, eligibility matrix, removal list, named variants,
   mandatory changes, and unresolved questions.
-- [ ] Add the index and reports to `docs/README.md`.
-- [ ] Mark completed checklist items in this plan without changing `TODO.md`.
-- [ ] Run `python3 scripts/check-doc-links.py`; expect
+- [x] Add the index and reports to `docs/README.md`.
+- [x] Mark completed checklist items in this plan without changing `TODO.md`.
+- [x] Run `python3 scripts/check-doc-links.py`; expect
   `documentation links: ok`.
 
 ## Task Checklist
 
-- [ ] Repair current documentation links and stale active references to the
+- [x] Repair current documentation links and stale active references to the
   removed `compare-demosaic` crate.
-- [ ] Add MHC, PPG, and RCD reports with the required equation and numeric
+- [x] Add MHC, PPG, and RCD reports with the required equation and numeric
   analyses.
-- [ ] Rewrite the LMMSE report so the correct paper DOI, linear-domain
+- [x] Rewrite the LMMSE report so the correct paper DOI, linear-domain
   formulation, current gamma-domain implementation, and named variant status
   are explicit.
-- [ ] Add the audit index with the eligibility matrix, removal list, variants,
+- [x] Add the audit index with the eligibility matrix, removal list, variants,
   mandatory changes, and unresolved questions.
-- [ ] Update the documentation index and planning record.
-- [ ] Run documentation-link, docs-only validation, formatting, and diff-scope
+- [x] Update the documentation index and planning record.
+- [x] Run documentation-link, docs-only validation, formatting, and diff-scope
   checks.
 
 ## Files Expected To Change

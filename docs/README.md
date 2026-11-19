@@ -54,8 +54,11 @@ reference, and active planning documentation.
 | [AMaZE reference notes](reference/demosaic/amaze.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [DCB reference notes](reference/demosaic/dcb.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [DHT reference notes](reference/demosaic/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [MHC eligibility](reference/demosaic/mhc.md) | Source equations and sensor-linear eligibility analysis. |
 | [LMMSE reference notes](reference/demosaic/lmmse.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [PPG eligibility](reference/demosaic/ppg.md) | Original and modern formulation provenance, equations, and eligibility analysis. |
 | [RawTherapee reference notes](reference/demosaic/rawtherapee.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [RCD eligibility](reference/demosaic/rcd.md) | Source equations, ratio singularities, and conversion requirements. |
 | [VNG reference notes](reference/demosaic/vng.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [TIFF-Family Compression ID Ownership](reference/codecs/compression-ids.md) | Ownership of TIFF-family compression identifiers. |
 | [Corpus Losslessness Classification](reference/codecs/lossless-classification.md) | Provenance and conservative corpus compression boundaries. |
