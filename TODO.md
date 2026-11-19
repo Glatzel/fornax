@@ -2,17 +2,23 @@
 
 - decoder
 - demosaic
-  - [AMAZE-RCD-FLIP] Resolve the remaining AMaZE and RCD horizontal-flip direction/tie asymmetry without weakening the border regression.
-  - [LMMSE-REF-EVIDENCE] Improve LMMSE ground-truth error on samples that diverge from its darktable and RawTherapee references, or record why the analytic transfer divergence is mathematically unavoidable.
-  - [VNG-REF-EVIDENCE] Improve VNG/VNG4 ground-truth error on samples that diverge from their integer references, or record why the float direction divergence is mathematically unavoidable.
-  - [GT-REGRESSION] Recover the small AMaZE and VNG/VNG4 supported-scene ground-truth regressions introduced by removing bounded decision arithmetic.
-  - [VNG-SPEED] Reduce the VNG/VNG4 f32 overhead, currently about 18-22% slower than the former integer kernels without exceeding the 25% review threshold.
-  - [RCD-REF-TAIL] Reduce the RCD divergent-sample evidence tail that keeps otherwise improved darktable and RawTherapee rows at `❌`.
-  - [REMOVED-LINEAR-FORM] Revisit AHD, AAHD, DCB, and DHT only as mathematically new linear-light algorithms; do not restore compatibility wrappers.
-  - [IGV] Make IGV reproduce RawTherapee 5.13 IGV and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [EAHD] Make EAHD reproduce RawTherapee 5.13 EAHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-  - [HPHD] Make HPHD reproduce RawTherapee 5.13 HPHD and pass the native GBRG row with MAE <= 2, P99 <= 64, and high-error fraction <= 0.001 above 1024 codes.
-
+  - tier1
+    - [MHC]
+    - [RCD]
+    - [PPG]
+    - [LMMSE] 
+  - tier2
+    - [AMAZE]
+    - [DHT]
+    - [VNG]
+    - [VNG4]
+  - tier3
+    - [AHD] 
+    - [AAHD]
+    - [DCB]
+    - [IGV]
+    - [EAHD] 
+    - [HPHD]
 - perf
   - [P-SIMD] use fearless simd to optimize demosaic and preprocessor, in separate crates.
   - [P-CUDA] try cutiles-rs to improve perf
