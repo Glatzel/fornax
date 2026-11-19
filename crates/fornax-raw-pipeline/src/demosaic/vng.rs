@@ -133,12 +133,10 @@ impl DemosaicVng {
     }
 }
 
-fn interpolate<T: Primitive>(
-    input: &[T],
-    width: usize,
-    height: usize,
-    pattern: BayerPattern,
-) -> Vec<T> {
+fn interpolate<T>(input: &[T], width: usize, height: usize, pattern: BayerPattern) -> Vec<T>
+where
+    T: Primitive,
+{
     let mut pixels = linear_interpolate(input, width, height, pattern);
     let phases = build_phases(width, pattern);
     let mut rows = [
@@ -166,12 +164,12 @@ fn interpolate<T: Primitive>(
                 .iter()
                 .copied()
                 .min_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
-                .unwrap_or(T::zero());
+                .unwrap_or_else(T::zero);
             let maximum = gradients
                 .iter()
                 .copied()
                 .max_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
-                .unwrap_or(T::zero());
+                .unwrap_or_else(T::zero);
             if maximum == T::zero() {
                 rows[2][col] = pixels[pixel];
                 continue;
@@ -223,12 +221,15 @@ fn interpolate<T: Primitive>(
     rgb
 }
 
-fn linear_interpolate<T: Primitive>(
+fn linear_interpolate<T>(
     input: &[T],
     width: usize,
     height: usize,
     pattern: BayerPattern,
-) -> Vec<[T; 4]> {
+) -> Vec<[T; 4]>
+where
+    T: Primitive,
+{
     let mut pixels = vec![[T::zero(); 4]; width * height];
     for row in 0..height {
         for col in 0..width {
@@ -317,7 +318,10 @@ fn build_phases(width: usize, pattern: BayerPattern) -> Vec<[PhaseCode; 2]> {
         .collect()
 }
 
-fn sample<T: Primitive>(pixels: &[[T; 4]], pixel: usize, offset: i32) -> T {
+fn sample<T>(pixels: &[[T; 4]], pixel: usize, offset: i32) -> T
+where
+    T: Primitive,
+{
     let flat = pixel as i64 * 4 + i64::from(offset);
     pixels[(flat / 4) as usize][(flat % 4) as usize]
 }
@@ -456,7 +460,7 @@ mod tests {
         let height = 12;
         let pattern = BayerPattern::GBRG;
         let input = (0..width * height)
-            .map(|pixel| 1_000.0 + pixel as f32 * 97.0)
+            .map(|pixel| (pixel as f32).mul_add(97.0, 1_000.0))
             .collect::<Vec<f32>>();
 
         let pixels = linear_interpolate(&input, width, height, pattern);
@@ -475,13 +479,13 @@ mod tests {
         let height = 16;
         let pattern = BayerPattern::GBRG;
         let input = (0..width * height)
-            .map(|pixel| 2_000.0 + (pixel / width) as f32 * 64.0)
+            .map(|pixel| ((pixel / width) as f32).mul_add(64.0, 2_000.0))
             .collect::<Vec<f32>>();
 
         let output = interpolate(&input, width, height, pattern);
 
         for y in 2..height - 2 {
-            let expected = 2_000.0 + y as f32 * 64.0;
+            let expected = (y as f32).mul_add(64.0, 2_000.0);
             for x in 2..width - 2 {
                 let offset = (y * width + x) * 3;
                 assert_eq!(
@@ -498,7 +502,7 @@ mod tests {
         let width = 16;
         let height = 16;
         let pattern = BayerPattern::GBRG;
-        let value = |x: usize, y: usize| 3_000.0 + x as f32 * 64.0 + y as f32 * 32.0;
+        let value = |x: usize, y: usize| (y as f32).mul_add(32.0, (x as f32).mul_add(64.0, 3_000.0));
         let input = (0..width * height)
             .map(|pixel| value(pixel % width, pixel / width))
             .collect::<Vec<f32>>();

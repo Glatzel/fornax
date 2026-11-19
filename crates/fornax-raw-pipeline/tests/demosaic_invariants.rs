@@ -72,7 +72,6 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Shift if algorithm != "Linear" => {
             Expected::NotApplicable("Phase 0 classifies only Linear as shift-invariant.")
         }
-        Invariant::Shift => Expected::Pass,
         Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
         }
@@ -94,7 +93,7 @@ impl Lcg {
             .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1_442_695_040_888_963_407);
         let unit = ((self.0 >> 40) as u32) as f32 / ((1_u32 << 24) as f32);
-        low + (high - low) * unit
+        (high - low).mul_add(unit, low)
     }
 }
 
@@ -167,7 +166,7 @@ fn assert_close_sized(
     }
     for (index, (&actual, &expected)) in actual.iter().zip(expected).enumerate() {
         let difference = (actual - expected).abs();
-        let allowed = ABS_TOLERANCE + REL_TOLERANCE * actual.abs().max(expected.abs());
+        let allowed = REL_TOLERANCE.mul_add(actual.abs().max(expected.abs()), ABS_TOLERANCE);
         if !actual.is_finite() || difference > allowed {
             let pixel = index / 3;
             let x = pixel as u32 % width;
@@ -297,12 +296,14 @@ fn constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), Stri
 
 fn linear_ramp(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
     let mosaic = (0..SIZE)
-        .flat_map(|y| (0..SIZE).map(move |x| 0.1 + 0.005 * x as f32 + 0.0025 * y as f32))
+        .flat_map(|y| {
+            (0..SIZE).map(move |x| 0.0025_f32.mul_add(y as f32, 0.005_f32.mul_add(x as f32, 0.1)))
+        })
         .collect::<Vec<_>>();
     let actual = run(algorithm, &mosaic, pattern)?;
     for y in 8..SIZE - 8 {
         for x in 8..SIZE - 8 {
-            let expected = 0.1 + 0.005 * x as f32 + 0.0025 * y as f32;
+            let expected = 0.0025_f32.mul_add(y as f32, 0.005_f32.mul_add(x as f32, 0.1));
             let start = ((y * SIZE + x) * 3) as usize;
             let expected = [expected; 3];
             assert_close(

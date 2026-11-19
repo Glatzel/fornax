@@ -166,7 +166,7 @@ impl ReferenceFloorReport {
     }
 
     #[cfg(test)]
-    pub(crate) fn test_fixture() -> Self {
+    pub(crate) const fn test_fixture() -> Self {
         Self {
             version: REFERENCE_FLOOR_VERSION,
             border_px: BORDER_PX,

@@ -52,7 +52,7 @@ pub fn evaluate(row: &Row, waivers: &[Waiver]) -> Status {
     }
 }
 
-pub(crate) fn automatically_accepted(row: &Row) -> bool {
+pub(crate) const fn automatically_accepted(row: &Row) -> bool {
     (row.outlier_evidence.divergent_samples == 0 || row.outlier_evidence.fornax_not_worse)
         && (row.reference_floor_match
             || (row.outlier_evidence.divergent_samples > 0

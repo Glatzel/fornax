@@ -436,7 +436,7 @@ fn compute_reference_floor(
             })
         })
         .collect::<Vec<_>>();
-    let mut rows = pool.install(|| {
+    let rows = pool.install(|| {
         jobs.par_iter()
             .map(|(input_index, algorithm, pattern)| {
                 let input = crate::reference::shifted_to_pattern(&inputs[*input_index], *pattern)?;
@@ -480,7 +480,7 @@ fn compute_reference_floor(
             })
             .collect::<Vec<mischief::Result<ReferenceFloorRow>>>()
     });
-    let rows = rows.drain(..).collect::<mischief::Result<Vec<_>>>()?;
+    let rows = rows.into_iter().collect::<mischief::Result<Vec<_>>>()?;
     let mut rows = rows;
     rows.sort_unstable_by(|left, right| {
         (&left.input, &left.algorithm, &left.pattern).cmp(&(

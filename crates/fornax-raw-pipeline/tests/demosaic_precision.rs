@@ -21,19 +21,19 @@ const ALGORITHMS: [(&str, Demosaic); 7] = [
     ("VNG4", Demosaic::Vng4),
 ];
 
-fn sample<T: Primitive>(value: f64) -> T { cast(value).expect("the test sample fits T") }
+fn sample<T>(value: f64) -> T where T: Primitive { cast(value).expect("the test sample fits T") }
 
-fn seeded_mosaic<T: Primitive>(low: f64, high: f64) -> Vec<T> {
+fn seeded_mosaic<T>(low: f64, high: f64) -> Vec<T> where T: Primitive {
     seeded_mosaic_sized::<T>(0x5ca1_ab1e, WIDTH, HEIGHT, low, high)
 }
 
-fn seeded_mosaic_sized<T: Primitive>(
+fn seeded_mosaic_sized<T>(
     seed: u64,
     width: u32,
     height: u32,
     low: f64,
     high: f64,
-) -> Vec<T> {
+) -> Vec<T> where T: Primitive {
     let mut state = seed;
     (0..width * height)
         .map(|_| {
@@ -41,22 +41,22 @@ fn seeded_mosaic_sized<T: Primitive>(
                 .wrapping_mul(6_364_136_223_846_793_005)
                 .wrapping_add(1_442_695_040_888_963_407);
             let unit = (state >> 40) as f64 / (1_u64 << 24) as f64;
-            sample(low + (high - low) * unit)
+            sample((high - low).mul_add(unit, low))
         })
         .collect()
 }
 
-fn run<T: Primitive + Send + Sync>(algorithm: Demosaic, samples: Vec<T>) -> Result<Vec<T>, String> {
+fn run<T>(algorithm: Demosaic, samples: Vec<T>) -> Result<Vec<T>, String> where T: Primitive + Send + Sync {
     run_sized(algorithm, samples, WIDTH, HEIGHT, BayerPattern::GBRG)
 }
 
-fn run_sized<T: Primitive + Send + Sync>(
+fn run_sized<T>(
     algorithm: Demosaic,
     samples: Vec<T>,
     width: u32,
     height: u32,
     pattern: BayerPattern,
-) -> Result<Vec<T>, String> {
+) -> Result<Vec<T>, String> where T: Primitive + Send + Sync {
     let image = MonoImage::from_raw(width, height, samples)
         .ok_or_else(|| "failed to construct the test mosaic".to_owned())?;
     algorithm
@@ -65,14 +65,14 @@ fn run_sized<T: Primitive + Send + Sync>(
         .map(|lazy| lazy.collect().into_raw())
 }
 
-fn assert_close<T: Primitive>(actual: &[T], expected: &[T], context: &str) {
+fn assert_close<T>(actual: &[T], expected: &[T], context: &str) where T: Primitive {
     assert_eq!(actual.len(), expected.len(), "{context}: length");
     for (index, (&actual, &expected)) in actual.iter().zip(expected).enumerate() {
         let actual = actual.to_f64().expect("test output fits f64");
         let expected = expected.to_f64().expect("test expectation fits f64");
         let difference = (actual - expected).abs();
         let allowed =
-            F64_ABSOLUTE_TOLERANCE + F64_RELATIVE_TOLERANCE * actual.abs().max(expected.abs());
+            F64_RELATIVE_TOLERANCE.mul_add(actual.abs().max(expected.abs()), F64_ABSOLUTE_TOLERANCE);
         assert!(
             actual.is_finite() && difference <= allowed,
             "{context}: channel {index} actual {actual:?}, expected {expected:?}, \
@@ -328,7 +328,7 @@ fn f32_and_f64_generic_kernels_are_consistent_at_f32_precision() {
     for (index, (actual, expected)) in f32.iter().zip(&f64).enumerate() {
         let actual = f64::from(*actual);
         let expected = *expected;
-        let allowed = 1.0e-7 + 2.0e-4 * actual.abs().max(expected.abs());
+        let allowed = 2.0e-4_f64.mul_add(actual.abs().max(expected.abs()), 1.0e-7);
         assert!(
             (actual - expected).abs() <= allowed,
             "Linear f32/f64 channel {index}: {actual:?} vs {expected:?}"

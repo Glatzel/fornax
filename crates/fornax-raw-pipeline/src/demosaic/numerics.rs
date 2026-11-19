@@ -19,7 +19,7 @@ const SRGB_LINEAR_THRESHOLD: f64 = 0.003_130_8;
 const SRGB_ENCODED_THRESHOLD: f64 = 0.040_45;
 const SRGB_DECODE_GAMMA: f64 = 2.4;
 
-pub(super) fn normalization_scale<T: Primitive>(samples: &[T]) -> T {
+pub(super) fn normalization_scale<T>(samples: &[T]) -> T where T: Primitive {
     let mut magnitudes = samples
         .iter()
         .copied()

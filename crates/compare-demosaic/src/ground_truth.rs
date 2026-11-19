@@ -465,11 +465,11 @@ fn synthetic_sources() -> Vec<Source> {
         scene("zone_plate", SourceKind::ZonePlate, 0x7a_01, |x, y| {
             let nx = (x as f32 - 64.0) / 64.0;
             let ny = (y as f32 - 64.0) / 64.0;
-            let value = 0.5 + 0.35 * (38.0 * (nx * nx + ny * ny)).cos();
+            let value = 0.35_f32.mul_add((38.0 * ny.mul_add(ny, nx * nx)).cos(), 0.5);
             [value; 3]
         }),
         scene("slanted_edge", SourceKind::Edge, 0x7a_02, |x, y| {
-            if (x as f32) + 0.37 * (y as f32) < 80.0 {
+            if 0.37_f32.mul_add(y as f32, x as f32) < 80.0 {
                 [0.04, 0.08, 0.03]
             } else {
                 [0.82, 0.66, 0.53]
@@ -556,8 +556,8 @@ fn evidence_sources() -> Vec<Source> {
                 let cy = height as f32 / 2.0;
                 let nx = (x as f32 - cx) / cx;
                 let ny = (y as f32 - cy) / cy;
-                let frequency = 31.0 + 7.0 * variant_u32 as f32;
-                let value = 0.48 + 0.38 * (frequency * (nx * nx + ny * ny)).cos();
+                let frequency = 7.0_f32.mul_add(variant_u32 as f32, 31.0);
+                let value = 0.38_f32.mul_add((frequency * ny.mul_add(ny, nx * nx)).cos(), 0.48);
                 [value; 3]
             },
         ));
@@ -568,12 +568,12 @@ fn evidence_sources() -> Vec<Source> {
             width,
             height,
             move |x, y| {
-                let threshold = width as f32 * (0.58 + 0.03 * variant_u32 as f32);
-                let slope = 0.24 + 0.13 * variant_u32 as f32;
-                if x as f32 + slope * (y as f32) < threshold {
+                let threshold = width as f32 * 0.03_f32.mul_add(variant_u32 as f32, 0.58);
+                let slope = 0.13_f32.mul_add(variant_u32 as f32, 0.24);
+                if slope.mul_add(y as f32, x as f32) < threshold {
                     [0.03, 0.07, 0.02]
                 } else {
-                    [0.76 + 0.03 * variant_u32 as f32, 0.61, 0.42]
+                    [0.03_f32.mul_add(variant_u32 as f32, 0.76), 0.61, 0.42]
                 }
             },
         ));
@@ -623,12 +623,12 @@ fn evidence_sources() -> Vec<Source> {
                 let x = x as f32 / (width - 1) as f32;
                 let y = y as f32 / (height - 1) as f32;
                 match variant_u32 {
-                    0 => [0.02 + 0.7 * x, 0.04 + 0.55 * y, 0.01 + 0.3 * x + 0.25 * y],
-                    1 => [0.03 + 0.55 * y, 0.02 + 0.62 * x, 0.04 + 0.24 * x + 0.31 * y],
+                    0 => [0.7_f32.mul_add(x, 0.02), 0.55_f32.mul_add(y, 0.04), 0.25_f32.mul_add(y, 0.3_f32.mul_add(x, 0.01))],
+                    1 => [0.55_f32.mul_add(y, 0.03), 0.62_f32.mul_add(x, 0.02), 0.31_f32.mul_add(y, 0.24_f32.mul_add(x, 0.04))],
                     _ => [
-                        0.02 + 0.36 * x + 0.32 * y,
-                        0.03 + 0.28 * x + 0.41 * y,
-                        0.01 + 0.58 * x + 0.12 * y,
+                        0.32_f32.mul_add(y, 0.36_f32.mul_add(x, 0.02)),
+                        0.41_f32.mul_add(y, 0.28_f32.mul_add(x, 0.03)),
+                        0.12_f32.mul_add(y, 0.58_f32.mul_add(x, 0.01)),
                     ],
                 }
             },
@@ -673,7 +673,7 @@ fn scene_sized(
         for x in 0..width {
             let mut pixel = value(x, y);
             for (channel, sample) in pixel.iter_mut().enumerate() {
-                *sample += 1.0e-4 * noise(seed, x, y, channel as u32);
+                *sample = 1.0e-4_f32.mul_add(noise(seed, x, y, channel as u32), *sample);
             }
             truth.push(pixel);
         }
@@ -701,7 +701,7 @@ fn noise(seed: u64, x: u32, y: u32, channel: u32) -> f32 {
     value ^= value >> 27;
     value = value.wrapping_mul(0x94d0_49bb_1331_11eb);
     value ^= value >> 31;
-    ((value >> 40) as u32) as f32 / ((1_u32 << 24) as f32) * 2.0 - 1.0
+    (((value >> 40) as u32) as f32 / ((1_u32 << 24) as f32)).mul_add(2.0, -1.0)
 }
 
 fn derive_edges(truth: &[[f32; 3]], width: u32, height: u32) -> Vec<bool> {
@@ -1174,9 +1174,7 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
                 let truth_chroma = chroma(truth);
                 let actual_chroma = chroma(actual);
                 false_color.push(
-                    ((actual_chroma[0] - truth_chroma[0]).powi(2)
-                        + (actual_chroma[1] - truth_chroma[1]).powi(2))
-                    .sqrt()
+                    (actual_chroma[0] - truth_chroma[0]).hypot(actual_chroma[1] - truth_chroma[1])
                         / luma_denominator,
                 );
             }
@@ -1206,7 +1204,7 @@ fn pixel_class(source: &Source, x: u32, y: u32) -> PixelClass {
 }
 
 fn luma(pixel: [f32; 3]) -> f64 {
-    0.2126 * f64::from(pixel[0]) + 0.7152 * f64::from(pixel[1]) + 0.0722 * f64::from(pixel[2])
+    0.0722_f64.mul_add(f64::from(pixel[2]), 0.7152_f64.mul_add(f64::from(pixel[1]), 0.2126 * f64::from(pixel[0])))
 }
 
 fn chroma(pixel: [f32; 3]) -> [f64; 2] {
