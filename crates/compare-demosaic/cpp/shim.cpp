@@ -114,10 +114,6 @@ extern "C" std::int32_t compare_demosaic_reference(
         switch (algorithm) {
             case 0:
                 return run_rawtherapee_amaze(mosaic, width, height, filters, output);
-            case 1:
-                return run_rawtherapee_ahd(mosaic, width, height, filters, output);
-            case 2:
-                return run_rawtherapee_dcb(mosaic, width, height, filters, output);
             case 3:
                 return run_rawtherapee_lmmse(mosaic, width, height, filters, output);
             case 4:
@@ -153,20 +149,8 @@ extern "C" std::int32_t compare_demosaic_reference(
             case 1:
                 status = reference.run_ppg();
                 break;
-            case 2:
-                status = reference.run_ahd();
-                break;
             case 3:
                 status = reference.run_vng();
-                break;
-            case 4:
-                status = reference.run_dcb();
-                break;
-            case 5:
-                status = reference.run_dht();
-                break;
-            case 6:
-                status = reference.run_aahd();
                 break;
             case 7:
                 status = reference.run_vng4();

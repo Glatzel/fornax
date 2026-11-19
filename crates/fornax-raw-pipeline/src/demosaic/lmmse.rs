@@ -4,13 +4,13 @@
 //! mode conventions. See the
 //! [LMMSE reference notes](https://github.com/Glatzel/fornax/blob/main/docs/reference/algorithms/lmmse.md).
 
-use std::sync::OnceLock;
-
 use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
+use generic_num::num;
 
 use super::LmmseMode;
-use super::buffer::{DenseLazy, channel, codes, dense_from_codes};
+use super::buffer::{DenseLazy, channel, dense_from_vec};
+use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
 use crate::LazyDemosaic;
 
@@ -24,6 +24,73 @@ const TILE_AREA: usize = TILE_SIZE * TILE_SIZE;
 const RED: usize = 0;
 const GREEN: usize = 1;
 const BLUE: usize = 2;
+
+const GAMMA_INPUT_THRESHOLD: f64 = 0.001_867;
+const GAMMA_OUTPUT_THRESHOLD: f64 = 0.031_746;
+const GAMMA_SLOPE: f64 = 17.0;
+const GAMMA_ALPHA: f64 = 1.044_445;
+const GAMMA_OFFSET: f64 = 0.044_445;
+const GAMMA_ENCODE_POWER: f64 = 1.0 / 2.4;
+const GAMMA_DECODE_POWER: f64 = 2.4;
+
+struct LmmseTransfer<T: Primitive> {
+    input_threshold: T,
+    output_threshold: T,
+    slope: T,
+    alpha: T,
+    offset: T,
+    encode_power: T,
+    decode_power: T,
+}
+
+impl<T: Primitive> LmmseTransfer<T> {
+    fn new() -> Self {
+        Self {
+            input_threshold: num!(GAMMA_INPUT_THRESHOLD),
+            output_threshold: num!(GAMMA_OUTPUT_THRESHOLD),
+            slope: num!(GAMMA_SLOPE),
+            alpha: num!(GAMMA_ALPHA),
+            offset: num!(GAMMA_OFFSET),
+            encode_power: num!(GAMMA_ENCODE_POWER),
+            decode_power: num!(GAMMA_DECODE_POWER),
+        }
+    }
+
+    fn encode(&self, value: T) -> T {
+        if value.abs() > T::one() {
+            return value.signum() * value.abs().powf(self.encode_power);
+        }
+        let sign = if value < T::zero() {
+            -T::one()
+        } else {
+            T::one()
+        };
+        let magnitude = value.abs();
+        sign * if magnitude <= self.input_threshold {
+            magnitude * self.slope
+        } else {
+            self.alpha
+                .mul_add(magnitude.powf(self.encode_power), -self.offset)
+        }
+    }
+
+    fn decode(&self, value: T) -> T {
+        if value.abs() > T::one() {
+            return value.signum() * value.abs().powf(self.decode_power);
+        }
+        let sign = if value < T::zero() {
+            -T::one()
+        } else {
+            T::one()
+        };
+        let magnitude = value.abs();
+        sign * if magnitude <= self.output_threshold {
+            magnitude / self.slope
+        } else {
+            ((magnitude + self.offset) / self.alpha).powf(self.decode_power)
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DemosaicLmmse;
@@ -52,27 +119,34 @@ impl DemosaicLmmse {
     {
         let width = image.width() as usize;
         let height = image.height() as usize;
-        let input = codes(image);
-        let ppg_samples = input
+        let scale = normalization_scale(image.as_raw());
+        let ppg_samples = image
+            .as_raw()
             .iter()
-            .map(|sample| f32::from(*sample) / f32::from(u16::MAX))
+            .map(|sample| *sample / scale)
             .collect();
         let ppg_input = MonoImage::from_raw(image.width(), image.height(), ppg_samples)
             .ok_or_else(|| {
                 DemosaicError::InvalidInput("LMMSE could not copy the Bayer mosaic".into())
             })?;
-        let seed: fornax_raw_core::RgbImage<f32> = DemosaicPpg.lazy(&ppg_input, pattern)?.collect();
-        let mut output: Vec<u16> = seed
-            .as_raw()
-            .iter()
-            .map(|sample| (sample.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
-            .collect();
+        let seed: fornax_raw_core::RgbImage<T> = DemosaicPpg.lazy(&ppg_input, pattern)?.collect();
+        let mut output = seed.into_raw();
 
         if width >= 2 * BORDER && height >= 2 * BORDER {
-            interpolate(&input, &mut output, width, height, pattern, mode);
+            interpolate(
+                ppg_input.as_raw(),
+                &mut output,
+                width,
+                height,
+                pattern,
+                mode,
+            );
+        }
+        for value in &mut output {
+            *value = *value * scale;
         }
 
-        Ok(DenseLazy::new(dense_from_codes(
+        Ok(DenseLazy::new(dense_from_vec(
             image.width(),
             image.height(),
             output,
@@ -80,27 +154,29 @@ impl DemosaicLmmse {
     }
 }
 
-fn interpolate(
-    input: &[u16],
-    output: &mut [u16],
+fn interpolate<T>(
+    input: &[T],
+    output: &mut [T],
     width: usize,
     height: usize,
     pattern: BayerPattern,
     mode: LmmseMode,
-) {
+) where
+    T: Primitive,
+{
     let (median_passes, refinement_passes) = match mode {
         LmmseMode::Basic => (0, 0),
         LmmseMode::Median => (1, 0),
         LmmseMode::ThreeMedians => (3, 0),
         LmmseMode::Refine(passes) => (3, usize::from(passes.get())),
     };
-    let gamma = gamma_tables();
-    let h0 = 1.0_f32;
-    let h1 = (-1.0_f32 / 8.0).exp();
-    let h2 = (-4.0_f32 / 8.0).exp();
-    let h3 = (-9.0_f32 / 8.0).exp();
-    let h4 = (-16.0_f32 / 8.0).exp();
-    let hsum = 2.0_f32.mul_add(h1 + h2 + h3 + h4, h0);
+    let transfer = LmmseTransfer::<T>::new();
+    let h0 = T::one();
+    let h1 = (-T::one() / num!(8.0)).exp();
+    let h2 = (-num!(4.0) / num!(8.0)).exp();
+    let h3 = (-num!(9.0) / num!(8.0)).exp();
+    let h4 = (-num!(16.0) / num!(8.0)).exp();
+    let hsum = num!(2.0) * (h1 + h2 + h3 + h4) + h0;
     let h0 = h0 / hsum;
     let h1 = h1 / hsum;
     let h2 = h2 / hsum;
@@ -109,7 +185,7 @@ fn interpolate(
 
     let num_vertical = 1 + height.saturating_sub(2 * OVERLAP + 1) / TILE_VALID;
     let num_horizontal = 1 + width.saturating_sub(2 * OVERLAP + 1) / TILE_VALID;
-    let mut qix = vec![0.0_f32; 6 * TILE_AREA];
+    let mut qix = vec![T::zero(); 6 * TILE_AREA];
 
     for tile_vertical in 0..num_vertical {
         for tile_horizontal in 0..num_horizontal {
@@ -122,11 +198,12 @@ fn interpolate(
             let last_rr = tile_rows + 2 * BORDER;
             let last_cc = tile_cols + 2 * BORDER;
 
-            for (rrr, row) in (BORDER..tile_rows + BORDER).zip(row_start..row_end) {
-                for (ccc, col) in (BORDER..tile_cols + BORDER).zip(col_start..col_end) {
-                    let value = f32::from(input[row * width + col]) / f32::from(u16::MAX);
-                    let encoded = calc_gamma(value, &gamma.input);
-                    qix[tile_index(5, rrr, ccc)] = encoded;
+            for rr in 0..last_rr {
+                let row = reflect_index(row_start as isize + rr as isize - BORDER as isize, height);
+                for cc in 0..last_cc {
+                    let col =
+                        reflect_index(col_start as isize + cc as isize - BORDER as isize, width);
+                    qix[tile_index(5, rr, cc)] = transfer.encode(input[row * width + col]);
                 }
             }
 
@@ -171,20 +248,35 @@ fn interpolate(
                 row_end,
                 col_start,
                 col_end,
-                &gamma.output,
+                &transfer,
             );
         }
     }
 }
 
-fn refine_tile(
-    qix: &mut [f32],
+const fn reflect_index(index: isize, length: usize) -> usize {
+    if length <= 1 {
+        return 0;
+    }
+    let period = 2 * (length as isize - 1);
+    let reflected = index.rem_euclid(period);
+    if reflected < length as isize {
+        reflected as usize
+    } else {
+        (period - reflected) as usize
+    }
+}
+
+fn refine_tile<T>(
+    qix: &mut [T],
     rr_min: usize,
     rr_max: usize,
     cc_min: usize,
     cc_max: usize,
     pattern: BayerPattern,
-) {
+) where
+    T: Primitive,
+{
     for rr in rr_min + 2..rr_max - 2 {
         let mut cc = cc_min + 2 + (tile_channel(pattern, rr, 2) & 1);
         let c = tile_channel(pattern, rr, cc);
@@ -192,12 +284,14 @@ fn refine_tile(
             let center_color = q(qix, c, rr, cc);
             let horizontal_green = (q(qix, GREEN, rr, cc + 1) - q(qix, GREEN, rr, cc - 1)).abs();
             let vertical_green = (q(qix, GREEN, rr + 1, cc) - q(qix, GREEN, rr - 1, cc)).abs();
-            let left =
-                1.0 / (1.0 + (q(qix, c, rr, cc - 2) - center_color).abs() + horizontal_green);
-            let right =
-                1.0 / (1.0 + (q(qix, c, rr, cc + 2) - center_color).abs() + horizontal_green);
-            let up = 1.0 / (1.0 + (q(qix, c, rr - 2, cc) - center_color).abs() + vertical_green);
-            let down = 1.0 / (1.0 + (q(qix, c, rr + 2, cc) - center_color).abs() + vertical_green);
+            let left = num!(1.0)
+                / (num!(1.0) + (q(qix, c, rr, cc - 2) - center_color).abs() + horizontal_green);
+            let right = num!(1.0)
+                / (num!(1.0) + (q(qix, c, rr, cc + 2) - center_color).abs() + horizontal_green);
+            let up = num!(1.0)
+                / (num!(1.0) + (q(qix, c, rr - 2, cc) - center_color).abs() + vertical_green);
+            let down = num!(1.0)
+                / (num!(1.0) + (q(qix, c, rr + 2, cc) - center_color).abs() + vertical_green);
             let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
             let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
             let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
@@ -223,10 +317,10 @@ fn refine_tile(
                 let down_green = (q(qix, GREEN, rr + 2, cc) - center_green).abs();
                 let horizontal_color = (q(qix, c, rr, cc + 1) - q(qix, c, rr, cc - 1)).abs();
                 let vertical_color = (q(qix, c, rr + 1, cc) - q(qix, c, rr - 1, cc)).abs();
-                let left = 1.0 / (1.0 + left_green + horizontal_color);
-                let right = 1.0 / (1.0 + right_green + horizontal_color);
-                let up = 1.0 / (1.0 + up_green + vertical_color);
-                let down = 1.0 / (1.0 + down_green + vertical_color);
+                let left = num!(1.0) / (num!(1.0) + left_green + horizontal_color);
+                let right = num!(1.0) / (num!(1.0) + right_green + horizontal_color);
+                let up = num!(1.0) / (num!(1.0) + up_green + vertical_color);
+                let down = num!(1.0) / (num!(1.0) + down_green + vertical_color);
                 let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
                 let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
                 let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
@@ -253,14 +347,18 @@ fn refine_tile(
             let center_integrated = q(qix, d, rr, cc);
             let horizontal_green = (q(qix, GREEN, rr, cc + 1) - q(qix, GREEN, rr, cc - 1)).abs();
             let vertical_green = (q(qix, GREEN, rr + 1, cc) - q(qix, GREEN, rr - 1, cc)).abs();
-            let left =
-                1.0 / (1.0 + (q(qix, d, rr, cc - 2) - center_integrated).abs() + horizontal_green);
-            let right =
-                1.0 / (1.0 + (q(qix, d, rr, cc + 2) - center_integrated).abs() + horizontal_green);
-            let up =
-                1.0 / (1.0 + (q(qix, d, rr - 2, cc) - center_integrated).abs() + vertical_green);
-            let down =
-                1.0 / (1.0 + (q(qix, d, rr + 2, cc) - center_integrated).abs() + vertical_green);
+            let left = num!(1.0)
+                / (num!(1.0)
+                    + (q(qix, d, rr, cc - 2) - center_integrated).abs()
+                    + horizontal_green);
+            let right = num!(1.0)
+                / (num!(1.0)
+                    + (q(qix, d, rr, cc + 2) - center_integrated).abs()
+                    + horizontal_green);
+            let up = num!(1.0)
+                / (num!(1.0) + (q(qix, d, rr - 2, cc) - center_integrated).abs() + vertical_green);
+            let down = num!(1.0)
+                / (num!(1.0) + (q(qix, d, rr + 2, cc) - center_integrated).abs() + vertical_green);
             let left_difference = q(qix, GREEN, rr, cc - 1) - q(qix, c, rr, cc - 1);
             let right_difference = q(qix, GREEN, rr, cc + 1) - q(qix, c, rr, cc + 1);
             let up_difference = q(qix, GREEN, rr - 1, cc) - q(qix, c, rr - 1, cc);
@@ -275,40 +373,43 @@ fn refine_tile(
     }
 }
 
-fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: BayerPattern) {
+fn color_differences<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 2..last_rr - 2 {
         let mut cc = 2 + (tile_channel(pattern, rr, 2) & 1);
         while cc < last_cc - 2 {
             let center = q(qix, 5, rr, cc);
-            let value = 0.25_f32.mul_add(
+            let value = num!(0.25).mul_add(
                 center,
-                0.0625
+                num!(0.0625)
                     * (q(qix, 5, rr - 1, cc - 1)
                         + q(qix, 5, rr - 1, cc + 1)
                         + q(qix, 5, rr + 1, cc - 1)
                         + q(qix, 5, rr + 1, cc + 1)),
             );
 
-            let mut horizontal = 0.5_f32.mul_add(
+            let mut horizontal = num!(0.5).mul_add(
                 q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1),
-                -0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
+                -num!(0.25) * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
             );
-            let horizontal_luma = 0.5_f32.mul_add(horizontal, value);
-            horizontal = if center > 1.75 * horizontal_luma {
+            let horizontal_luma = num!(0.5).mul_add(horizontal, value);
+            horizontal = if center > num!(1.75) * horizontal_luma {
                 median3(horizontal, q(qix, 5, rr, cc - 1), q(qix, 5, rr, cc + 1))
             } else {
-                horizontal.clamp(0.0, 1.0)
+                horizontal
             } - center;
 
-            let mut vertical = 0.5_f32.mul_add(
+            let mut vertical = num!(0.5).mul_add(
                 q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc),
-                -0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
+                -num!(0.25) * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
             );
-            let vertical_luma = 0.5_f32.mul_add(vertical, value);
-            vertical = if center > 1.75 * vertical_luma {
+            let vertical_luma = num!(0.5).mul_add(vertical, value);
+            vertical = if center > num!(1.75) * vertical_luma {
                 median3(vertical, q(qix, 5, rr - 1, cc), q(qix, 5, rr + 1, cc))
             } else {
-                vertical.clamp(0.0, 1.0)
+                vertical
             } - center;
 
             qix[tile_index(0, rr, cc)] = horizontal;
@@ -319,20 +420,14 @@ fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: B
         let mut cc = 2 + (tile_channel(pattern, rr, 3) & 1);
         while cc < last_cc - 2 {
             let center = q(qix, 5, rr, cc);
-            let horizontal = 0.5_f32
-                .mul_add(
-                    -(q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1)),
-                    0.25 * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
-                )
-                .clamp(-1.0, 0.0)
-                + center;
-            let vertical = 0.5_f32
-                .mul_add(
-                    -(q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc)),
-                    0.25 * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
-                )
-                .clamp(-1.0, 0.0)
-                + center;
+            let horizontal = num!(0.5).mul_add(
+                -(q(qix, 5, rr, cc - 1) + center + q(qix, 5, rr, cc + 1)),
+                num!(0.25) * (q(qix, 5, rr, cc - 2) + q(qix, 5, rr, cc + 2)),
+            ) + center;
+            let vertical = num!(0.5).mul_add(
+                -(q(qix, 5, rr - 1, cc) + center + q(qix, 5, rr + 1, cc)),
+                num!(0.25) * (q(qix, 5, rr - 2, cc) + q(qix, 5, rr + 2, cc)),
+            ) + center;
             qix[tile_index(0, rr, cc)] = horizontal;
             qix[tile_index(1, rr, cc)] = vertical;
             cc += 2;
@@ -340,20 +435,23 @@ fn color_differences(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: B
     }
 }
 
-fn low_pass(qix: &mut [f32], last_rr: usize, last_cc: usize, h: [f32; 5]) {
+fn low_pass<T>(qix: &mut [T], last_rr: usize, last_cc: usize, h: [T; 5])
+where
+    T: Primitive,
+{
     let [h0, h1, h2, h3, h4] = h;
     for rr in 4..last_rr - 4 {
         for cc in 4..last_cc - 4 {
-            let horizontal = f32::mul_add(
+            let horizontal = T::mul_add(
                 h4,
                 q(qix, 0, rr, cc - 4) + q(qix, 0, rr, cc + 4),
-                f32::mul_add(
+                T::mul_add(
                     h3,
                     q(qix, 0, rr, cc - 3) + q(qix, 0, rr, cc + 3),
-                    f32::mul_add(
+                    T::mul_add(
                         h2,
                         q(qix, 0, rr, cc - 2) + q(qix, 0, rr, cc + 2),
-                        f32::mul_add(
+                        T::mul_add(
                             h1,
                             q(qix, 0, rr, cc - 1) + q(qix, 0, rr, cc + 1),
                             h0 * q(qix, 0, rr, cc),
@@ -361,16 +459,16 @@ fn low_pass(qix: &mut [f32], last_rr: usize, last_cc: usize, h: [f32; 5]) {
                     ),
                 ),
             );
-            let vertical = f32::mul_add(
+            let vertical = T::mul_add(
                 h4,
                 q(qix, 1, rr - 4, cc) + q(qix, 1, rr + 4, cc),
-                f32::mul_add(
+                T::mul_add(
                     h3,
                     q(qix, 1, rr - 3, cc) + q(qix, 1, rr + 3, cc),
-                    f32::mul_add(
+                    T::mul_add(
                         h2,
                         q(qix, 1, rr - 2, cc) + q(qix, 1, rr + 2, cc),
-                        f32::mul_add(
+                        T::mul_add(
                             h1,
                             q(qix, 1, rr - 1, cc) + q(qix, 1, rr + 1, cc),
                             h0 * q(qix, 1, rr, cc),
@@ -384,7 +482,10 @@ fn low_pass(qix: &mut [f32], last_rr: usize, last_cc: usize, h: [f32; 5]) {
     }
 }
 
-fn mmse_interpolate(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: BayerPattern) {
+fn mmse_interpolate<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 4..last_rr - 4 {
         let mut cc = 4 + (tile_channel(pattern, rr, 4) & 1);
         while cc < last_cc - 4 {
@@ -436,24 +537,31 @@ fn mmse_interpolate(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: Ba
             ];
             let (xv, vv) = mmse_value(vertical_filtered, vertical_raw);
 
-            qix[tile_index(4, rr, cc)] = f32::mul_add(xv, vh, xh * vv) / (vh + vv);
+            qix[tile_index(4, rr, cc)] = T::mul_add(xv, vh, xh * vv) / (vh + vv);
             cc += 2;
         }
     }
 }
 
-fn mmse_value(mut filtered: [f32; 9], raw: [f32; 9]) -> (f32, f32) {
-    let mean = filtered.iter().sum::<f32>() / 9.0;
+fn mmse_value<T>(mut filtered: [T; 9], raw: [T; 9]) -> (T, T)
+where
+    T: Primitive,
+{
+    let mean = filtered.iter().fold(T::zero(), |sum, value| sum + *value) / num!(9.0);
     let filtered_center = filtered[4];
-    let variance_filtered = 1.0e-7
+    let variance_filtered = num!(1.0e-7)
         + filtered
             .iter()
             .map(|sample| square(*sample - mean))
-            .sum::<f32>();
+            .fold(T::zero(), |sum, value| sum + value);
     for (filtered, raw) in filtered.iter_mut().zip(raw) {
-        *filtered -= raw;
+        *filtered = *filtered - raw;
     }
-    let variance_raw = 1.0e-7 + filtered.iter().map(|sample| square(*sample)).sum::<f32>();
+    let variance_raw = num!(1.0e-7)
+        + filtered
+            .iter()
+            .map(|sample| square(*sample))
+            .fold(T::zero(), |sum, value| sum + value);
     let value = filtered_center.mul_add(variance_raw, raw[4] * variance_filtered)
         / (variance_filtered + variance_raw);
     (
@@ -462,8 +570,8 @@ fn mmse_value(mut filtered: [f32; 9], raw: [f32; 9]) -> (f32, f32) {
     )
 }
 
-fn copy_cfa_samples(
-    qix: &mut [f32],
+fn copy_cfa_samples<T>(
+    qix: &mut [T],
     row_start: usize,
     col_start: usize,
     last_rr: usize,
@@ -471,40 +579,45 @@ fn copy_cfa_samples(
     width: usize,
     height: usize,
     pattern: BayerPattern,
-) {
+) where
+    T: Primitive,
+{
     for rr in 0..last_rr {
         let row = row_start as isize - BORDER as isize + rr as isize;
         for cc in 0..last_cc {
             let col = col_start as isize - BORDER as isize + cc as isize;
             let inside = row >= 0 && row < height as isize && col >= 0 && col < width as isize;
-            let sample = if inside { q(qix, 5, rr, cc) } else { 0.0 };
+            let sample = if inside { q(qix, 5, rr, cc) } else { num!(0.0) };
             let c = tile_channel(pattern, rr, cc);
             qix[tile_index(c, rr, cc)] = sample;
             if c != GREEN {
                 qix[tile_index(GREEN, rr, cc)] = if inside {
                     sample + q(qix, 4, rr, cc)
                 } else {
-                    0.0
+                    num!(0.0)
                 };
             }
         }
     }
 }
 
-fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern: BayerPattern) {
+fn interpolate_red_blue<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 1..last_rr - 1 {
         let mut cc = 1 + (tile_channel(pattern, rr, 2) & 1);
         while cc < last_cc - 1 {
             let mut c = tile_channel(pattern, rr, cc + 1);
             let green = q(qix, 1, rr, cc);
-            let value = 0.5_f32.mul_add(
+            let value = num!(0.5).mul_add(
                 q(qix, c, rr, cc - 1) - q(qix, 1, rr, cc - 1) + q(qix, c, rr, cc + 1)
                     - q(qix, 1, rr, cc + 1),
                 green,
             );
             qix[tile_index(c, rr, cc)] = value;
             c = 2 - c;
-            let value = 0.5_f32.mul_add(
+            let value = num!(0.5).mul_add(
                 q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr + 1, cc)
                     - q(qix, 1, rr + 1, cc),
                 green,
@@ -519,7 +632,7 @@ fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern
         while cc < last_cc - 1 {
             let c = 2 - tile_channel(pattern, rr, cc);
             let green = q(qix, 1, rr, cc);
-            let value = 0.25_f32.mul_add(
+            let value = num!(0.25).mul_add(
                 q(qix, c, rr - 1, cc) - q(qix, 1, rr - 1, cc) + q(qix, c, rr, cc - 1)
                     - q(qix, 1, rr, cc - 1)
                     + q(qix, c, rr, cc + 1)
@@ -534,8 +647,8 @@ fn interpolate_red_blue(qix: &mut [f32], last_rr: usize, last_cc: usize, pattern
     }
 }
 
-fn median_pass(
-    qix: &mut [f32],
+fn median_pass<T>(
+    qix: &mut [T],
     last_rr: usize,
     last_cc: usize,
     rr_min: usize,
@@ -543,12 +656,14 @@ fn median_pass(
     cc_min: usize,
     cc_max: usize,
     pattern: BayerPattern,
-) {
+) where
+    T: Primitive,
+{
     for rr in 1..last_rr - 1 {
         for color in [RED, BLUE] {
             let correction_channel = if color == RED { 3 } else { 4 };
             for cc in 1..last_cc - 1 {
-                let mut samples = [0.0_f32; 9];
+                let mut samples = [num!(0.0); 9];
                 let mut slot = 0;
                 for dy in -1_i32..=1 {
                     for dx in -1_i32..=1 {
@@ -576,7 +691,7 @@ fn median_pass(
                 let correction_channel = if missing == RED { 3 } else { 4 };
                 qix[tile_index(missing, rr, cc)] =
                     q(qix, GREEN, rr, cc) + q(qix, correction_channel, rr, cc);
-                qix[tile_index(GREEN, rr, cc)] = 0.5
+                qix[tile_index(GREEN, rr, cc)] = num!(0.5)
                     * (q(qix, RED, rr, cc) - q(qix, 3, rr, cc) + q(qix, BLUE, rr, cc)
                         - q(qix, 4, rr, cc));
                 cc += 1;
@@ -593,7 +708,7 @@ fn median_pass(
             while cc < cc_max - 1 {
                 qix[tile_index(opposite, rr, cc)] =
                     q(qix, GREEN, rr, cc) + q(qix, correction_channel, rr, cc);
-                qix[tile_index(GREEN, rr, cc)] = 0.5
+                qix[tile_index(GREEN, rr, cc)] = num!(0.5)
                     * (q(qix, RED, rr, cc) - q(qix, 3, rr, cc) + q(qix, BLUE, rr, cc)
                         - q(qix, 4, rr, cc));
                 cc += 1;
@@ -605,7 +720,7 @@ fn median_pass(
             if cc < cc_max {
                 qix[tile_index(opposite, rr, cc)] =
                     q(qix, GREEN, rr, cc) + q(qix, correction_channel, rr, cc);
-                qix[tile_index(GREEN, rr, cc)] = 0.5
+                qix[tile_index(GREEN, rr, cc)] = num!(0.5)
                     * (q(qix, RED, rr, cc) - q(qix, 3, rr, cc) + q(qix, BLUE, rr, cc)
                         - q(qix, 4, rr, cc));
             }
@@ -613,9 +728,9 @@ fn median_pass(
     }
 }
 
-fn write_tile(
-    qix: &[f32],
-    output: &mut [u16],
+fn write_tile<T>(
+    qix: &[T],
+    output: &mut [T],
     width: usize,
     tile_vertical: usize,
     num_vertical: usize,
@@ -625,8 +740,10 @@ fn write_tile(
     row_end: usize,
     col_start: usize,
     col_end: usize,
-    gamma_output: &[f32],
-) {
+    transfer: &LmmseTransfer<T>,
+) where
+    T: Primitive,
+{
     let first_vertical = row_start + if tile_vertical == 0 { BORDER } else { OVERLAP };
     let last_vertical = row_end
         - if tile_vertical == num_vertical - 1 {
@@ -653,55 +770,10 @@ fn write_tile(
             let cc = col - col_start + BORDER;
             let target = (row * width + col) * 3;
             for color in [RED, GREEN, BLUE] {
-                let value = calc_gamma(q(qix, color, rr, cc), gamma_output).clamp(0.0, 1.0);
-                output[target + color] = (value * f32::from(u16::MAX)).round() as u16;
+                output[target + color] = transfer.decode(q(qix, color, rr, cc));
             }
         }
     }
-}
-
-fn gamma_tables() -> &'static GammaTables {
-    static TABLES: OnceLock<GammaTables> = OnceLock::new();
-    TABLES.get_or_init(|| {
-        let mut input = Vec::with_capacity(65_536);
-        let mut output = Vec::with_capacity(65_536);
-        for code in 0..=u16::MAX {
-            let value = f64::from(code) / 65_535.0;
-            let encoded = if value <= 0.001867 {
-                value * 17.0
-            } else {
-                1.044_445_f64.mul_add((value.ln() / 2.4).exp(), -0.044_445)
-            };
-            let decoded = if value <= 0.031_746 {
-                value / 17.0
-            } else {
-                (((value + 0.044_445) / 1.044_445).ln() * 2.4).exp()
-            };
-            input.push(encoded as f32);
-            output.push(decoded as f32);
-        }
-        GammaTables { input, output }
-    })
-}
-
-fn calc_gamma(value: f32, table: &[f32]) -> f32 {
-    let index = value * f32::from(u16::MAX);
-    if index < 0.0 {
-        return 0.0;
-    }
-    if index > 65_534.99 {
-        return 1.0;
-    }
-    let index = index as usize;
-    let diff = value.mul_add(f32::from(u16::MAX), -(index as f32));
-    let first = table[index];
-    let second = table[index + 1] - first;
-    second.mul_add(diff, first)
-}
-
-struct GammaTables {
-    input: Vec<f32>,
-    output: Vec<f32>,
 }
 
 #[inline]
@@ -710,7 +782,10 @@ const fn tile_index(channel: usize, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-const fn q(qix: &[f32], channel: usize, rr: usize, cc: usize) -> f32 {
+const fn q<T>(qix: &[T], channel: usize, rr: usize, cc: usize) -> T
+where
+    T: Primitive,
+{
     qix[tile_index(channel, rr, cc)]
 }
 
@@ -720,17 +795,32 @@ const fn tile_channel(pattern: BayerPattern, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-const fn median3(a: f32, b: f32, c: f32) -> f32 { a.min(b).max(c.min(a.max(b))) }
+fn median3<T>(a: T, b: T, c: T) -> T
+where
+    T: Primitive,
+{
+    a.min(b).max(c.min(a.max(b)))
+}
 
 #[inline]
-fn median9(pixels: &[f32; 9]) -> f32 {
+fn median9<T>(pixels: &[T; 9]) -> T
+where
+    T: Primitive,
+{
     let mut sorted = *pixels;
-    sorted.sort_unstable_by(f32::total_cmp);
+    sorted.sort_unstable_by(|left, right| {
+        left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal)
+    });
     sorted[4]
 }
 
 #[inline]
-fn square(value: f32) -> f32 { value * value }
+fn square<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    value * value
+}
 
 #[cfg(test)]
 mod tests {
@@ -789,24 +879,16 @@ mod tests {
     }
 
     #[test]
-    #[allow(
-        clippy::suboptimal_flops,
-        reason = "the inverse-gamma check must retain the same separate operations as the reference"
-    )]
-    fn gamma_tables_are_inverse_at_table_endpoints_and_interior_codes() {
-        let gamma = gamma_tables();
-        for code in [0_u16, 1, 122, 123, 2_080, 2_081, 32_768, 65_534, 65_535] {
-            let normalized = f32::from(code) / f32::from(u16::MAX);
-            let encoded = calc_gamma(normalized, &gamma.input);
-            let decoded = calc_gamma(encoded, &gamma.output);
+    fn analytic_transfer_round_trips_signed_hdr_values() {
+        let transfer = LmmseTransfer::<f64>::new();
+        for value in [-4.0_f64, -1.0, -0.1, 0.0, 0.001, 0.1, 1.0, 4.0, 1.0e4] {
+            let encoded = transfer.encode(value);
+            let decoded = transfer.decode(encoded);
             assert!(
-                (decoded * f32::from(u16::MAX) - f32::from(code)).abs() <= 2.0,
-                "code {code} round-tripped to {}",
-                decoded * f32::from(u16::MAX)
+                (decoded - value).abs() <= 2.0e-12,
+                "{value} round-tripped to {decoded}"
             );
         }
-        assert_eq!(calc_gamma(-0.1, &gamma.input), 0.0);
-        assert_eq!(calc_gamma(1.0, &gamma.output), 1.0);
     }
 
     #[test]

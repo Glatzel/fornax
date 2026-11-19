@@ -8,7 +8,6 @@ const DARKTABLE_SOURCE_COMMIT: &str = "20891f6c6fa7be995e5bf9dff9d1ee5062051773"
 const RAWTHERAPEE_SOURCE_RELEASE: &str = "5.13";
 const RAWTHERAPEE_SOURCE_COMMIT: &str = "1924179107995b01b73cdc7f4fe91e44fc8227a7";
 const RAWTHERAPEE_SOURCE_FILES: &[&str] = &[
-    "ahd_demosaic_RT.cc",
     "amaze_demosaic_RT.cc",
     "demosaic_algos.cc",
     "eahd_demosaic.cc",
@@ -24,9 +23,7 @@ const RAWTHERAPEE_SOURCE_FILES: &[&str] = &[
     "rt_math.h",
 ];
 const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
-    "cpp/algos/rawtherapee_ahd.cpp",
     "cpp/algos/rawtherapee_amaze.cpp",
-    "cpp/algos/rawtherapee_dcb.cpp",
     "cpp/algos/rawtherapee_eahd.cpp",
     "cpp/algos/rawtherapee_hphd.cpp",
     "cpp/algos/rawtherapee_igv.cpp",
@@ -36,10 +33,6 @@ const RAWTHERAPEE_SHIM_SOURCES: &[&str] = &[
 ];
 const SHIM_SOURCES: &[&str] = &[
     "cpp/algos/darktable_ppg.cpp",
-    "cpp/algos/libraw_aahd.cpp",
-    "cpp/algos/libraw_ahd.cpp",
-    "cpp/algos/libraw_dcb.cpp",
-    "cpp/algos/libraw_dht.cpp",
     "cpp/algos/libraw_linear.cpp",
     "cpp/algos/libraw_ppg.cpp",
     "cpp/algos/libraw_vng.cpp",

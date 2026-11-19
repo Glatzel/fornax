@@ -23,7 +23,7 @@ Common commands from the repository root:
 ```bash
 export OMP_NUM_THREADS=1
 cargo run --release -p compare-demosaic -- run
-cargo run --release -p compare-demosaic -- run --algorithm ahd
+cargo run --release -p compare-demosaic -- run --algorithm rcd
 cargo run --release -p compare-demosaic -- readme --check
 cargo run --release -p compare-demosaic -- run --artifacts
 ```
@@ -65,7 +65,7 @@ synchronized with those sources.
 ## Investigating one algorithm or case
 
 ```bash
-cargo run --release -p compare-demosaic -- run --algorithm ahd \
+cargo run --release -p compare-demosaic -- run --algorithm rcd \
   --reference libraw --pattern RGGB \
   --artifacts --out target/dbg
 cargo run --release -p compare-demosaic -- diff \

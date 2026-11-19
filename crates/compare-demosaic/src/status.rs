@@ -52,7 +52,7 @@ pub fn evaluate(row: &Row, waivers: &[Waiver]) -> Status {
     }
 }
 
-pub(crate) fn automatically_accepted(row: &Row) -> bool {
+pub(crate) const fn automatically_accepted(row: &Row) -> bool {
     (row.outlier_evidence.divergent_samples == 0 || row.outlier_evidence.fornax_not_worse)
         && (row.reference_floor_match
             || (row.outlier_evidence.divergent_samples > 0
@@ -406,68 +406,6 @@ mod tests {
             assert_eq!(
                 evaluate(row, crate::waivers::WAIVERS),
                 Status::Pass,
-                "{}",
-                row.pattern
-            );
-        }
-        assert!(waiver_findings(&report, crate::waivers::WAIVERS).is_empty());
-        Ok(())
-    }
-
-    #[test]
-    fn committed_aahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
-        let report = Report::read(&path)?;
-        let rows = report
-            .rows
-            .iter()
-            .filter(|row| {
-                row.algorithm.eq_ignore_ascii_case("aahd")
-                    && row.reference.eq_ignore_ascii_case("libraw")
-            })
-            .collect::<Vec<_>>();
-
-        assert_eq!(rows.len(), 4);
-        for row in rows {
-            let expected = if row.pattern == "GRBG" {
-                Status::AcceptedOutliers
-            } else {
-                Status::Fail
-            };
-            assert_eq!(
-                evaluate(row, crate::waivers::WAIVERS),
-                expected,
-                "{}",
-                row.pattern
-            );
-        }
-        assert!(waiver_findings(&report, crate::waivers::WAIVERS).is_empty());
-        Ok(())
-    }
-
-    #[test]
-    fn committed_ahd_libraw_rows_apply_ground_truth_evidence() -> mischief::Result<()> {
-        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("baseline/canonical.json");
-        let report = Report::read(&path)?;
-        let rows = report
-            .rows
-            .iter()
-            .filter(|row| {
-                row.algorithm.eq_ignore_ascii_case("ahd")
-                    && row.reference.eq_ignore_ascii_case("libraw")
-            })
-            .collect::<Vec<_>>();
-
-        assert_eq!(rows.len(), 4);
-        for row in rows {
-            let expected = match row.pattern.as_str() {
-                "BGGR" => Status::Fail,
-                "GBRG" => Status::UnreviewedOutliers,
-                _ => Status::AcceptedOutliers,
-            };
-            assert_eq!(
-                evaluate(row, crate::waivers::WAIVERS),
-                expected,
                 "{}",
                 row.pattern
             );

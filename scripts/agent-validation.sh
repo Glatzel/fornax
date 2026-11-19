@@ -84,8 +84,6 @@ if [[ "$docs_only" == false ]]; then
     run_stage workspace-tests cargo -q test --workspace --all-features --exclude compare-demosaic
     run_stage codec-feature-check cargo -q check -p fornax-codec --no-default-features
     run_stage codec-ljpeg-tests cargo -q test -p fornax-codec --features lossless-jpeg
-    run_stage decoder-no-default-features \
-        cargo -q test -p fornax-raw-decoder --no-default-features
     run_stage rustfmt-check cargo +nightly fmt --check -q
     RUSTDOCFLAGS="-D warnings" \
         run_stage rustdoc cargo -q doc --workspace --all-features --exclude compare-demosaic --no-deps

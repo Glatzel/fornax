@@ -436,7 +436,7 @@ fn compute_reference_floor(
             })
         })
         .collect::<Vec<_>>();
-    let mut rows = pool.install(|| {
+    let rows = pool.install(|| {
         jobs.par_iter()
             .map(|(input_index, algorithm, pattern)| {
                 let input = crate::reference::shifted_to_pattern(&inputs[*input_index], *pattern)?;
@@ -480,7 +480,7 @@ fn compute_reference_floor(
             })
             .collect::<Vec<mischief::Result<ReferenceFloorRow>>>()
     });
-    let rows = rows.drain(..).collect::<mischief::Result<Vec<_>>>()?;
+    let rows = rows.into_iter().collect::<mischief::Result<Vec<_>>>()?;
     let mut rows = rows;
     rows.sort_unstable_by(|left, right| {
         (&left.input, &left.algorithm, &left.pattern).cmp(&(
@@ -651,8 +651,8 @@ mod tests {
 
     fn request(out: &Path, jobs: usize) -> RunRequest {
         RunRequest {
-            algorithms: vec!["ahd".to_owned()],
-            references: vec!["libraw".to_owned()],
+            algorithms: vec!["rcd".to_owned()],
+            references: vec!["darktable".to_owned()],
             patterns: vec![BayerPattern::RGGB],
             inputs: Vec::new(),
             out: out.to_owned(),
@@ -694,8 +694,8 @@ mod tests {
         let directory = tempfile::tempdir().expect("temporary directory");
         let output = execute_with_inputs(&request(directory.path(), 1), vec![input()])?;
         assert_eq!(output.report.rows.len(), 1);
-        assert_eq!(output.report.meta.selection.algorithm, ["ahd"]);
-        assert_eq!(output.report.meta.selection.reference, ["libraw"]);
+        assert_eq!(output.report.meta.selection.algorithm, ["rcd"]);
+        assert_eq!(output.report.meta.selection.reference, ["darktable"]);
         assert_eq!(output.report.meta.selection.pattern, ["RGGB"]);
         assert!(output.report.meta.selection.input.is_empty());
 
@@ -741,8 +741,12 @@ mod tests {
         request.artifacts = true;
         let output = execute_with_inputs(&request, vec![input()])?;
         let artifact_root = directory.path().join("artifacts/synthetic-raw");
-        assert!(artifact_root.join("ahd-libraw-RGGB/error.png").is_file());
-        assert!(artifact_root.join("ahd-libraw-RGGB/tiles.json").is_file());
+        assert!(artifact_root.join("rcd-darktable-RGGB/error.png").is_file());
+        assert!(
+            artifact_root
+                .join("rcd-darktable-RGGB/tiles.json")
+                .is_file()
+        );
         let json = std::fs::read_to_string(output.path)?;
         assert!(!json.contains("error.png"));
         assert!(!json.contains("tiles.json"));

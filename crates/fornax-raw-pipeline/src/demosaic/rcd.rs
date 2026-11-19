@@ -10,6 +10,7 @@ use fornax_raw_core::error::DemosaicError;
 use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
 use generic_num::num;
 
+use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
 use super::protocol::apply_post_in_place;
 use crate::LazyDemosaic;
@@ -129,8 +130,9 @@ where
     let mut vertical_hp = [T::zero(); 3 * (TILE_SIZE - 8)];
     let mut horizontal_hp = [T::zero(); TILE_SIZE];
 
-    let eps: T = num!(1.0e-5);
-    let epssq: T = num!(1.0e-10);
+    let signal_scale = normalization_scale(raw);
+    let eps = signal_scale * T::epsilon();
+    let epssq = eps * eps;
     let half: T = num!(0.5);
     let quarter: T = num!(0.25);
     let three: T = num!(3);
@@ -161,7 +163,7 @@ where
                     color_index(pattern.channel_at((col_start + 1) as u32, global_y as u32));
                 for col in 0..tile_cols {
                     let index = row * TILE_SIZE + col;
-                    let value = raw[(global_y) * width + col_start + col].max(T::zero());
+                    let value = raw[(global_y) * width + col_start + col];
                     cfa[index] = value;
                     rgb[index][first] = value;
                     rgb[index][second] = value;
@@ -499,9 +501,7 @@ where
                 for col in first_col..last_col {
                     let index = (row - row_start) * TILE_SIZE + col - col_start;
                     let output_index = (row * width + col) * 3;
-                    for channel in 0..3 {
-                        output[output_index + channel] = rgb[index][channel].max(T::zero());
-                    }
+                    output[output_index..output_index + 3].copy_from_slice(&rgb[index]);
                 }
             }
         }

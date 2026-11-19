@@ -1,9 +1,15 @@
 # DHT reference notes
 
+> **Removed from Fornax.** The retained LibRaw formulation depends on
+> positive-domain color ratios, a mid-gray padding value, and bounded channel
+> reconstruction. Making those operations accept mixed-sign linear samples
+> would replace DHT's mathematical model rather than port it. The notes below
+> remain as provenance for a possible future sign-correct formulation.
+
 This reference note records pinned sources, numerical behavior, and implementation boundaries for DHT.
 
-This note records the authoritative source and numeric conventions used by
-Fornax's conventional 2x2 RGB Bayer DHT path.
+This note records the authoritative source and numeric conventions that were
+used by Fornax's former conventional 2x2 RGB Bayer DHT path.
 
 ## Source
 
@@ -12,10 +18,8 @@ Fornax's conventional 2x2 RGB Bayer DHT path.
   [`src/demosaic/dht_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp).
 - LibRaw 0.22.3, three-color CFA preprocessing:
   [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
-- Fornax comparison adapter:
-  [`crates/compare-demosaic/cpp/algos/libraw_dht.cpp`](../../../crates/compare-demosaic/cpp/algos/libraw_dht.cpp).
-
-The comparison calls `pre_interpolate()` followed by `dht_interpolate()`. For
+The former comparison called `pre_interpolate()` followed by
+`dht_interpolate()`. For
 the fixture's three-color, full-resolution Bayer path, preprocessing unifies
 the two green CFA phases. DHT's fallback to AHD for unsupported filter arrays
 is outside the Fornax scope.

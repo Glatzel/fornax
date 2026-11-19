@@ -18,34 +18,27 @@ let rgb = processor.process(normalized.image(), &metadata)?;
 
 ## Demosaicing
 
-The `Demosaic` selector supports linear, PPG, RCD, AHD, VNG, four-color VNG4,
-DCB, DHT, AAHD, AMaZE, and LMMSE reconstruction for conventional 2x2 Bayer
+The `Demosaic` selector supports linear, PPG, RCD, VNG, four-color VNG4, AMaZE,
+and LMMSE reconstruction for conventional 2x2 Bayer
 images. `IDemosaic`, `LazyDemosaic`, and `DemosaicError` remain available
 through the same public names used by the former stage crates.
 
-All eleven demosaic variants are implemented in Rust. LibRaw and darktable are
+All seven demosaic variants are implemented in Rust. LibRaw and darktable are
 used only by the separate comparison crate as behavioral references. Every
-demosaic accepts and returns normalized scene-linear data. AAHD gamma-encodes
-samples only for homogeneity scoring, while LMMSE performs interpolation in a
-gamma-encoded workspace and decodes the result before returning.
+demosaic accepts and returns scene-linear data. LMMSE performs interpolation in
+an analytic gamma-encoded workspace and decodes the result before returning.
 
-DCB and LMMSE parameters are carried directly by the `Demosaic` enum:
+LMMSE parameters are carried directly by the `Demosaic` enum:
 
 ```rust
 use fornax_raw_pipeline::{Demosaic, LmmseMode};
 
-let dcb = Demosaic::Dcb {
-    iterations: 1,
-    enhance: true,
-};
 let lmmse = Demosaic::Lmmse {
     mode: LmmseMode::ThreeMedians,
 };
-assert!(matches!(dcb, Demosaic::Dcb { iterations: 1, .. }));
 assert!(matches!(lmmse, Demosaic::Lmmse { .. }));
 ```
 
-`Demosaic::dcb()` preserves the comparison default `(0, true)`.
 `Demosaic::lmmse()` preserves darktable mode 1: one median pass and no
 refinement.
 
@@ -84,7 +77,7 @@ megapixels. The default is `1000,2000`, producing `1.50MP` and `6.00MP` images.
 Preprocessing is currently single-threaded, so those benchmarks do not sweep
 Rayon thread counts.
 
-`FORNAX_BENCH_ALGORITHM` selects one demosaic algorithm by ID, such as `ahd`,
-`dcb`, or `lmmse`. An unset or empty value runs every registered algorithm.
+`FORNAX_BENCH_ALGORITHM` selects one demosaic algorithm by ID, such as `amaze`,
+`rcd`, or `lmmse`. An unset or empty value runs every registered algorithm.
 Demosaic benchmarks also sweep Rayon thread counts; set `RAYON_NUM_THREADS` to
 control the maximum sweep.

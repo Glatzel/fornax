@@ -223,7 +223,7 @@ mod tests {
             "compare-demosaic",
             "run",
             "--algorithm",
-            "ahd",
+            "ppg",
             "--algorithm",
             "rcd",
             "--reference",
@@ -242,7 +242,7 @@ mod tests {
         let Command::Run(run) = args.command else {
             panic!("expected run");
         };
-        assert_eq!(run.algorithm, ["ahd", "rcd"]);
+        assert_eq!(run.algorithm, ["ppg", "rcd"]);
         assert_eq!(run.reference, ["LibRaw"]);
         assert_eq!(run.input.len(), 2);
         assert_eq!(run.jobs, 2);

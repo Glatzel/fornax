@@ -9,10 +9,13 @@ use serde::{Deserialize, Serialize};
 use crate::cases;
 use crate::run::repo_path;
 
-pub const VERSION: u32 = 1;
+pub const VERSION: u32 = 2;
 const WIDTH: u32 = 128;
 const HEIGHT: u32 = 128;
 const BORDER_PX: u32 = 8;
+const REFERENCE_RANGE_ERROR_FRAGMENT: &str = "requires finite [0,1] samples";
+const EXCLUDED_SOURCE_REASON: &str =
+    "not all algorithms accept the explicit bounded reference range";
 const RELATIVE_NOISE_FLOOR: f64 = 1.0e-3;
 const LOG_NOISE_FLOOR: f64 = 1.0e-3;
 const EDGE_RELATIVE_THRESHOLD: f64 = 0.02;
@@ -37,8 +40,16 @@ pub struct GroundTruthReport {
     pub edge_threshold: f64,
     pub suspicious_margin: f64,
     pub synthetic_sources: Vec<String>,
+    pub excluded_sources: Vec<ExcludedSource>,
     pub corpus_sources: Vec<CorpusSource>,
     pub algorithms: Vec<AlgorithmGroundTruth>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExcludedSource {
+    pub name: String,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -150,6 +161,24 @@ impl GroundTruthReport {
                 "ground truth requires synthetic sources and algorithm rows"
             ));
         }
+        let mut excluded_names = self
+            .excluded_sources
+            .iter()
+            .map(|source| source.name.as_str())
+            .collect::<Vec<_>>();
+        excluded_names.sort_unstable();
+        excluded_names.dedup();
+        if excluded_names.len() != self.excluded_sources.len()
+            || self.excluded_sources.iter().any(|source| {
+                source.name.is_empty()
+                    || source.reason.is_empty()
+                    || self.synthetic_sources.contains(&source.name)
+            })
+        {
+            return Err(mischief::mischief!(
+                "ground truth has invalid excluded sources"
+            ));
+        }
         for value in [
             self.relative_noise_floor,
             self.log_noise_floor,
@@ -242,6 +271,7 @@ impl GroundTruthReport {
             || self.edge_threshold != other.edge_threshold
             || self.suspicious_margin != other.suspicious_margin
             || self.synthetic_sources != other.synthetic_sources
+            || self.excluded_sources != other.excluded_sources
             || self.corpus_sources != other.corpus_sources
         {
             return false;
@@ -276,6 +306,7 @@ impl GroundTruthReport {
             edge_threshold: EDGE_RELATIVE_THRESHOLD,
             suspicious_margin: SUSPICIOUS_MARGIN,
             synthetic_sources: vec!["fixture".to_owned()],
+            excluded_sources: Vec::new(),
             corpus_sources: Vec::new(),
             algorithms: vec![AlgorithmGroundTruth {
                 algorithm: "Linear".to_owned(),
@@ -354,6 +385,8 @@ impl SourceKind {
 struct Source {
     name: String,
     kind: SourceKind,
+    width: u32,
+    height: u32,
     truth: Vec<[f32; 3]>,
     edge: Vec<bool>,
     mosaic: Vec<f32>,
@@ -432,11 +465,11 @@ fn synthetic_sources() -> Vec<Source> {
         scene("zone_plate", SourceKind::ZonePlate, 0x7a_01, |x, y| {
             let nx = (x as f32 - 64.0) / 64.0;
             let ny = (y as f32 - 64.0) / 64.0;
-            let value = 0.5 + 0.35 * (38.0 * (nx * nx + ny * ny)).cos();
+            let value = 0.35_f32.mul_add((38.0 * ny.mul_add(ny, nx * nx)).cos(), 0.5);
             [value; 3]
         }),
         scene("slanted_edge", SourceKind::Edge, 0x7a_02, |x, y| {
-            if (x as f32) + 0.37 * (y as f32) < 80.0 {
+            if 0.37_f32.mul_add(y as f32, x as f32) < 80.0 {
                 [0.04, 0.08, 0.03]
             } else {
                 [0.82, 0.66, 0.53]
@@ -475,27 +508,191 @@ fn synthetic_sources() -> Vec<Source> {
     ]
 }
 
+fn evidence_sources() -> Vec<Source> {
+    const DIMENSIONS: [(u32, u32); 3] = [(96, 80), (126, 94), (160, 128)];
+    const ZONE_NAMES: [&str; 3] = [
+        "evidence_zone_plate_a",
+        "evidence_zone_plate_b",
+        "evidence_zone_plate_c",
+    ];
+    const EDGE_NAMES: [&str; 3] = [
+        "evidence_slanted_edge_a",
+        "evidence_slanted_edge_b",
+        "evidence_slanted_edge_c",
+    ];
+    const COLORED_NAMES: [&str; 3] = [
+        "evidence_colored_edges_a",
+        "evidence_colored_edges_b",
+        "evidence_colored_edges_c",
+    ];
+    const LINE_NAMES: [&str; 3] = [
+        "evidence_fine_lines_a",
+        "evidence_fine_lines_b",
+        "evidence_fine_lines_c",
+    ];
+    const GRADIENT_NAMES: [&str; 3] = [
+        "evidence_smooth_gradient_a",
+        "evidence_smooth_gradient_b",
+        "evidence_smooth_gradient_c",
+    ];
+    const HDR_NAMES: [&str; 3] = [
+        "evidence_hdr_blocks_a",
+        "evidence_hdr_blocks_b",
+        "evidence_hdr_blocks_c",
+    ];
+
+    let mut sources = synthetic_sources();
+    for (variant, (width, height)) in DIMENSIONS.into_iter().enumerate() {
+        let variant_u32 = variant as u32;
+        let seed = 0x7d_00 + u64::from(variant_u32);
+        sources.push(scene_sized(
+            ZONE_NAMES[variant],
+            SourceKind::ZonePlate,
+            seed,
+            width,
+            height,
+            move |x, y| {
+                let cx = width as f32 / 2.0;
+                let cy = height as f32 / 2.0;
+                let nx = (x as f32 - cx) / cx;
+                let ny = (y as f32 - cy) / cy;
+                let frequency = 7.0_f32.mul_add(variant_u32 as f32, 31.0);
+                let value = 0.38_f32.mul_add((frequency * ny.mul_add(ny, nx * nx)).cos(), 0.48);
+                [value; 3]
+            },
+        ));
+        sources.push(scene_sized(
+            EDGE_NAMES[variant],
+            SourceKind::Edge,
+            seed + 0x10,
+            width,
+            height,
+            move |x, y| {
+                let threshold = width as f32 * 0.03_f32.mul_add(variant_u32 as f32, 0.58);
+                let slope = 0.13_f32.mul_add(variant_u32 as f32, 0.24);
+                if slope.mul_add(y as f32, x as f32) < threshold {
+                    [0.03, 0.07, 0.02]
+                } else {
+                    [0.03_f32.mul_add(variant_u32 as f32, 0.76), 0.61, 0.42]
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            COLORED_NAMES[variant],
+            SourceKind::ColoredEdge,
+            seed + 0x20,
+            width,
+            height,
+            move |x, y| {
+                let block_x = 14 + 5 * variant_u32;
+                let block_y = 19 + 4 * variant_u32;
+                match (x / block_x + y / block_y) % 4 {
+                    0 => [0.82, 0.06, 0.04],
+                    1 => [0.04, 0.69, 0.09],
+                    2 => [0.03, 0.08, 0.84],
+                    _ => [0.78, 0.67, 0.05],
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            LINE_NAMES[variant],
+            SourceKind::FineLines,
+            seed + 0x30,
+            width,
+            height,
+            move |x, y| {
+                let bright = match variant_u32 {
+                    0 => (x + y * 3) & 1 == 0,
+                    1 => (x / 2 + y / 4) & 1 == 0,
+                    _ => (x + 2 * y) % 5 < 2,
+                };
+                if bright {
+                    [0.84, 0.16, 0.68]
+                } else {
+                    [0.05, 0.43, 0.07]
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            GRADIENT_NAMES[variant],
+            SourceKind::Gradient,
+            seed + 0x40,
+            width,
+            height,
+            move |x, y| {
+                let x = x as f32 / (width - 1) as f32;
+                let y = y as f32 / (height - 1) as f32;
+                match variant_u32 {
+                    0 => [
+                        0.7_f32.mul_add(x, 0.02),
+                        0.55_f32.mul_add(y, 0.04),
+                        0.25_f32.mul_add(y, 0.3_f32.mul_add(x, 0.01)),
+                    ],
+                    1 => [
+                        0.55_f32.mul_add(y, 0.03),
+                        0.62_f32.mul_add(x, 0.02),
+                        0.31_f32.mul_add(y, 0.24_f32.mul_add(x, 0.04)),
+                    ],
+                    _ => [
+                        0.32_f32.mul_add(y, 0.36_f32.mul_add(x, 0.02)),
+                        0.41_f32.mul_add(y, 0.28_f32.mul_add(x, 0.03)),
+                        0.12_f32.mul_add(y, 0.58_f32.mul_add(x, 0.01)),
+                    ],
+                }
+            },
+        ));
+        sources.push(scene_sized(
+            HDR_NAMES[variant],
+            SourceKind::Hdr,
+            seed + 0x50,
+            width,
+            height,
+            move |x, y| {
+                let levels = [1.0 / 256.0, 1.0 / 16.0, 1.0, 2.0, 4.0, 16.0];
+                let block_x = 16 + 5 * variant_u32;
+                let block_y = 20 + 4 * variant_u32;
+                let level = levels[((x / block_x) + 4 * (y / block_y)) as usize % levels.len()];
+                [level, level * 0.7, level * 0.45]
+            },
+        ));
+    }
+    sources
+}
+
 fn scene(
     name: &'static str,
     kind: SourceKind,
     seed: u64,
     value: impl Fn(u32, u32) -> [f32; 3],
 ) -> Source {
-    let mut truth = Vec::with_capacity((WIDTH * HEIGHT) as usize);
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
+    scene_sized(name, kind, seed, WIDTH, HEIGHT, value)
+}
+
+fn scene_sized(
+    name: &'static str,
+    kind: SourceKind,
+    seed: u64,
+    width: u32,
+    height: u32,
+    value: impl Fn(u32, u32) -> [f32; 3],
+) -> Source {
+    let mut truth = Vec::with_capacity((width * height) as usize);
+    for y in 0..height {
+        for x in 0..width {
             let mut pixel = value(x, y);
             for (channel, sample) in pixel.iter_mut().enumerate() {
-                *sample += 1.0e-4 * noise(seed, x, y, channel as u32);
+                *sample = 1.0e-4_f32.mul_add(noise(seed, x, y, channel as u32), *sample);
             }
             truth.push(pixel);
         }
     }
-    let edge = derive_edges(&truth);
-    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN);
+    let edge = derive_edges(&truth, width, height);
+    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN, width);
     Source {
         name: name.to_owned(),
         kind,
+        width,
+        height,
         truth,
         edge,
         mosaic,
@@ -512,27 +709,27 @@ fn noise(seed: u64, x: u32, y: u32, channel: u32) -> f32 {
     value ^= value >> 27;
     value = value.wrapping_mul(0x94d0_49bb_1331_11eb);
     value ^= value >> 31;
-    ((value >> 40) as u32) as f32 / ((1_u32 << 24) as f32) * 2.0 - 1.0
+    (((value >> 40) as u32) as f32 / ((1_u32 << 24) as f32)).mul_add(2.0, -1.0)
 }
 
-fn derive_edges(truth: &[[f32; 3]]) -> Vec<bool> {
+fn derive_edges(truth: &[[f32; 3]], width: u32, height: u32) -> Vec<bool> {
     let mut edges = vec![false; truth.len()];
-    for y in 0..HEIGHT as usize {
-        for x in 0..WIDTH as usize {
-            let center = truth[y * WIDTH as usize + x];
+    for y in 0..height as usize {
+        for x in 0..width as usize {
+            let center = truth[y * width as usize + x];
             let mut neighbour_max = [0.0_f64; 3];
             let mut neighbour = Vec::with_capacity(4);
             if x > 0 {
-                neighbour.push(truth[y * WIDTH as usize + x - 1]);
+                neighbour.push(truth[y * width as usize + x - 1]);
             }
-            if x + 1 < WIDTH as usize {
-                neighbour.push(truth[y * WIDTH as usize + x + 1]);
+            if x + 1 < width as usize {
+                neighbour.push(truth[y * width as usize + x + 1]);
             }
             if y > 0 {
-                neighbour.push(truth[(y - 1) * WIDTH as usize + x]);
+                neighbour.push(truth[(y - 1) * width as usize + x]);
             }
-            if y + 1 < HEIGHT as usize {
-                neighbour.push(truth[(y + 1) * WIDTH as usize + x]);
+            if y + 1 < height as usize {
+                neighbour.push(truth[(y + 1) * width as usize + x]);
             }
             let mut gradient = 0.0_f64;
             for pixel in neighbour {
@@ -547,19 +744,19 @@ fn derive_edges(truth: &[[f32; 3]]) -> Vec<bool> {
             let scale = neighbour_max
                 .into_iter()
                 .fold(RELATIVE_NOISE_FLOOR, f64::max);
-            edges[y * WIDTH as usize + x] = gradient > EDGE_RELATIVE_THRESHOLD * scale;
+            edges[y * width as usize + x] = gradient > EDGE_RELATIVE_THRESHOLD * scale;
         }
     }
     edges
 }
 
-fn re_mosaic(truth: &[[f32; 3]], pattern: BayerPattern) -> Vec<f32> {
+fn re_mosaic(truth: &[[f32; 3]], pattern: BayerPattern, width: u32) -> Vec<f32> {
     truth
         .iter()
         .enumerate()
         .map(|(index, pixel)| {
-            let x = index as u32 % WIDTH;
-            let y = index as u32 / WIDTH;
+            let x = index as u32 % width;
+            let y = index as u32 / width;
             let channel = match pattern.channel_at(x, y) {
                 BayerChannel::R => 0,
                 BayerChannel::GRedRow | BayerChannel::GBlueRow => 1,
@@ -580,7 +777,11 @@ pub(crate) fn evaluate_reference_evidence(
 ) -> mischief::Result<OutlierEvidence> {
     let mut fornax_errors = Vec::new();
     let mut reference_errors = Vec::new();
-    let sources = synthetic_sources();
+    let sources = if case.name.eq_ignore_ascii_case("AMaZE") {
+        evidence_sources()
+    } else {
+        synthetic_sources()
+    };
     for source in &sources {
         let maximum = source
             .truth
@@ -593,7 +794,7 @@ pub(crate) fn evaluate_reference_evidence(
             .iter()
             .map(|pixel| pixel.map(|sample| sample * scale))
             .collect::<Vec<_>>();
-        let mosaic = re_mosaic(&scaled_truth, pattern);
+        let mosaic = re_mosaic(&scaled_truth, pattern, source.width);
         let codes = mosaic
             .iter()
             .map(|sample| (sample * f32::from(u16::MAX)).round() as u16)
@@ -606,20 +807,20 @@ pub(crate) fn evaluate_reference_evidence(
             case.reference_backend,
             case.algorithm,
             &codes,
-            WIDTH,
-            HEIGHT,
+            source.width,
+            source.height,
             crate::reference::libraw_filters(pattern),
         )?;
         let fornax = (case.run_fornax)(
             &codes,
-            WIDTH,
-            HEIGHT,
+            source.width,
+            source.height,
             pattern,
             crate::cases::SampleType::F32,
         )?;
-        for y in BORDER_PX..HEIGHT - BORDER_PX {
-            for x in BORDER_PX..WIDTH - BORDER_PX {
-                let pixel = y as usize * WIDTH as usize + x as usize;
+        for y in BORDER_PX..source.height - BORDER_PX {
+            for x in BORDER_PX..source.width - BORDER_PX {
+                let pixel = y as usize * source.width as usize + x as usize;
                 for channel in 0..3 {
                     let index = pixel * 3 + channel;
                     if fornax[index].abs_diff(reference[index]) > crate::metrics::TOLERANCE_CODES {
@@ -694,6 +895,42 @@ fn evaluate_algorithms(
         algorithms.push("Linear".to_owned());
     }
     algorithms.sort_unstable_by_key(|algorithm| algorithm.to_ascii_lowercase());
+
+    let mut excluded_sources = Vec::new();
+    for source in sources
+        .iter()
+        .filter(|source| source.kind != SourceKind::Corpus)
+    {
+        let mut excluded = false;
+        for algorithm in cases::algorithm_names() {
+            let demosaic = cases::demosaic_for(algorithm).ok_or_else(|| {
+                mischief::mischief!("unknown ground-truth algorithm `{algorithm}`")
+            })?;
+            match evaluate_source(demosaic, source) {
+                Ok(_) => {}
+                Err(error) if error.to_string().contains(REFERENCE_RANGE_ERROR_FRAGMENT) => {
+                    excluded = true;
+                }
+                Err(error) => return Err(error),
+            }
+        }
+        if excluded {
+            excluded_sources.push(ExcludedSource {
+                name: source.name.clone(),
+                reason: EXCLUDED_SOURCE_REASON.into(),
+            });
+        }
+    }
+    let excluded_names = excluded_sources
+        .iter()
+        .map(|source| source.name.as_str())
+        .collect::<Vec<_>>();
+    sources.retain(|source| !excluded_names.contains(&source.name.as_str()));
+    if sources.is_empty() {
+        return Err(mischief::mischief!(
+            "all ground-truth sources were excluded"
+        ));
+    }
 
     let mut evaluated = Vec::with_capacity(algorithms.len());
     let mut linear_means = Vec::new();
@@ -788,6 +1025,7 @@ fn evaluate_algorithms(
             .filter(|source| source.kind != SourceKind::Corpus)
             .map(|source| source.name.clone())
             .collect(),
+        excluded_sources,
         corpus_sources,
         algorithms: rows,
     })
@@ -857,7 +1095,7 @@ fn evaluate_algorithm(
 }
 
 fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<SourceErrors> {
-    let image = MonoImage::from_raw(WIDTH, HEIGHT, source.mosaic.clone())
+    let image = MonoImage::from_raw(source.width, source.height, source.mosaic.clone())
         .ok_or_else(|| mischief::mischief!("cannot construct ground-truth mosaic"))?;
     let output = demosaic
         .demosaic(&image, CANONICAL_PATTERN)
@@ -887,9 +1125,9 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
         fornax: 0.0,
         relative_error: -1.0,
     };
-    for y in 0..HEIGHT {
-        for x in 0..WIDTH {
-            let pixel = y as usize * WIDTH as usize + x as usize;
+    for y in 0..source.height {
+        for x in 0..source.width {
+            let pixel = y as usize * source.width as usize + x as usize;
             let truth = source.truth[pixel];
             let actual = [
                 output[pixel * 3],
@@ -944,9 +1182,7 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
                 let truth_chroma = chroma(truth);
                 let actual_chroma = chroma(actual);
                 false_color.push(
-                    ((actual_chroma[0] - truth_chroma[0]).powi(2)
-                        + (actual_chroma[1] - truth_chroma[1]).powi(2))
-                    .sqrt()
+                    (actual_chroma[0] - truth_chroma[0]).hypot(actual_chroma[1] - truth_chroma[1])
                         / luma_denominator,
                 );
             }
@@ -962,9 +1198,13 @@ fn evaluate_source(demosaic: Demosaic, source: &Source) -> mischief::Result<Sour
 }
 
 fn pixel_class(source: &Source, x: u32, y: u32) -> PixelClass {
-    if x < BORDER_PX || y < BORDER_PX || x >= WIDTH - BORDER_PX || y >= HEIGHT - BORDER_PX {
+    if x < BORDER_PX
+        || y < BORDER_PX
+        || x >= source.width - BORDER_PX
+        || y >= source.height - BORDER_PX
+    {
         PixelClass::Border
-    } else if source.edge[y as usize * WIDTH as usize + x as usize] {
+    } else if source.edge[y as usize * source.width as usize + x as usize] {
         PixelClass::Edge
     } else {
         PixelClass::Flat
@@ -972,7 +1212,10 @@ fn pixel_class(source: &Source, x: u32, y: u32) -> PixelClass {
 }
 
 fn luma(pixel: [f32; 3]) -> f64 {
-    0.2126 * f64::from(pixel[0]) + 0.7152 * f64::from(pixel[1]) + 0.0722 * f64::from(pixel[2])
+    0.0722_f64.mul_add(
+        f64::from(pixel[2]),
+        0.7152_f64.mul_add(f64::from(pixel[1]), 0.2126 * f64::from(pixel[0])),
+    )
 }
 
 fn chroma(pixel: [f32; 3]) -> [f64; 2] {
@@ -1057,11 +1300,13 @@ fn corpus_source(relative: &str, input: crate::reference::ActiveArea) -> Source 
             (0..WIDTH).map(move |x| half_truth[(y / 2 * half_width + x / 2) as usize])
         })
         .collect::<Vec<_>>();
-    let edge = derive_edges(&truth);
-    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN);
+    let edge = derive_edges(&truth, WIDTH, HEIGHT);
+    let mosaic = re_mosaic(&truth, CANONICAL_PATTERN, WIDTH);
     Source {
         name: format!("corpus:{relative}"),
         kind: SourceKind::Corpus,
+        width: WIDTH,
+        height: HEIGHT,
         truth,
         edge,
         mosaic,
@@ -1105,6 +1350,28 @@ mod tests {
     }
 
     #[test]
+    fn amaze_evidence_covers_multiple_variants_seeds_and_sizes() {
+        let first = evidence_sources();
+        let second = evidence_sources();
+        assert_eq!(first, second);
+        assert_eq!(first.len(), 24);
+        assert_eq!(first[..6], synthetic_sources()[..]);
+        let dimensions = first[6..]
+            .iter()
+            .map(|source| (source.width, source.height))
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            dimensions,
+            [(96, 80), (126, 94), (160, 128)].into_iter().collect()
+        );
+        let names = first
+            .iter()
+            .map(|source| source.name.as_str())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(names.len(), first.len());
+    }
+
+    #[test]
     fn summaries_report_mean_and_high_percentiles() {
         let summary = summarize((1..=1_000).map(f64::from).collect());
         assert_eq!(
@@ -1121,9 +1388,10 @@ mod tests {
     #[test]
     fn linear_is_the_ground_truth_floor_and_is_its_own_reference() -> mischief::Result<()> {
         let report = evaluate_algorithms(&["Linear".to_owned()], false)?;
-        assert_eq!(report.version, 1);
+        assert_eq!(report.version, 2);
         assert_eq!(report.pattern, "GBRG");
         assert_eq!(report.synthetic_sources.len(), 6);
+        assert!(report.excluded_sources.is_empty());
         assert_eq!(report.algorithms.len(), 1);
         let linear = &report.algorithms[0];
         assert_eq!(linear.algorithm, "Linear");
@@ -1146,14 +1414,14 @@ mod tests {
         let second = evaluate_algorithms(&algorithms, false)?;
         first.validate()?;
         assert_eq!(first, second);
-        assert_eq!(first.algorithms.len(), 11);
+        assert_eq!(first.algorithms.len(), 7);
         let mut ranks = first
             .algorithms
             .iter()
             .map(|row| row.rank)
             .collect::<Vec<_>>();
         ranks.sort_unstable();
-        assert_eq!(ranks, (1..=11).collect::<Vec<_>>());
+        assert_eq!(ranks, (1..=7).collect::<Vec<_>>());
         assert!(
             first
                 .algorithms

@@ -1,9 +1,16 @@
 # AAHD reference notes
 
+> **Removed from Fornax.** AAHD's retained homogeneity model depends on bounded
+> gamma/YUV scoring and discrete direction thresholds. Replacing the integer
+> implementation removed quantization and clipping, but harmless scale
+> normalization still changed the selected direction and therefore the output.
+> A future implementation would need a new, explicitly scale-stable directional
+> decision rule.
+
 This reference note records pinned sources, numerical behavior, and implementation boundaries for AAHD.
 
 This note records the authoritative source and integer conventions used by
-Fornax's conventional 2x2 RGB Bayer AAHD path.
+Fornax's former conventional 2x2 RGB Bayer AAHD path.
 
 ## Source
 
@@ -32,7 +39,7 @@ zero-padded working margin:
 6. Select one complete RGB candidate for each pixel and restore the original
    measured sample at sites marked hot.
 
-The implementation preserves LibRaw's integer arithmetic, channel extrema,
+The former implementation preserved LibRaw's integer arithmetic, channel extrema,
 direction flags, and truncating conversion to `ushort`. The gamma table uses
 the reference thresholds and coefficients: `0.0181`, `4.5`, `1.0993`, and
 `0.45`.

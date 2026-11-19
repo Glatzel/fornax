@@ -166,7 +166,7 @@ impl ReferenceFloorReport {
     }
 
     #[cfg(test)]
-    pub(crate) fn test_fixture() -> Self {
+    pub(crate) const fn test_fixture() -> Self {
         Self {
             version: REFERENCE_FLOOR_VERSION,
             border_px: BORDER_PX,
@@ -756,7 +756,7 @@ mod tests {
         values.mae = mae;
         let row = Row {
             input: "input.raw".to_owned(),
-            algorithm: "ahd".to_owned(),
+            algorithm: "rcd".to_owned(),
             reference: "libraw".to_owned(),
             pattern: "RGGB".to_owned(),
             crop: [0, 0],
@@ -896,7 +896,7 @@ mod tests {
         let mut first = report(Verdict::Pass, 0.5).rows.remove(0);
         let mut second = first.clone();
         first.algorithm = "vng".to_owned();
-        second.algorithm = "ahd".to_owned();
+        second.algorithm = "amaze".to_owned();
         let mut unsorted = report(Verdict::Pass, 0.5);
         unsorted.rows = vec![first, second];
         assert!(unsorted.validate().is_err());

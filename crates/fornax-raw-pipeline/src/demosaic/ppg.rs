@@ -108,7 +108,6 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
         (guess / num!(4))
             .max(first.min(second))
             .min(first.max(second))
-            .max(T::zero())
     }
 
     fn opposite_at_green(&self, x: u32, y: u32, color: usize) -> T {
@@ -139,7 +138,7 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
             )
         };
 
-        ((first + second + green[1] * num!(2) - green[0] - green[2]) / num!(2)).max(T::zero())
+        (first + second + green[1] * num!(2) - green[0] - green[2]) / num!(2)
     }
 
     fn opposite_at_non_green(&self, x: u32, y: u32, current: usize) -> T {
@@ -168,7 +167,7 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
         } else {
             (ne_guess + nw_guess) / num!(2)
         };
-        (guess / num!(2)).max(T::zero())
+        guess / num!(2)
     }
 
     fn border_channel(&self, x: u32, y: u32, color: usize) -> T {
@@ -193,7 +192,7 @@ impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
                 }
             }
         }
-        (sum / num!(count)).max(T::zero())
+        sum / num!(count)
     }
 
     const fn in_three_pixel_border(&self, x: u32, y: u32) -> bool {

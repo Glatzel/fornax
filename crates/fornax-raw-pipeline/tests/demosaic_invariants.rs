@@ -2,6 +2,8 @@ use fornax_raw_core::{BayerPattern, MonoImage};
 use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 
 const SIZE: u32 = 64;
+const SIZE_SWEEP_LIMIT: u32 = 40;
+const TILE_BOUNDARY_SIZE: u32 = 257;
 // The largest acceptable accumulated roundoff for this f32 pipeline.
 const REL_TOLERANCE: f32 = 2.0e-4;
 const ABS_TOLERANCE: f32 = 1.0e-7;
@@ -12,29 +14,10 @@ struct Algorithm {
     demosaic: Demosaic,
 }
 
-const ALGORITHMS: [Algorithm; 11] = [
-    Algorithm {
-        name: "AAHD",
-        demosaic: Demosaic::Aahd,
-    },
-    Algorithm {
-        name: "AHD",
-        demosaic: Demosaic::Ahd,
-    },
+const ALGORITHMS: [Algorithm; 7] = [
     Algorithm {
         name: "AMaZE",
         demosaic: Demosaic::Amaze,
-    },
-    Algorithm {
-        name: "DCB",
-        demosaic: Demosaic::Dcb {
-            iterations: 0,
-            enhance: true,
-        },
-    },
-    Algorithm {
-        name: "DHT",
-        demosaic: Demosaic::Dht,
     },
     Algorithm {
         name: "Linear",
@@ -89,34 +72,11 @@ fn expectation(algorithm: &str, invariant: Invariant) -> Expected {
         Invariant::Shift if algorithm != "Linear" => {
             Expected::NotApplicable("Phase 0 classifies only Linear as shift-invariant.")
         }
-        Invariant::Shift => Expected::Pass,
-        Invariant::Scale if !matches!(algorithm, "Linear" | "PPG") => {
-            Expected::Fail("fixed-range conversion, epsilon, or quantization breaks scaling")
-        }
-        Invariant::PatternFlip if matches!(algorithm, "AAHD" | "AMaZE" | "DCB" | "DHT" | "RCD") => {
+        Invariant::PatternFlip if matches!(algorithm, "AMaZE" | "RCD") => {
             Expected::Fail("direction or border decisions differ after a horizontal flip")
-        }
-        Invariant::Constant if matches!(algorithm, "AAHD" | "LMMSE") => {
-            Expected::Fail("border or tile padding changes a constant field")
         }
         Invariant::Ramp if !matches!(algorithm, "Linear" | "VNG") => {
             Expected::NotApplicable("the algorithm does not claim exact linear-ramp recovery")
-        }
-        Invariant::NegativePreservation
-            if matches!(
-                algorithm,
-                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "PPG" | "RCD" | "VNG" | "VNG4"
-            ) =>
-        {
-            Expected::Fail("fixed-range conversion or a zero floor removes negative values")
-        }
-        Invariant::HdrPreservation
-            if matches!(
-                algorithm,
-                "AAHD" | "AHD" | "AMaZE" | "DCB" | "DHT" | "LMMSE" | "VNG" | "VNG4"
-            ) =>
-        {
-            Expected::Fail("the shared or algorithm-local conversion clamps fixed range")
         }
         _ => Expected::Pass,
     }
@@ -133,7 +93,7 @@ impl Lcg {
             .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1_442_695_040_888_963_407);
         let unit = ((self.0 >> 40) as u32) as f32 / ((1_u32 << 24) as f32);
-        low + (high - low) * unit
+        (high - low).mul_add(unit, low)
     }
 }
 
@@ -142,26 +102,61 @@ fn seeded_mosaic(seed: u64, low: f32, high: f32) -> Vec<f32> {
     (0..SIZE * SIZE).map(|_| rng.next_f32(low, high)).collect()
 }
 
-fn run(algorithm: Demosaic, samples: &[f32], pattern: BayerPattern) -> Result<Vec<f32>, String> {
-    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let image = MonoImage::from_raw(SIZE, SIZE, samples.to_vec())
-            .ok_or_else(|| "failed to construct the synthetic mosaic".to_owned())?;
-        let lazy = algorithm
-            .demosaic(&image, pattern)
-            .map_err(|error| format!("{error:?}"))?;
-        Ok(lazy.collect().into_raw())
-    }))
-    .unwrap_or_else(|payload| {
-        let message = payload
-            .downcast_ref::<&str>()
-            .copied()
-            .or_else(|| payload.downcast_ref::<String>().map(String::as_str))
-            .unwrap_or("unknown panic");
-        Err(format!("panicked: {message}"))
-    })
+fn attempt_run(
+    algorithm: Demosaic,
+    samples: &[f32],
+    width: u32,
+    height: u32,
+    pattern: BayerPattern,
+) -> Result<Vec<f32>, String> {
+    let image = MonoImage::from_raw(width, height, samples.to_vec())
+        .ok_or_else(|| "failed to construct the synthetic mosaic".to_owned())?;
+    let lazy = algorithm
+        .demosaic(&image, pattern)
+        .map_err(|error| format!("{error:?}"))?;
+    let output = lazy.collect().into_raw();
+    let expected = width as usize * height as usize * 3;
+    if output.len() != expected {
+        return Err(format!(
+            "output length {} != {expected} for {width}x{height}",
+            output.len()
+        ));
+    }
+    Ok(output)
 }
 
-fn assert_close(actual: &[f32], expected: &[f32], context: &str) -> Result<(), String> {
+fn panic_message(payload: Box<dyn std::any::Any + Send>) -> String {
+    payload
+        .downcast_ref::<&str>()
+        .copied()
+        .or_else(|| payload.downcast_ref::<String>().map(String::as_str))
+        .unwrap_or("unknown panic")
+        .to_owned()
+}
+
+fn run_sized(
+    algorithm: Demosaic,
+    samples: &[f32],
+    width: u32,
+    height: u32,
+    pattern: BayerPattern,
+) -> Result<Vec<f32>, String> {
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        attempt_run(algorithm, samples, width, height, pattern)
+    }))
+    .unwrap_or_else(|payload| Err(format!("panicked: {}", panic_message(payload))))
+}
+
+fn run(algorithm: Demosaic, samples: &[f32], pattern: BayerPattern) -> Result<Vec<f32>, String> {
+    run_sized(algorithm, samples, SIZE, SIZE, pattern)
+}
+
+fn assert_close_sized(
+    actual: &[f32],
+    expected: &[f32],
+    width: u32,
+    context: &str,
+) -> Result<(), String> {
     if actual.len() != expected.len() {
         return Err(format!(
             "{context}: output length {} != {}",
@@ -171,11 +166,11 @@ fn assert_close(actual: &[f32], expected: &[f32], context: &str) -> Result<(), S
     }
     for (index, (&actual, &expected)) in actual.iter().zip(expected).enumerate() {
         let difference = (actual - expected).abs();
-        let allowed = ABS_TOLERANCE + REL_TOLERANCE * actual.abs().max(expected.abs());
+        let allowed = REL_TOLERANCE.mul_add(actual.abs().max(expected.abs()), ABS_TOLERANCE);
         if !actual.is_finite() || difference > allowed {
             let pixel = index / 3;
-            let x = pixel as u32 % SIZE;
-            let y = pixel as u32 / SIZE;
+            let x = pixel as u32 % width;
+            let y = pixel as u32 / width;
             return Err(format!(
                 "{context}: ({x}, {y}) channel {} actual {actual:?}, expected {expected:?}, \
                  difference {difference:?}, allowed {allowed:?}",
@@ -184,6 +179,10 @@ fn assert_close(actual: &[f32], expected: &[f32], context: &str) -> Result<(), S
         }
     }
     Ok(())
+}
+
+fn assert_close(actual: &[f32], expected: &[f32], context: &str) -> Result<(), String> {
+    assert_close_sized(actual, expected, SIZE, context)
 }
 
 fn check_expectation(
@@ -269,6 +268,25 @@ fn pattern_flip(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String
     )
 }
 
+fn pattern_flip_top_left(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
+    let mosaic = seeded_mosaic(0x5ca1_e003, 0.05, 0.95);
+    let baseline = run(algorithm, &mosaic, pattern)?;
+    let mut flipped = vec![0.0; mosaic.len()];
+    for y in 0..SIZE {
+        for x in 0..SIZE {
+            let source = (y * SIZE + (SIZE - 1 - x)) as usize;
+            flipped[(y * SIZE + x) as usize] = mosaic[source];
+        }
+    }
+    let actual = run(algorithm, &flipped, pattern.shifted(1, 0))?;
+    let expected = &baseline[((SIZE - 1) * 3) as usize..((SIZE - 1) * 3 + 3) as usize];
+    assert_close(
+        &actual[..3],
+        expected,
+        &format!("{pattern} top-left horizontal flip"),
+    )
+}
+
 fn constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
     let value = 0.25;
     let actual = run(algorithm, &vec![value; (SIZE * SIZE) as usize], pattern)?;
@@ -278,12 +296,14 @@ fn constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), Stri
 
 fn linear_ramp(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
     let mosaic = (0..SIZE)
-        .flat_map(|y| (0..SIZE).map(move |x| 0.1 + 0.01 * x as f32 + 0.005 * y as f32))
+        .flat_map(|y| {
+            (0..SIZE).map(move |x| 0.0025_f32.mul_add(y as f32, 0.005_f32.mul_add(x as f32, 0.1)))
+        })
         .collect::<Vec<_>>();
     let actual = run(algorithm, &mosaic, pattern)?;
     for y in 8..SIZE - 8 {
         for x in 8..SIZE - 8 {
-            let expected = 0.1 + 0.01 * x as f32 + 0.005 * y as f32;
+            let expected = 0.0025_f32.mul_add(y as f32, 0.005_f32.mul_add(x as f32, 0.1));
             let start = ((y * SIZE + x) * 3) as usize;
             let expected = [expected; 3];
             assert_close(
@@ -341,6 +361,58 @@ fn finite_output(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), Strin
         }
     }
     Ok(())
+}
+
+fn size_sweep(algorithm: Algorithm, pattern: BayerPattern, failures: &mut Vec<String>) {
+    let dimensions = (1..=SIZE_SWEEP_LIMIT)
+        .flat_map(|size| [(size, size), (size, SIZE), (SIZE, size)])
+        .chain([(41, 63), (63, 41), (127, 43)]);
+    for (width, height) in dimensions {
+        let samples = (0..width as usize * height as usize)
+            .map(|index| 0.05 + ((index * 37) % 97) as f32 / 100.0)
+            .collect::<Vec<_>>();
+        let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            attempt_run(algorithm.demosaic, &samples, width, height, pattern)
+        }));
+        match outcome {
+            Err(payload) => failures.push(format!(
+                "{} SizeSweep {pattern} {width}x{height}: panicked: {}",
+                algorithm.name,
+                panic_message(payload)
+            )),
+            Ok(Ok(output)) => {
+                if let Some((index, value)) = output
+                    .iter()
+                    .enumerate()
+                    .find(|(_, value)| !value.is_finite())
+                {
+                    failures.push(format!(
+                        "{} SizeSweep {pattern} {width}x{height}: non-finite {value} at output \
+                         channel {index}",
+                        algorithm.name
+                    ));
+                }
+            }
+            Ok(Err(_)) => {}
+        }
+    }
+}
+
+fn tiled_constant_image(algorithm: Demosaic, pattern: BayerPattern) -> Result<(), String> {
+    let value = 0.25;
+    let actual = run_sized(
+        algorithm,
+        &vec![value; (TILE_BOUNDARY_SIZE * TILE_BOUNDARY_SIZE) as usize],
+        TILE_BOUNDARY_SIZE,
+        TILE_BOUNDARY_SIZE,
+        pattern,
+    )?;
+    assert_close_sized(
+        &actual,
+        &vec![value; (TILE_BOUNDARY_SIZE * TILE_BOUNDARY_SIZE * 3) as usize],
+        TILE_BOUNDARY_SIZE,
+        &format!("{pattern} constant across tile boundaries"),
+    )
 }
 
 fn constant_range_preservation(
@@ -514,4 +586,54 @@ fn hdr_range_preservation_matches_expectations() {
     let mut failures = Vec::new();
     run_hdr_range_checks(&mut failures);
     finish(failures);
+}
+
+#[test]
+fn size_sweep_never_panics_or_returns_invalid_images() {
+    let mut failures = Vec::new();
+    for algorithm in ALGORITHMS {
+        for pattern in BayerPattern::ALL {
+            size_sweep(algorithm, pattern, &mut failures);
+        }
+    }
+    assert!(
+        failures.is_empty(),
+        "{} size-sweep failure(s):\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+}
+
+#[test]
+fn lmmse_constant_field_is_preserved_across_tile_boundaries() {
+    let failures = BayerPattern::ALL
+        .into_iter()
+        .filter_map(|pattern| {
+            tiled_constant_image(
+                Demosaic::Lmmse {
+                    mode: LmmseMode::Median,
+                },
+                pattern,
+            )
+            .err()
+        })
+        .collect::<Vec<_>>();
+    assert!(
+        failures.is_empty(),
+        "LMMSE failed the {TILE_BOUNDARY_SIZE}x{TILE_BOUNDARY_SIZE} tile-boundary constant test:\n{}",
+        failures.join("\n")
+    );
+}
+
+#[test]
+fn amaze_corner_reflection_is_horizontally_symmetric() {
+    let failures = BayerPattern::ALL
+        .into_iter()
+        .filter_map(|pattern| pattern_flip_top_left(Demosaic::Amaze, pattern).err())
+        .collect::<Vec<_>>();
+    assert!(
+        failures.is_empty(),
+        "AMaZE failed the corner-only horizontal-flip test:\n{}",
+        failures.join("\n")
+    );
 }

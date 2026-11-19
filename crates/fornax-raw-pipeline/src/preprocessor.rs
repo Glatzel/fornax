@@ -88,8 +88,7 @@ where
                         for (r, row) in rows.chunks_exact_mut(w).enumerate() {
                             let (blk, inv) = &tables[(band * rows_per_band + r) % ph];
                             for ((p, &b), &k) in row.iter_mut().zip(blk).zip(inv) {
-                                let v = (*p - b) * k;
-                                *p = if v > zero { v } else { zero };
+                                *p = (*p - b) * k;
                             }
                         }
                     });
@@ -105,7 +104,7 @@ where
                                 let b = b0 + dv;
                                 let range = white - b;
                                 let v = (*p - b) / range;
-                                *p = if range > zero && v > zero { v } else { zero };
+                                *p = if range > zero { v } else { zero };
                             }
                         }
                     });
@@ -172,6 +171,25 @@ mod tests {
         let output = Preprocessor.process(CroppedMosaic::new(image), &levels(black))?;
         assert_eq!(output.image().dimensions(), (3, 2));
         assert!(output.image().as_raw().iter().all(|value| *value > 0.0));
+        Ok(())
+    }
+
+    #[test]
+    fn preserves_sub_black_negative_samples() -> Result<(), PreprocessError> {
+        let image = MonoImage::from_raw(1, 1, vec![0.1_f64]).expect("image dimensions");
+        let black = MonoImage::from_raw(1, 1, vec![0.2_f64]).expect("black-level dimensions");
+        let mut level_data = levels(black);
+        level_data.white = 1.2;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &level_data)?;
+        assert!((output.image().as_raw()[0] - -0.1).abs() < 1.0e-12);
+
+        let image = MonoImage::from_raw(1, 1, vec![0.1_f64]).expect("image dimensions");
+        let black = MonoImage::from_raw(1, 1, vec![0.0_f64]).expect("black-level dimensions");
+        let mut level_data = levels(black);
+        level_data.black_delta_v = vec![0.25];
+        level_data.white = 1.25;
+        let output = Preprocessor.process(CroppedMosaic::new(image), &level_data)?;
+        assert!((output.image().as_raw()[0] - -0.15).abs() < 1.0e-12);
         Ok(())
     }
 

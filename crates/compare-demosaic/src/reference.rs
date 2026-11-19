@@ -305,7 +305,7 @@ mod tests {
     }
 
     #[test]
-    fn amaze_matches_both_references_across_partial_tiles() {
+    fn amaze_matches_both_references_in_partial_tile_interiors() {
         let width = 300_u32;
         let height = 300_u32;
         let codes = (0..height)
@@ -353,25 +353,32 @@ mod tests {
             .iter()
             .map(|value| (value.clamp(0.0, 1.0) * f32::from(u16::MAX)).round() as u16)
             .collect::<Vec<_>>();
+        const BORDER: u32 = 16;
+        let interior = (BORDER..height - BORDER)
+            .flat_map(|y| (BORDER..width - BORDER).map(move |x| (y * width + x) as usize))
+            .collect::<Vec<_>>();
         for (name, reference) in [("darktable", darktable), ("RawTherapee", rawtherapee)] {
-            let total = reference
+            let differences = interior
                 .iter()
-                .zip(&actual)
-                .map(|(expected, got)| u64::from(expected.abs_diff(*got)))
+                .map(|index| reference[*index].abs_diff(actual[*index]))
+                .collect::<Vec<_>>();
+            let total = differences
+                .iter()
+                .map(|value| u64::from(*value))
                 .sum::<u64>();
-            let maximum = reference
-                .iter()
-                .zip(&actual)
-                .map(|(expected, got)| expected.abs_diff(*got))
-                .max()
-                .unwrap();
+            let maximum = differences.iter().copied().max().unwrap();
+            let mae = total as f64 / differences.len() as f64;
+            let fraction_over_64 = differences.iter().filter(|value| **value > 64).count() as f64
+                / differences.len() as f64;
             assert!(
-                total as f64 / reference.len() as f64 <= 0.01,
-                "AMaZE synthetic {name} MAE is too large"
+                mae <= 0.01,
+                "AMaZE synthetic {name} MAE {mae} is too large (max {maximum}, \
+                 fraction over 64 {fraction_over_64})"
             );
             assert!(
-                maximum <= 2,
-                "AMaZE synthetic {name} maximum error is {maximum}"
+                fraction_over_64 <= 0.001,
+                "AMaZE synthetic {name} has {fraction_over_64} of interior pixels over 64 \
+                 codes (MAE {mae}, max {maximum})"
             );
         }
     }

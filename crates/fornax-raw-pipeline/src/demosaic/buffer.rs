@@ -1,5 +1,4 @@
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive, RgbImage};
-use generic_num::num;
+use fornax_raw_core::{BayerChannel, BayerPattern, Primitive, RgbImage};
 
 use crate::LazyDemosaic;
 
@@ -27,33 +26,12 @@ where
     fn collect(&self) -> RgbImage<T> { self.image.clone() }
 }
 
-pub(super) fn codes<T>(image: &MonoImage<T>) -> Vec<u16>
+pub(super) fn dense_from_vec<T>(width: u32, height: u32, values: Vec<T>) -> RgbImage<T>
 where
     T: Primitive,
 {
-    image
-        .as_raw()
-        .iter()
-        .map(|sample| {
-            (sample.to_f64().unwrap_or_default().clamp(0.0, 1.0) * f64::from(u16::MAX)).round()
-                as u16
-        })
-        .collect()
-}
-
-pub(super) fn dense_from_codes<T>(width: u32, height: u32, values: Vec<u16>) -> RgbImage<T>
-where
-    T: Primitive,
-{
-    RgbImage::from_raw(
-        width,
-        height,
-        values
-            .into_iter()
-            .map(|value| num!(f64::from(value) / f64::from(u16::MAX)))
-            .collect(),
-    )
-    .expect("demosaic output dimensions match the source image")
+    RgbImage::from_raw(width, height, values)
+        .expect("demosaic output dimensions match the source image")
 }
 
 pub(super) const fn channel(pattern: BayerPattern, x: u32, y: u32) -> usize {
@@ -61,5 +39,17 @@ pub(super) const fn channel(pattern: BayerPattern, x: u32, y: u32) -> usize {
         BayerChannel::R => 0,
         BayerChannel::GRedRow | BayerChannel::GBlueRow => 1,
         BayerChannel::B => 2,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generic_dense_output_preserves_signed_hdr_samples() {
+        let values = vec![-3.0_f64, 1.0 + 2.0_f64.powi(-40), 1.0e6];
+        let image = dense_from_vec(1, 1, values.clone());
+        assert_eq!(image.into_raw(), values);
     }
 }
