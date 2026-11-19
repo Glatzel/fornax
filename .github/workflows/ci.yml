@@ -283,23 +283,7 @@ jobs:
           - package: fornax-raw-pipeline
             changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
             extra-options: --bench demosaic
-            algorithm: aahd
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: ahd
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
             algorithm: amaze
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: dcb
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: dht
           - package: fornax-raw-pipeline
             changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
             extra-options: --bench demosaic
