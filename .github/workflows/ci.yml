@@ -223,14 +223,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - machine: ubuntu-latest
-            test-options: --all-features -p compare-demosaic
-            pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: -p fornax-raw-decoder
+            test-options: --workspace --all-features
             pwd: ./
           - machine: ubuntu-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --workspace --all-features
             pwd: ./
     runs-on: ${{matrix.machine}}
     steps:
