@@ -326,8 +326,8 @@ references.
   deliberate licence review.
 - LibRaw: LGPL-2.1 or CDDL-1.0. It remains comparison-only unless a licensed
   production integration is explicitly accepted.
-- darktable and RawTherapee retain their own GPL terms and remain isolated in
-  `compare-demosaic`.
+- darktable and RawTherapee retain their own GPL terms and remain isolated
+  research references.
 
 ## Testing
 

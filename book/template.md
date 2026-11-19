@@ -26,8 +26,8 @@ supports each non-obvious step.
 <!-- DRAFT -->
 Name the crate and function, label the behavior as implemented, partial, or
 not supported, and cite the implementation with a `file:line` reference. Link
-the relevant comparison result in
-[compare-demosaic](../crates/compare-demosaic/README.md).
+the relevant source research in the
+[demosaic reference index](../docs/reference/demosaic/README.md).
 
 ## 5. Failure modes
 

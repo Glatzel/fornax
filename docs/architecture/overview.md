@@ -32,7 +32,6 @@ part of the current preprocessor/demosaic handoff.
 | `fornax-raw-decoder` benches | Decoder comparison benchmarks. | Core, decoder, Rawler and FlashRaw dev adapters |
 | `decoder-tracker` | Manual sharded raw.pixls.us decoder regression tracker and baseline generator. | Core, decoder, TIFF/DNG metadata |
 | `fornax-devtool` | Pinned fixture paths, synthetic data, and benchmark configuration. | `fornax-raw-core` |
-| `compare-demosaic` | Reference-versus-Fornax demosaic comparison harness. | Core, decoder, processors, devtool, pinned C/C++ references |
 | `fornax-py` | PyO3/Maturin binding source, excluded from the Rust workspace and currently not buildable pending its reserved API decision. | External Python environment |
 
 `fornax-py` requests the removed workspace dependency `fornax`,
@@ -306,14 +305,6 @@ CSV baseline. RAW payloads are transient and never uploaded or committed.
 
 See [the decoder-tracker agent guide](../../crates/decoder-tracker/AGENTS.md) for
 corpus setup, run, baseline-update, and README rules.
-
-`compare-demosaic` normalizes the active Bayer mosaic before passing it to
-Fornax and pinned LibRaw, darktable, and RawTherapee adapters. Reference C/C++
-code is build-time development tooling only and must not enter production
-decoder dependencies.
-
-See [the comparison agent guide](../../crates/compare-demosaic/AGENTS.md) for
-baseline, waiver, artifact, and regeneration rules.
 
 ## References
 

@@ -42,7 +42,7 @@ Use relative Markdown links for repository documentation. Run
 | --- | --- |
 | Crate boundaries, interfaces, or pipeline flow | `architecture/` |
 | Decoder benchmark or corpus process | `reference/decoders/operations/` |
-| Demosaic or other algorithm research | `reference/algorithms/` |
+| Demosaic algorithm research | `reference/demosaic/` |
 | Decoder reference index | `reference/decoders/README.md` |
 | Canonical decoder format support, API, codec, and source research | `reference/decoders/reference/` |
 | Decoder performance measurements and investigations | `reference/decoders/perf/` |

@@ -41,9 +41,7 @@ reference, and active planning documentation.
 
 | Document | Summary |
 | --- | --- |
-| [Shareable Book PDF Build](plans/book-03-pdf-build.md) | Remaining work for a shareable book PDF build. |
-| [Compare-Demosaic Reference Algorithms](plans/compare-demosaic-algorithms.md) | Completed and pending reference-algorithm port tasks. |
-| [Clean decoder performance docs](plans/chore-clean-decoder-performance-docs.md) | Consolidate the active decoder performance set and preserve historical evidence in the archive. |
+| [Demosaic Tier 1 Eligibility Audit](plans/chore-demosaic-tier1-eligibility-audit.md) | Add research reports and an eligibility matrix for MHC, PPG, RCD, and LMMSE. |
 
 ## Reference
 
@@ -51,13 +49,14 @@ reference, and active planning documentation.
 
 | Document | Summary |
 | --- | --- |
-| [AAHD reference notes](reference/algorithms/aahd.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [AMaZE reference notes](reference/algorithms/amaze.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [DCB reference notes](reference/algorithms/dcb.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [DHT reference notes](reference/algorithms/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [LMMSE reference notes](reference/algorithms/lmmse.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [RawTherapee reference notes](reference/algorithms/rawtherapee.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [VNG reference notes](reference/algorithms/vng.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [Demosaic reference index](reference/demosaic/README.md) | Current implementations, retained provenance, and external source research. |
+| [AAHD reference notes](reference/demosaic/aahd.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [AMaZE reference notes](reference/demosaic/amaze.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [DCB reference notes](reference/demosaic/dcb.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [DHT reference notes](reference/demosaic/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [LMMSE reference notes](reference/demosaic/lmmse.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [RawTherapee reference notes](reference/demosaic/rawtherapee.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [VNG reference notes](reference/demosaic/vng.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [TIFF-Family Compression ID Ownership](reference/codecs/compression-ids.md) | Ownership of TIFF-family compression identifiers. |
 | [Corpus Losslessness Classification](reference/codecs/lossless-classification.md) | Provenance and conservative corpus compression boundaries. |
 

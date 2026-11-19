@@ -2,10 +2,9 @@
 
 ## LibRaw
 
-LibRaw 0.22.3 is used only as a development-time reference for the
-`compare-demosaic` harness and behavioral research. It is not part of the
-production image pipeline and no LibRaw source is vendored into Fornax
-production crates.
+LibRaw 0.22.3 is used only as a development-time behavioral research reference.
+It is not part of the production image pipeline and no LibRaw source is
+vendored into Fornax production crates.
 
 LibRaw is Copyright (C) 2008-2025 LibRaw LLC and is distributed under the
 license terms provided by upstream. Users may choose either:

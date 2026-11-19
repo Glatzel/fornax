@@ -28,10 +28,10 @@ clipping; see [the preprocessor source](../../crates/fornax-raw-pipeline/src/lib
 
 | Symbol | Meaning | Source |
 | --- | --- | --- |
-| $G_1$, $G_2$ | The two green sites in a 2x2 RGB Bayer repeat | [VNG notes](../../docs/reference/algorithms/vng.md) |
-| MAE | Mean absolute error between corresponding samples | [Comparison guide](../../crates/compare-demosaic/README.md) |
-| RMSE | Root mean square error between corresponding samples | [Comparison guide](../../crates/compare-demosaic/README.md) |
-| P99 | 99th percentile of absolute sample error | [Comparison guide](../../crates/compare-demosaic/README.md) |
+| $G_1$, $G_2$ | The two green sites in a 2x2 RGB Bayer repeat | [VNG notes](../../docs/reference/demosaic/vng.md) |
+| MAE | Mean absolute error between corresponding samples | Common evaluation metric |
+| RMSE | Root mean square error between corresponding samples | Common evaluation metric |
+| P99 | 99th percentile of absolute sample error | Common evaluation metric |
 | `RGGB`, `BGGR`, `GRBG`, `GBRG` | Supported 2x2 Bayer phase names | [Bayer patterns](../../crates/fornax-raw-core/src/lib.rs) |
 
 Add symbols only when a chapter or reference note needs them. Do not redefine
