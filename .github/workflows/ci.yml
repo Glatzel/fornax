@@ -280,34 +280,50 @@ jobs:
           - package: fornax-dng
             changed: ${{ needs.changed.outputs.benchmark_dng }}
 
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: amaze
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: aahd
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: ahd
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: amaze
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: dcb
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: dht
           - package: fornax-raw-pipeline
             changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
             extra-options: --bench demosaic
             algorithm: linear
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: lmmse
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: ppg
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: rcd
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: vng
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
-            extra-options: --bench demosaic
-            algorithm: vng4
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: lmmse
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: ppg
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: rcd
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: vng
+          # - package: fornax-raw-pipeline
+          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          #   extra-options: --bench demosaic
+          #   algorithm: vng4
 
           - package: fornax-raw-pipeline
             changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
