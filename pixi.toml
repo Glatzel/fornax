@@ -34,5 +34,5 @@ book-figures = "python -m book.figures"
 [environments]
 default = []
 dev = { features = ["duckdb"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
-python = [ "python"]
+python = ["python"]
 book = ["book"]
