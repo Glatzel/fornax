@@ -34,7 +34,6 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
   algorithms, RGB reconstruction, and color processing.
 - **fornax-raw**: High-level facade tying the stages together.
 - **fornax-devtool**: Pinned fixtures and development helpers.
-- **compare-demosaic**: Reference-versus-Fornax demosaic comparison harness.
 - **fornax-py**: Python binding source, currently excluded from the Rust
   workspace while its public API is stabilized.
 

@@ -13,8 +13,8 @@ Support conventional 2x2 RGB Bayer only; do not claim X-Trans or other CFAs.
   unconditional; seven vendor features are enabled by default. Read
   `docs/architecture/overview.md` before changing crate boundaries or codec
   contracts.
-- LibRaw, darktable, and RawTherapee are development-only references for
-  `compare-demosaic`, never production decoder dependencies.
+- LibRaw, darktable, and RawTherapee are development-only research references,
+  never production decoder dependencies.
 
 ## Work
 

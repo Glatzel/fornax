@@ -46,7 +46,6 @@ features; this only disables independent infrastructure such as mmap.
 - decoder-tracker DuckDB tests;
 - workspace tests, codec/vendor tests, nightly formatting, docs, and clippy;
 - decoder benchmark compilation;
-- `compare-demosaic` docs, clippy, and tests when that crate changed.
 
 Use `--fix` for nightly rustfmt and machine-applicable clippy fixes. Use
 `--docs-only` for documentation/context-only changes. Markdown lint is CI-only.
@@ -59,8 +58,7 @@ rsync -a --link-dest="<main-checkout>/external" \
 ```
 
 Exclude `.git`, do not edit shared hard-linked input, and never download the
-RAW corpus again merely because a worktree is new. `compare-demosaic` baseline
-and generated README rules live in `crates/compare-demosaic/AGENTS.md`.
+RAW corpus again merely because a worktree is new.
 
 ## Quiet tooling
 
@@ -69,8 +67,6 @@ than the decision it supports:
 
 ```bash
 scripts/agent-run.sh --label bench -- cargo bench -p fornax-codec
-scripts/agent-run.sh --label compare -- \
-  cargo run --release -p compare-demosaic -- run
 ```
 
 It captures stdout and stderr to `target/agent-logs/`, prints the log path,
@@ -115,7 +111,7 @@ Report the PR URL. Only the user merges, watches, closes, or abandons it.
 - Decoder benchmarks: `docs/reference/decoders/operations/benchmark.md`
 - Corpus rules: `docs/reference/decoders/operations/corpus.md`
 - Manual tracker: `crates/decoder-tracker/AGENTS.md`
-- Demosaic comparison: `crates/compare-demosaic/AGENTS.md`
+- Demosaic research: `docs/reference/demosaic/README.md`
 - Book: `book/README.md` and `book/AGENTS.md`
 - Plans: `docs/plans/`
 - Algorithm research: `docs/reference/`

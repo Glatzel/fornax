@@ -55,14 +55,14 @@ rewrite, and done. Only the maintainer marks a chapter done.
 | L11 | Interpolation basics | Linear demosaicing is merged | Ready |
 | L12 | Using channel correlation | One correlation-based implementation is merged | Ready |
 | L13 | Direction-adaptive methods | VNG and PPG are merged | Ready |
-| L14 | Homogeneity-directed methods | AHD is merged | Ready |
-| L15 | Statistical and iterative methods | LMMSE, DCB, AMaZE, DHT, and AAHD are merged | Ready |
-| L16 | Artifacts and evaluation | `compare-demosaic` is usable | Ready |
+| L14 | Homogeneity-directed methods | No retained implementation | Planned |
+| L15 | Statistical and iterative methods | LMMSE and AMaZE are merged | Ready |
+| L16 | Artifacts and evaluation | Evaluation methodology is consolidated | Planned |
 | L30 | Post-process chapters | Post-processing scope is split into chapter items | Planned |
 
 The ordered chapter map is maintained in [SUMMARY](src/SUMMARY.md). No empty
-chapter files are committed. Algorithm results and reference comparisons
-belong in [the comparison guide](../crates/compare-demosaic/README.md), not in
+chapter files are committed. Algorithm results and source research belong in
+the [demosaic reference index](../docs/reference/demosaic/README.md), not in
 this status table.
 
 ## Repository context

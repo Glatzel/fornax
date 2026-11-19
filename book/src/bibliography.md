@@ -13,19 +13,11 @@ links to the repository reference below.
 - Note: this is the repository's concise implementation map; the book explains
   the underlying ideas rather than duplicating it.
 
-### [FornaxComparison]
-
-- Source:
-  [crates/compare-demosaic/README.md](../../crates/compare-demosaic/README.md)
-- Supports: reference-versus-Fornax comparison commands, metric definitions,
-  verdicts, and accepted-outlier rules.
-- Note: `baseline/canonical.json` is the source of truth for measured results.
-
 ### [VNGNotes]
 
-- Source: [docs/reference/algorithms/vng.md](../../docs/reference/algorithms/vng.md)
-- Supports: Fornax's VNG algorithm shape, green-plane convention, expected
-  comparison behavior, and source licensing constraints.
+- Source: [docs/reference/demosaic/vng.md](../../docs/reference/demosaic/vng.md)
+- Supports: Fornax's VNG algorithm shape, green-plane convention, documented
+  behavior, and source licensing constraints.
 
 ## External references
 

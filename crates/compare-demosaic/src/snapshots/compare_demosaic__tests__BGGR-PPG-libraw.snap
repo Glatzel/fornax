@@ -1,5 +1,0 @@
----
-source: crates/compare-demosaic/src/lib.rs
-expression: comparison_checksum(&comparison)
----
-47946e88605e45c0

@@ -34,7 +34,6 @@ jobs:
       benchmark_formats: ${{ steps.benchmark-formats.outputs.formats }}
       benchmark_dng: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
       benchmark_raw_pipeline: ${{ steps.changed-files.outputs.benchmark_raw_pipeline_any_changed }}
-      compare_demosaic: ${{ steps.changed-files.outputs.compare_demosaic_any_changed }}
       book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
       golden: ${{ steps.changed-files.outputs.golden_any_changed }}
     steps:
@@ -82,11 +81,6 @@ jobs:
               - '!**/*.md'
             benchmark_raw_pipeline:
               - ./crates/fornax-raw-pipeline/**
-              - '!**/*.md'
-            compare_demosaic:
-              - ./crates/compare-demosaic/**
-              - ./crates/fornax-raw-core/**
-              - ./crates/fornax-raw-pipeline/src/demosaic/**
               - '!**/*.md'
             book_assets:
               - ./book/**
@@ -223,14 +217,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - machine: ubuntu-latest
-            test-options: --all-features -p compare-demosaic
-            pwd: ./crates/compare-demosaic
           - machine: macos-latest
-            test-options: -p fornax-raw-decoder
+            test-options: --workspace --all-features
             pwd: ./
           - machine: ubuntu-latest
-            test-options: --workspace --all-features --exclude compare-demosaic
+            test-options: --workspace --all-features
             pwd: ./
     runs-on: ${{matrix.machine}}
     steps:
@@ -413,44 +404,6 @@ jobs:
           OMP_NUM_THREADS: 1
           RAYON_NUM_THREADS: 1
 
-  compare-demosaic:
-    needs: changed
-    if: >-
-      ${{
-        always() &&
-        !cancelled() &&
-        (github.event_name == 'workflow_dispatch' ||
-         (github.event_name == 'pull_request' &&
-          needs.changed.outputs.compare_demosaic == 'true'))
-      }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      GH_TOKEN: ${{ github.token }}
-      OMP_NUM_THREADS: "1"
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
-        with:
-          run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
-      - name: Test, run, compare
-        shell: bash
-        run: |
-          source ./crates/compare-demosaic/scripts/setup.sh
-          cmp="cargo run --release -p compare-demosaic --"
-          $cmp readme --check
-          $cmp run --artifacts
-          $cmp diff crates/compare-demosaic/baseline/canonical.json \
-            target/compare-demosaic/canonical.json | tee target/compare-demosaic/diff.txt
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: failure()
-        with:
-          name: compare-demosaic
-          path: target/compare-demosaic
-          if-no-files-found: ignore
-
   book-assets:
     needs: changed
     if: >-
@@ -481,7 +434,6 @@ jobs:
         main,
         benchmark,
         decoder-benchmark,
-        compare-demosaic,
         book-assets,
       ]
     runs-on: ubuntu-slim
