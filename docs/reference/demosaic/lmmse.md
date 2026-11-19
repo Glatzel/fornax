@@ -188,8 +188,8 @@ intermediate is still nonlinear and is not a faithful linear-domain value.
 - The estimator denominator
   `sigma_x^2 + sigma_v^2` can be zero on a constant zero signal.
 - Fusion has the same issue when both directional error variances are zero.
-- The original and IPOL references use fixed positive constants relative to a
-  chosen intensity range.
+- The IPOL implementation uses fixed positive constants relative to its chosen
+  intensity range; the paper does not make a particular sample range essential.
 - A Fornax conversion needs a scale-relative variance floor
   `tau^2 \propto s^2`, plus a defined all-zero fallback.
 - A fixed code-domain constant makes behavior differ when the same signal is

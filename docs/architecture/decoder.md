@@ -324,8 +324,8 @@ references.
 
 - dnglab/Rawler: LGPL-2.1. Do not copy or adapt encoded source without a
   deliberate licence review.
-- LibRaw: LGPL-2.1 or CDDL-1.0. It remains comparison-only unless a licensed
-  production integration is explicitly accepted.
+- LibRaw: LGPL-2.1 or CDDL-1.0. It remains a research reference unless a
+  licensed production integration is explicitly accepted.
 - darktable and RawTherapee retain their own GPL terms and remain isolated
   research references.
 

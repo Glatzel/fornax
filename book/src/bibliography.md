@@ -16,8 +16,8 @@ links to the repository reference below.
 ### [VNGNotes]
 
 - Source: [docs/reference/demosaic/vng.md](../../docs/reference/demosaic/vng.md)
-- Supports: Fornax's VNG algorithm shape, green-plane convention, expected
-  comparison behavior, and source licensing constraints.
+- Supports: Fornax's VNG algorithm shape, green-plane convention, documented
+  behavior, and source licensing constraints.
 
 ## External references
 

@@ -40,13 +40,13 @@ routines that require one green code, while VNG4 retained the original
 four-code `prefilters` mask because its interpolation uses separate green
 planes.
 
-The adapters supply the active-area codes directly, an identity camera matrix,
-no white balance, and no RawTherapee decode or output-color processing. Sources
-are compiled through a compatibility facade for array, color, LUT, and progress
-interfaces. Scalar source branches are selected to avoid GTK, GLib, FFTW, and
-SLEEF build dependencies.
+The former adapters supplied the active-area codes directly, an identity camera
+matrix, no white balance, and no RawTherapee decode or output-color processing.
+Sources were compiled through a compatibility facade for array, color, LUT, and
+progress interfaces. Scalar source branches avoided GTK, GLib, FFTW, and SLEEF
+build dependencies.
 
-Method parameters are fixed for comparison:
+Method parameters were fixed for comparison:
 
 - AMaZE uses two-tile scheduling and `initialGain = 1`;
 - DCB uses zero refinement iterations with enhancement enabled;
@@ -59,24 +59,24 @@ for odd-width GRBG crops. The former compatibility object allocated two guard
 rows/columns for RGB output and the bridge copies only the requested dimensions.
 This preserves the reference result while making non-native Bayer crops safe.
 
-The compatibility `xdivf(value, exponent)` follows RawTherapee's exponent-shift
-semantics. `xdivf(value, 2)` divides by four rather than by two.
+The former compatibility `xdivf(value, exponent)` followed RawTherapee's
+exponent-shift semantics. `xdivf(value, 2)` divided by four rather than by two.
 
 ## Known differences
 
 RawTherapee normally runs demosaicing after `scaleColors`, which applies camera
-gain and white-balance channel scaling. The comparison deliberately does not
-apply white balance so all references receive the same active mosaic. Methods
-whose decisions depend strongly on channel scaling, especially AMaZE, can
-therefore differ substantially from Fornax even though sampled CFA values
-remain exact.
+gain and white-balance channel scaling. The former comparison deliberately did
+not apply white balance so all references received the same active mosaic.
+Methods whose decisions depend strongly on channel scaling, especially AMaZE,
+could therefore differ substantially from Fornax even though sampled CFA values
+remained exact.
 
 The former facade also omitted RawTherapee progress reporting, metadata, camera
 profiles, and surrounding preprocess/postprocess stages. Differences caused by
 those stages were outside the demosaic comparison.
 
-Dual demosaic is intentionally excluded. This includes Dual's bilinear and VNG4
-blends; processing any one of its component methods does not enable Dual.
+Dual demosaic was intentionally excluded. This includes Dual's bilinear and
+VNG4 blends; processing either component method did not enable Dual.
 
 ## Licensing
 

@@ -13,6 +13,6 @@ license terms provided by upstream. Users may choose either:
 - Common Development and Distribution License, version 1.0.
 
 The pinned source and license texts are available through the `external/libraw`
-submodule and the pinned Pixi development package. Distributors of binaries
-linked with LibRaw are responsible for satisfying the selected license,
-including its notice and relinking requirements.
+submodule. Distributors of binaries linked with LibRaw are responsible for
+satisfying the selected license, including its notice and relinking
+requirements.

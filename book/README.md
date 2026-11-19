@@ -55,8 +55,8 @@ rewrite, and done. Only the maintainer marks a chapter done.
 | L11 | Interpolation basics | Linear demosaicing is merged | Ready |
 | L12 | Using channel correlation | One correlation-based implementation is merged | Ready |
 | L13 | Direction-adaptive methods | VNG and PPG are merged | Ready |
-| L14 | Homogeneity-directed methods | AHD is merged | Ready |
-| L15 | Statistical and iterative methods | LMMSE, DCB, AMaZE, DHT, and AAHD are merged | Ready |
+| L14 | Homogeneity-directed methods | No retained implementation | Planned |
+| L15 | Statistical and iterative methods | LMMSE and AMaZE are merged | Ready |
 | L16 | Artifacts and evaluation | Evaluation methodology is consolidated | Planned |
 | L30 | Post-process chapters | Post-processing scope is split into chapter items | Planned |
 
