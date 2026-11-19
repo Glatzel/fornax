@@ -161,7 +161,9 @@ fn interpolate<T>(
     height: usize,
     pattern: BayerPattern,
     mode: LmmseMode,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let (median_passes, refinement_passes) = match mode {
         LmmseMode::Basic => (0, 0),
         LmmseMode::Median => (1, 0),
@@ -272,7 +274,9 @@ fn refine_tile<T>(
     cc_min: usize,
     cc_max: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     for rr in rr_min + 2..rr_max - 2 {
         let mut cc = cc_min + 2 + (tile_channel(pattern, rr, 2) & 1);
         let c = tile_channel(pattern, rr, cc);
@@ -369,12 +373,10 @@ fn refine_tile<T>(
     }
 }
 
-fn color_differences<T>(
-    qix: &mut [T],
-    last_rr: usize,
-    last_cc: usize,
-    pattern: BayerPattern,
-) where T: Primitive {
+fn color_differences<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 2..last_rr - 2 {
         let mut cc = 2 + (tile_channel(pattern, rr, 2) & 1);
         while cc < last_cc - 2 {
@@ -433,7 +435,10 @@ fn color_differences<T>(
     }
 }
 
-fn low_pass<T>(qix: &mut [T], last_rr: usize, last_cc: usize, h: [T; 5]) where T: Primitive {
+fn low_pass<T>(qix: &mut [T], last_rr: usize, last_cc: usize, h: [T; 5])
+where
+    T: Primitive,
+{
     let [h0, h1, h2, h3, h4] = h;
     for rr in 4..last_rr - 4 {
         for cc in 4..last_cc - 4 {
@@ -477,12 +482,10 @@ fn low_pass<T>(qix: &mut [T], last_rr: usize, last_cc: usize, h: [T; 5]) where T
     }
 }
 
-fn mmse_interpolate<T>(
-    qix: &mut [T],
-    last_rr: usize,
-    last_cc: usize,
-    pattern: BayerPattern,
-) where T: Primitive {
+fn mmse_interpolate<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 4..last_rr - 4 {
         let mut cc = 4 + (tile_channel(pattern, rr, 4) & 1);
         while cc < last_cc - 4 {
@@ -540,7 +543,10 @@ fn mmse_interpolate<T>(
     }
 }
 
-fn mmse_value<T>(mut filtered: [T; 9], raw: [T; 9]) -> (T, T) where T: Primitive {
+fn mmse_value<T>(mut filtered: [T; 9], raw: [T; 9]) -> (T, T)
+where
+    T: Primitive,
+{
     let mean = filtered.iter().fold(T::zero(), |sum, value| sum + *value) / num!(9.0);
     let filtered_center = filtered[4];
     let variance_filtered = num!(1.0e-7)
@@ -573,7 +579,9 @@ fn copy_cfa_samples<T>(
     width: usize,
     height: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     for rr in 0..last_rr {
         let row = row_start as isize - BORDER as isize + rr as isize;
         for cc in 0..last_cc {
@@ -593,12 +601,10 @@ fn copy_cfa_samples<T>(
     }
 }
 
-fn interpolate_red_blue<T>(
-    qix: &mut [T],
-    last_rr: usize,
-    last_cc: usize,
-    pattern: BayerPattern,
-) where T: Primitive {
+fn interpolate_red_blue<T>(qix: &mut [T], last_rr: usize, last_cc: usize, pattern: BayerPattern)
+where
+    T: Primitive,
+{
     for rr in 1..last_rr - 1 {
         let mut cc = 1 + (tile_channel(pattern, rr, 2) & 1);
         while cc < last_cc - 1 {
@@ -650,7 +656,9 @@ fn median_pass<T>(
     cc_min: usize,
     cc_max: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     for rr in 1..last_rr - 1 {
         for color in [RED, BLUE] {
             let correction_channel = if color == RED { 3 } else { 4 };
@@ -733,7 +741,9 @@ fn write_tile<T>(
     col_start: usize,
     col_end: usize,
     transfer: &LmmseTransfer<T>,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let first_vertical = row_start + if tile_vertical == 0 { BORDER } else { OVERLAP };
     let last_vertical = row_end
         - if tile_vertical == num_vertical - 1 {
@@ -772,7 +782,10 @@ const fn tile_index(channel: usize, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-const fn q<T>(qix: &[T], channel: usize, rr: usize, cc: usize) -> T where T: Primitive {
+const fn q<T>(qix: &[T], channel: usize, rr: usize, cc: usize) -> T
+where
+    T: Primitive,
+{
     qix[tile_index(channel, rr, cc)]
 }
 
@@ -782,10 +795,18 @@ const fn tile_channel(pattern: BayerPattern, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-fn median3<T>(a: T, b: T, c: T) -> T where T: Primitive { a.min(b).max(c.min(a.max(b))) }
+fn median3<T>(a: T, b: T, c: T) -> T
+where
+    T: Primitive,
+{
+    a.min(b).max(c.min(a.max(b)))
+}
 
 #[inline]
-fn median9<T>(pixels: &[T; 9]) -> T where T: Primitive {
+fn median9<T>(pixels: &[T; 9]) -> T
+where
+    T: Primitive,
+{
     let mut sorted = *pixels;
     sorted.sort_unstable_by(|left, right| {
         left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal)
@@ -794,7 +815,12 @@ fn median9<T>(pixels: &[T; 9]) -> T where T: Primitive {
 }
 
 #[inline]
-fn square<T>(value: T) -> T where T: Primitive { value * value }
+fn square<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    value * value
+}
 
 #[cfg(test)]
 mod tests {

@@ -21,19 +21,24 @@ const ALGORITHMS: [(&str, Demosaic); 7] = [
     ("VNG4", Demosaic::Vng4),
 ];
 
-fn sample<T>(value: f64) -> T where T: Primitive { cast(value).expect("the test sample fits T") }
+fn sample<T>(value: f64) -> T
+where
+    T: Primitive,
+{
+    cast(value).expect("the test sample fits T")
+}
 
-fn seeded_mosaic<T>(low: f64, high: f64) -> Vec<T> where T: Primitive {
+fn seeded_mosaic<T>(low: f64, high: f64) -> Vec<T>
+where
+    T: Primitive,
+{
     seeded_mosaic_sized::<T>(0x5ca1_ab1e, WIDTH, HEIGHT, low, high)
 }
 
-fn seeded_mosaic_sized<T>(
-    seed: u64,
-    width: u32,
-    height: u32,
-    low: f64,
-    high: f64,
-) -> Vec<T> where T: Primitive {
+fn seeded_mosaic_sized<T>(seed: u64, width: u32, height: u32, low: f64, high: f64) -> Vec<T>
+where
+    T: Primitive,
+{
     let mut state = seed;
     (0..width * height)
         .map(|_| {
@@ -46,7 +51,10 @@ fn seeded_mosaic_sized<T>(
         .collect()
 }
 
-fn run<T>(algorithm: Demosaic, samples: Vec<T>) -> Result<Vec<T>, String> where T: Primitive + Send + Sync {
+fn run<T>(algorithm: Demosaic, samples: Vec<T>) -> Result<Vec<T>, String>
+where
+    T: Primitive + Send + Sync,
+{
     run_sized(algorithm, samples, WIDTH, HEIGHT, BayerPattern::GBRG)
 }
 
@@ -56,7 +64,10 @@ fn run_sized<T>(
     width: u32,
     height: u32,
     pattern: BayerPattern,
-) -> Result<Vec<T>, String> where T: Primitive + Send + Sync {
+) -> Result<Vec<T>, String>
+where
+    T: Primitive + Send + Sync,
+{
     let image = MonoImage::from_raw(width, height, samples)
         .ok_or_else(|| "failed to construct the test mosaic".to_owned())?;
     algorithm
@@ -65,14 +76,17 @@ fn run_sized<T>(
         .map(|lazy| lazy.collect().into_raw())
 }
 
-fn assert_close<T>(actual: &[T], expected: &[T], context: &str) where T: Primitive {
+fn assert_close<T>(actual: &[T], expected: &[T], context: &str)
+where
+    T: Primitive,
+{
     assert_eq!(actual.len(), expected.len(), "{context}: length");
     for (index, (&actual, &expected)) in actual.iter().zip(expected).enumerate() {
         let actual = actual.to_f64().expect("test output fits f64");
         let expected = expected.to_f64().expect("test expectation fits f64");
         let difference = (actual - expected).abs();
-        let allowed =
-            F64_RELATIVE_TOLERANCE.mul_add(actual.abs().max(expected.abs()), F64_ABSOLUTE_TOLERANCE);
+        let allowed = F64_RELATIVE_TOLERANCE
+            .mul_add(actual.abs().max(expected.abs()), F64_ABSOLUTE_TOLERANCE);
         assert!(
             actual.is_finite() && difference <= allowed,
             "{context}: channel {index} actual {actual:?}, expected {expected:?}, \

@@ -145,7 +145,10 @@ impl<T: Primitive> Workspace<T> {
     }
 }
 
-fn run<T>(input: &[T], width: usize, height: usize, pattern: BayerPattern) -> Vec<T> where T: Primitive {
+fn run<T>(input: &[T], width: usize, height: usize, pattern: BayerPattern) -> Vec<T>
+where
+    T: Primitive,
+{
     let scale = normalization_scale(input);
     let mut output = vec![num!(0.0); width * height * 3];
     let mut workspace = Workspace::new(scale);
@@ -173,7 +176,9 @@ fn process_tile<T>(
     pattern: BayerPattern,
     left: i32,
     top: i32,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     workspace.nyquist.fill(0);
     workspace.nyquist_refined.fill(0);
 
@@ -251,7 +256,9 @@ fn fill_tile<T>(
     col_max: usize,
     tile_height: usize,
     tile_width: usize,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let stride = TILE_SIZE as usize;
     if row_min > 0 {
         for rr in 0..HALO as usize {
@@ -385,7 +392,9 @@ fn fill_corner<T>(
     left: i32,
     tile_height: usize,
     tile_width: usize,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let height = input.len() / width;
     let stride = TILE_SIZE as usize;
     for rr in 0..(HALO as usize).min(tile_height - row_offset) {
@@ -414,11 +423,10 @@ const fn source_index(width: usize, col: i32, row: i32) -> usize {
     row as usize * width + col as usize
 }
 
-fn calculate_gradients<T>(
-    workspace: &mut Workspace<T>,
-    tile_height: usize,
-    tile_width: usize,
-) where T: Primitive {
+fn calculate_gradients<T>(workspace: &mut Workspace<T>, tile_height: usize, tile_width: usize)
+where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     for rr in 2..tile_height - 2 {
         for cc in 2..tile_width - 2 {
@@ -443,7 +451,9 @@ fn interpolate_differences<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     for rr in 4..tile_height - 4 {
         for cc in 4..tile_width - 4 {
@@ -549,7 +559,9 @@ fn correct_highlight_differences<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     for rr in 4..tile_height - 4 {
         for cc in 4..tile_width - 4 {
@@ -624,7 +636,9 @@ fn bound_highlight_difference<T>(
     green: T,
     horizontal: bool,
     green_site: bool,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let center = workspace.cfa[index];
     let difference = if horizontal {
@@ -686,24 +700,46 @@ fn color_ratio<T>(
     two_away: T,
     center_weight: T,
     eps: T,
-) -> T where T: Primitive {
+) -> T
+where
+    T: Primitive,
+{
     neighbor * (neighbor_weight + center_weight)
         / (neighbor_weight * (eps + center) + center_weight * (eps + two_away))
 }
 
-fn interpolate<T>(weight: T, first: T, second: T) -> T where T: Primitive {
+fn interpolate<T>(weight: T, first: T, second: T) -> T
+where
+    T: Primitive,
+{
     weight * (first - second) + second
 }
 
-fn half<T>(value: T) -> T where T: Primitive { num!(0.5) * value }
+fn half<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    num!(0.5) * value
+}
 
-fn div_exponent<T>(value: T, shift: u32) -> T where T: Primitive {
+fn div_exponent<T>(value: T, shift: u32) -> T
+where
+    T: Primitive,
+{
     value / num!(2.0).powi(i32::try_from(shift).expect("exponent shift fits i32"))
 }
 
-fn mul_exponent<T>(value: T) -> T where T: Primitive { value * num!(2.0) }
+fn mul_exponent<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    value * num!(2.0)
+}
 
-fn ulim<T>(value: T, first: T, second: T) -> T where T: Primitive {
+fn ulim<T>(value: T, first: T, second: T) -> T
+where
+    T: Primitive,
+{
     if first < second {
         value.clamp(first, second)
     } else {
@@ -711,7 +747,12 @@ fn ulim<T>(value: T, first: T, second: T) -> T where T: Primitive {
     }
 }
 
-fn square<T>(value: T) -> T where T: Primitive { value * value }
+fn square<T>(value: T) -> T
+where
+    T: Primitive,
+{
+    value * value
+}
 
 const fn is_green(pattern: BayerPattern, x: usize, y: usize) -> bool {
     channel(pattern, x as u32, y as u32) == GREEN
@@ -734,7 +775,9 @@ fn calculate_horizontal_vertical_weights<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     for rr in 6..tile_height - 6 {
         let start = 6 + (channel(pattern, 2, rr as u32) & 1);
@@ -829,7 +872,10 @@ fn detect_nyquist_texture<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) -> Option<NyquistRegion> where T: Primitive {
+) -> Option<NyquistRegion>
+where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     let m2 = 2 * ts + 2;
@@ -937,7 +983,9 @@ fn refine_nyquist_texture<T>(
     workspace: &mut Workspace<T>,
     region: NyquistRegion,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     for rr in region.row_start..region.row_end {
@@ -1012,7 +1060,9 @@ fn interpolate_green_at_red_blue<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     for rr in 8..tile_height - 8 {
@@ -1060,7 +1110,9 @@ fn refine_nyquist_green<T>(
     workspace: &mut Workspace<T>,
     region: NyquistRegion,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let m1 = ts + 1;
     let m2 = 2 * ts + 2;
@@ -1123,7 +1175,9 @@ fn prepare_diagonal_interpolation<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let m1 = ts as i32 + 1;
@@ -1162,7 +1216,10 @@ fn prepare_diagonal_interpolation<T>(
     }
 }
 
-fn diagonal_ratio<T>(neighbor: T, center: T, two_away: T, eps: T) -> T where T: Primitive {
+fn diagonal_ratio<T>(neighbor: T, center: T, two_away: T, eps: T) -> T
+where
+    T: Primitive,
+{
     mul_exponent(neighbor) / (eps + center + two_away)
 }
 
@@ -1171,7 +1228,9 @@ fn interpolate_diagonal_red_blue<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let p2 = 2 - 2 * ts as i32;
@@ -1264,7 +1323,10 @@ fn interpolate_diagonal_red_blue<T>(
     }
 }
 
-fn diagonal_variance<T>(values: &[T], index: usize, ts: usize) -> T where T: Primitive {
+fn diagonal_variance<T>(values: &[T], index: usize, ts: usize) -> T
+where
+    T: Primitive,
+{
     num!(GAUSS_EVEN[0])
         * (values[pair(index - ts)]
             + values[pair(index - 1)]
@@ -1281,7 +1343,10 @@ fn diagonal_variance<T>(values: &[T], index: usize, ts: usize) -> T where T: Pri
                 + values[pair(offset(index, 2 * ts as i32 + 1))])
 }
 
-fn clamp_diagonal<T>(workspace: &mut Workspace<T>, index: usize, center: T, plus: bool) where T: Primitive {
+fn clamp_diagonal<T>(workspace: &mut Workspace<T>, index: usize, center: T, plus: bool)
+where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let m1 = ts as i32 + 1;
@@ -1322,7 +1387,9 @@ fn refine_green_from_red_blue<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let m1 = ts as i32 + 1;
@@ -1436,7 +1503,10 @@ fn clamp_green_against_neighbors<T>(
     second: T,
     eps: T,
     signal_scale: T,
-) -> T where T: Primitive {
+) -> T
+where
+    T: Primitive,
+{
     let mut result = green;
     if result < rb {
         if num!(2.0) * result < rb {
@@ -1457,7 +1527,9 @@ fn split_green_differences<T>(
     pattern: BayerPattern,
     tile_height: usize,
     tile_width: usize,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let (ex, ey) = red_phase(pattern);
     let mut rr = 13 - ey as i32;
     while rr < tile_height as i32 - 12 {
@@ -1477,7 +1549,9 @@ fn interpolate_chroma<T>(
     tile_height: usize,
     tile_width: usize,
     pattern: BayerPattern,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     let p1 = 1 - ts as i32;
     let p3 = 3 - 3 * ts as i32;
@@ -1553,7 +1627,9 @@ fn write_rgb<T>(
     top: i32,
     tile_height: usize,
     tile_width: usize,
-) where T: Primitive {
+) where
+    T: Primitive,
+{
     let ts = TILE_SIZE as usize;
     for rr in 16..tile_height - 16 {
         let row = rr as i32 + top;
@@ -1631,7 +1707,10 @@ fn tile_origins(width: u32, height: u32) -> Vec<(i32, i32)> {
     origins
 }
 
-fn adaptive_green<T>(center: T, ratio: T, hamilton_adams: T) -> T where T: Primitive {
+fn adaptive_green<T>(center: T, ratio: T, hamilton_adams: T) -> T
+where
+    T: Primitive,
+{
     if (num!(1.0) - ratio).abs() < num!(ADAPTIVE_RATIO_THRESHOLD) {
         center * ratio
     } else {
@@ -1639,7 +1718,12 @@ fn adaptive_green<T>(center: T, ratio: T, hamilton_adams: T) -> T where T: Primi
     }
 }
 
-fn directional_weight<T>(first: T, second: T) -> T where T: Primitive { first / (first + second) }
+fn directional_weight<T>(first: T, second: T) -> T
+where
+    T: Primitive,
+{
+    first / (first + second)
+}
 
 #[cfg(test)]
 mod tests {

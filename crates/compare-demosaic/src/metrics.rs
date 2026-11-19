@@ -392,7 +392,13 @@ fn reference_edge_map(reference: &[u16], width: u32, height: u32) -> Vec<bool> {
     let mut edges = vec![false; (width * height) as usize];
     let luma = |x: u32, y: u32| {
         let offset = (y as usize * width as usize + x as usize) * 3;
-        0.0722_f64.mul_add(f64::from(reference[offset + 2]), 0.7152_f64.mul_add(f64::from(reference[offset + 1]), 0.2126 * f64::from(reference[offset])))
+        0.0722_f64.mul_add(
+            f64::from(reference[offset + 2]),
+            0.7152_f64.mul_add(
+                f64::from(reference[offset + 1]),
+                0.2126 * f64::from(reference[offset]),
+            ),
+        )
     };
     for y in 0..height {
         for x in 0..width {

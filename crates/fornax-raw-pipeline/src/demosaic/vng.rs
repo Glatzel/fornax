@@ -502,7 +502,8 @@ mod tests {
         let width = 16;
         let height = 16;
         let pattern = BayerPattern::GBRG;
-        let value = |x: usize, y: usize| (y as f32).mul_add(32.0, (x as f32).mul_add(64.0, 3_000.0));
+        let value =
+            |x: usize, y: usize| (y as f32).mul_add(32.0, (x as f32).mul_add(64.0, 3_000.0));
         let input = (0..width * height)
             .map(|pixel| value(pixel % width, pixel / width))
             .collect::<Vec<f32>>();

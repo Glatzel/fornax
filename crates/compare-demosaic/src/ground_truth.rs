@@ -623,8 +623,16 @@ fn evidence_sources() -> Vec<Source> {
                 let x = x as f32 / (width - 1) as f32;
                 let y = y as f32 / (height - 1) as f32;
                 match variant_u32 {
-                    0 => [0.7_f32.mul_add(x, 0.02), 0.55_f32.mul_add(y, 0.04), 0.25_f32.mul_add(y, 0.3_f32.mul_add(x, 0.01))],
-                    1 => [0.55_f32.mul_add(y, 0.03), 0.62_f32.mul_add(x, 0.02), 0.31_f32.mul_add(y, 0.24_f32.mul_add(x, 0.04))],
+                    0 => [
+                        0.7_f32.mul_add(x, 0.02),
+                        0.55_f32.mul_add(y, 0.04),
+                        0.25_f32.mul_add(y, 0.3_f32.mul_add(x, 0.01)),
+                    ],
+                    1 => [
+                        0.55_f32.mul_add(y, 0.03),
+                        0.62_f32.mul_add(x, 0.02),
+                        0.31_f32.mul_add(y, 0.24_f32.mul_add(x, 0.04)),
+                    ],
                     _ => [
                         0.32_f32.mul_add(y, 0.36_f32.mul_add(x, 0.02)),
                         0.41_f32.mul_add(y, 0.28_f32.mul_add(x, 0.03)),
@@ -1204,7 +1212,10 @@ fn pixel_class(source: &Source, x: u32, y: u32) -> PixelClass {
 }
 
 fn luma(pixel: [f32; 3]) -> f64 {
-    0.0722_f64.mul_add(f64::from(pixel[2]), 0.7152_f64.mul_add(f64::from(pixel[1]), 0.2126 * f64::from(pixel[0])))
+    0.0722_f64.mul_add(
+        f64::from(pixel[2]),
+        0.7152_f64.mul_add(f64::from(pixel[1]), 0.2126 * f64::from(pixel[0])),
+    )
 }
 
 fn chroma(pixel: [f32; 3]) -> [f64; 2] {
