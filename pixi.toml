@@ -3,9 +3,6 @@ channels = ["https://prefix.dev/glatzel", "conda-forge"]
 name = "fornax"
 platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 
-[feature.dev.dependencies]
-libraw-dev = "==0.22.3"
-
 [feature.duckdb.dependencies]
 duckdb-cli = "*"
 
@@ -36,7 +33,6 @@ book-figures = "python -m book.figures"
 
 [environments]
 default = []
-dev = { features = ["dev", "duckdb"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
-tracker = ["duckdb"]
-python = ["dev", "python"]
+dev = { features = ["duckdb"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
+python = [ "python"]
 book = ["book"]
