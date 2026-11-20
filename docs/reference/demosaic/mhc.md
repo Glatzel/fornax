@@ -6,12 +6,16 @@ floating-point contract.
 
 ## Classification
 
-**Eligible.** The reconstruction is an affine 5x5 filtering operation. It has
-no intrinsic gamma transfer, perceptual color space, lookup table, fixed input
-range, clipping, or quantization requirement.
+**Tier -1: reference only. Do not implement.**
 
-MHC is not currently implemented by `fornax-raw-pipeline`; its `[MHC]` entry
-remains a research candidate in [the Tier 1 list](../../../TODO.md).
+The reconstruction is an affine 5x5 filtering operation with no intrinsic
+gamma transfer, perceptual color space, lookup table, fixed input range,
+clipping, or quantization requirement. That numerical analysis does not make
+MHC a production candidate: the method is associated with U.S. Patent 7502505,
+and the IPOL implementation carries source-license constraints.
+
+Fornax therefore retains this note as algorithm and provenance research only.
+It must not add an MHC selector, production kernel, or copied implementation.
 
 ## Sources
 
@@ -167,9 +171,9 @@ the corresponding bilinear denominator, and excludes missing correction terms.
 That method defines the finite-image result without extending the array or
 inventing samples.
 
-Fornax should adopt this policy explicitly or another documented
-channel-preserving boundary extension. The choice can change outer-border
-pixels and must be fixed by tests when MHC is implemented.
+That policy can change outer-border pixels. It remains research context only;
+the Tier -1 disposition prohibits Fornax from implementing or testing an MHC
+kernel.
 
 ## Current Fornax behavior
 
@@ -177,21 +181,12 @@ There is no MHC kernel or public `Demosaic` selector. Linear interpolation and
 the retained advanced methods are separate implementations and must not be
 described as MHC.
 
-## Mandatory changes for implementation
+## Tier -1 disposition
 
-If the MHC candidate is promoted to production:
-
-1. Implement the eight affine cases directly over `MonoImage<T>` without
-   normalized-code conversion.
-2. Keep the original coefficients but evaluate them in generic floating-point
-   arithmetic rather than integer shifts.
-3. Define the finite-image boundary policy explicitly; use the IPOL
-   available-neighbor normalization initially.
-4. Add signed-constant, subnormal-magnitude, HDR, positive-scale, and
-   boundary-constant checks under the existing demosaic invariant harness.
-5. Do not clamp reconstructed channels to a local or global range.
-6. Complete patent and source-license review before distributing source derived
-   from the IPOL implementation.
+MHC remains reference material for understanding gradient-corrected linear
+interpolation. The patent and source-license risks disqualify it from Fornax's
+implementation roadmap. Do not promote this method to a selector or copy code
+from the patent or IPOL source.
 
 ## Unavoidable compromises
 
@@ -204,7 +199,5 @@ If the MHC candidate is promoted to production:
 
 ## Unresolved questions
 
-- Which MHC implementation should be the behavioral oracle: the published
-  equations, the IPOL available-neighbor code, or an independent filter-based
-  implementation?
-- What patent posture does the project want before accepting an MHC kernel?
+None for Fornax implementation. MHC is permanently reference-only under the
+current project decision.

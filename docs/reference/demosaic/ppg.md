@@ -6,18 +6,16 @@ contract.
 
 ## Classification
 
-**Eligible for both formulations, with distinct provenance.**
+**Done: modern LibRaw/darktable PPG is production ready.**
 
-- Chuan-kai Lin's 2003 Pixel Grouping formulation is deterministic arithmetic
-  with data-dependent order comparisons and a singularity-free hue transit
-  branch.
-- The modern dcraw/LibRaw/darktable `PPG` algorithm used by Fornax is a later
-  directional interpolation and color-difference variant. It is also
-  sensor-linear, signed-safe, and positive-scale homogeneous.
+An independent review found no production correctness issue in Fornax's
+modern `PPG` implementation. The supported contract is the modern
+dcraw/LibRaw/darktable directional interpolation and color-difference
+sequence. It is sensor-linear, signed-safe, and positive-scale homogeneous.
 
-Modern `PPG` is not the same set of equations as the 2003 page. If exact
-Pixel Grouping behavior is required in addition to Fornax's current kernel, it
-must be introduced under a distinct name such as `PixelGrouping`.
+Chuan-kai Lin's 2003 Pixel Grouping formulation remains historical context for
+the name and provenance. A separate original-formulation variant is not part
+of Fornax's readiness plan.
 
 ## Sources
 
@@ -95,7 +93,7 @@ $l_3-l_1$ is nonzero. The non-monotonic branch avoids division altogether.
 ## Modern LibRaw/darktable PPG equations
 
 For a red or blue center $F_c$, the modern kernel computes, for each cardinal
-direction $d$,
+direction $d\in\{N,E,S,W\}$,
 
 $$
 \begin{aligned}
@@ -107,6 +105,10 @@ D_d={}&3\left(|F_{c-2d,c}-F_c|+|F_{c+2d,c}-F_c|
 +|F_{c-3d,G}-F_{c-d,G}|\right).
 \end{aligned}
 $$
+
+Here $d$ is a cardinal unit offset, so $c\pm d$ address green samples on the
+same row or column and $c\pm2d$ address the center color. Diagonal directions
+are used later, when reconstructing the opposite color at red and blue sites.
 
 It chooses the lower-direction cost and applies a local envelope:
 
@@ -210,20 +212,15 @@ tests. Its tie order is part of behavioral compatibility: horizontal wins when
 the first direction cost is not greater than the alternate cost, and diagonal
 ties average both guesses.
 
+A fixed 9x9 RGGB mosaic with a non-linear sample layout is compared to a
+three-decimal `insta` snapshot on Linux x86_64. The fixture reaches the interior
+direction-selection path; a 5x5 fixture would remain entirely in the
+three-pixel border policy.
+
 ## Mandatory changes
 
-The current modern `PPG` formulation requires no algorithmic conversion.
-
-If original 2003 Pixel Grouping is added:
-
-1. Give it a distinct public identity rather than replacing modern `PPG`
-   silently.
-2. Implement its four-gradient green estimates and guarded `hue_transit`
-   equations directly.
-3. Define a finite-image border rule and tie behavior.
-4. Add the same signed, scale, HDR, precision, and boundary invariants used by
-   the current `PPG` path.
-5. Treat the archived GPL reference as evidence, not copied production source.
+None. Modern `PPG` is the supported formulation, its border and tie behavior
+are documented, and its fixed snapshot plus numeric invariants pass.
 
 ## Unavoidable compromises
 
@@ -238,9 +235,5 @@ If original 2003 Pixel Grouping is added:
 
 ## Unresolved questions
 
-- Is preserving modern `PPG` behavior sufficient, or is a separately named
-  original Pixel Grouping variant desired?
-- Which finite-image border rule should define a standalone Pixel Grouping
-  reference?
-- What reference oracle should be used for modern `PPG` after the comparison
-  harness is removed?
+None for readiness. Original 2003 Pixel Grouping remains out of implementation
+scope.

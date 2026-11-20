@@ -21,4 +21,5 @@ rayon.workspace = true
 criterion.workspace = true
 fornax-devtool.workspace = true
 image.workspace = true
+insta.workspace = true
 mischief.workspace = true
