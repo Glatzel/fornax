@@ -468,7 +468,15 @@ pub fn decode_packed(
             .ok_or_else(|| invalid("Nikon packed strip size overflow"))
     })?;
     let sample_count = checked_sample_count(request.width, request.height)?;
-    let mut output = vec![0_u16; sample_count];
+    let mut output = if bits == 14
+        && byte_order == ByteOrder::Little
+        && rayon::current_num_threads() == 1
+    {
+        fornax_large_alloc::zeroed_samples(sample_count)
+            .map_err(|error| invalid(format!("Nikon packed allocation failed: {error}")))?
+    } else {
+        vec![0_u16; sample_count]
+    };
     let payloads = request
         .chunks
         .iter()
