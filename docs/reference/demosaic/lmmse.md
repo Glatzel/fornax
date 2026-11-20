@@ -225,8 +225,8 @@ normalized, but it mixes global scale normalization with a fixed local floor.
 A canonical linear-domain implementation should make that regularization
 explicit and tied to the normalized signal model.
 
-The current 257-pixel tile-boundary constant-field regression in
-[`demosaic_invariants.rs`](../../../crates/fornax-raw-pipeline/tests/demosaic_invariants.rs)
+The current tile-boundary regression in
+[`lmmse.rs`](../../../crates/fornax-raw-pipeline/src/demosaic/lmmse.rs)
 passes for the current implementation.
 
 ## Mandatory changes

@@ -154,14 +154,11 @@ Completed checks:
   compare-demosaic --no-deps`: passed
 - `cargo check -p fornax-codec --no-default-features`: passed
 - `cargo test -p fornax-codec --features lossless-jpeg`: passed
+- `scripts/agent-validation.sh --docs-only`: passed
 - `git diff --check`: passed
 
-Failed or interrupted checks:
+Interrupted checks:
 
-- `scripts/agent-validation.sh` stops at the existing
-  `docs/reference/demosaic/lmmse.md:229` link to the absent
-  `crates/fornax-raw-pipeline/tests/demosaic_invariants.rs`. The same link is
-  absent from `origin/main`, so this branch does not introduce it.
 - `cargo bench -p fornax-raw-decoder --no-run` was intentionally interrupted
   when the user asked to stop checks.
 
