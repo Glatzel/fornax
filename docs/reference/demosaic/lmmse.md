@@ -47,20 +47,20 @@ gamma workspace.
 For a red row, Zhang and Wu use second-order Laplacian interpolation to estimate
 the missing green and red samples:
 
-```math
+$$
 \begin{aligned}
 \widehat G_n&=\frac{1}{2}(G_{n-1}+G_{n+1})
 -\frac{1}{4}(R_{n-2}-2R_n+R_{n+2}),\\
 \widehat R_n&=\frac{1}{2}(R_{n-1}+R_{n+1})
 -\frac{1}{4}(G_{n-2}-2G_n+G_{n+2}).
 \end{aligned}
-```
+$$
 
 The primary difference signals are
 
-```math
+$$
 \Phi_{g,r}=G-R,\qquad \Phi_{g,b}=G-B.
-```
+$$
 
 At a red sample, the horizontal green-red difference observation is
 `Ghat_n-R_n`; at a green sample it is `G_n-Rhat_n`. Vertical estimates follow
@@ -70,11 +70,11 @@ the same construction along a column. Blue rows are symmetric.
 
 The IPOL exposition applies its fixed nine-tap low-pass kernel
 
-```math
+$$
 h(z)=\frac{1}{128}
 \left(26+23(z+z^{-1})+15(z^2+z^{-2})
 +9(z^3+z^{-3})+4(z^4+z^{-4})\right).
-```
+$$
 
 For original observations `f` and filtered observations `s=f*h`, the local
 statistics are
@@ -96,11 +96,11 @@ The denoised directional estimate is
 
 and its estimated error variance is
 
-```math
+$$
 \sigma_{\mathrm{err}}^2=
 \frac{\sigma_x^2\sigma_v^2}
 {\sigma_x^2+\sigma_v^2}.
-```
+$$
 
 ### Directional fusion
 
@@ -108,11 +108,11 @@ Let `h` and `v` be the horizontal and vertical estimates and let
 `sigma_h^2` and `sigma_v^2` be their estimated error variances. The fused
 estimate is
 
-```math
+$$
 \widehat\phi=(1-\lambda)h+\lambda v,
 \qquad
 \lambda=\frac{\sigma_h^2}{\sigma_h^2+\sigma_v^2}.
-```
+$$
 
 This fuses the direction with the smaller estimated error variance more
 strongly. A non-zero denominator convention is required at zero variance; the
@@ -123,15 +123,15 @@ IPOL exposition uses `0.1` and `0.2` relative to its display-code range.
 Once the fused green channel is known, measured green-minus-red and
 green-minus-blue differences are interpolated:
 
-```math
+$$
 \Phi(i,j)=\frac{1}{4}\sum_{q\in N_D}\Phi(q)
-```
+$$
 
 at the opposite-primary site, and
 
-```math
+$$
 \Phi(i,j)=\frac{1}{4}\sum_{q\in N_4}\Phi(q)
-```
+$$
 
 at green sites. The final channels are `R=G-\Phi_{g,r}` and
 `B=G-\Phi_{g,b}`.
@@ -152,19 +152,19 @@ quality must be measured separately.
 
 ### Required input range
 
-The equations have no fixed `[0,1]` or `[0,255]` requirement. The paper's
+The equations have no fixed $[0,1]$ or $[0,255]$ requirement. The paper's
 experiments and the IPOL variance constants use an intensity range, but the
 estimator itself is affine/homogeneous apart from those regularization terms.
 
 ### Positive scale equivariance
 
-For positive `s`, differences scale by `s`, variances scale by `s^2`, and
+For positive $s$, differences scale by $s$, variances scale by $s^2$, and
 `lambda` is unchanged. The estimate
 
-```math
+$$
 \widehat x=\mu+
 \frac{\sigma_x^2}{\sigma_x^2+\sigma_v^2}(f-\mu)
-```
+$$
 
 therefore scales by `s` when no fixed additive floor dominates. A floor must
 also be proportional to `s^2`.
