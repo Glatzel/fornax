@@ -42,32 +42,32 @@ must be introduced under a distinct name such as `PixelGrouping`.
 
 ## Original Pixel Grouping equations
 
-For a red or blue center `R13`, the original description computes four
+For a red or blue center $R_{13}$, the original description computes four
 gradients:
 
-```math
+$$
 \begin{aligned}
 \Delta_N&=2|R_3-R_{13}|+|G_8-G_{18}|,\\
 \Delta_E&=2|R_{13}-R_{15}|+|G_{12}-G_{14}|,\\
 \Delta_W&=2|R_{11}-R_{13}|+|G_{12}-G_{14}|,\\
 \Delta_S&=2|R_{13}-R_{23}|+|G_8-G_{18}|.
 \end{aligned}
-```
+$$
 
 After selecting the smallest gradient, the green estimate is one of
 
-```math
+$$
 \begin{aligned}
 G_{13}&=(3G_8+R_{13}+G_{18}-R_3)/4 &&(\Delta_N),\\
 G_{13}&=(3G_{14}+R_{13}+G_{12}-R_{15})/4 &&(\Delta_E),\\
 G_{13}&=(3G_{12}+R_{13}+G_{14}-R_{11})/4 &&(\Delta_W),\\
 G_{13}&=(3G_{18}+R_{13}+G_8-R_{23})/4 &&(\Delta_S).
 \end{aligned}
-```
+$$
 
 At green sites and opposite-primary sites, the original method uses:
 
-```math
+$$
 \operatorname{hue\_transit}(l_1,l_2,l_3,v_1,v_3)=
 \begin{cases}
 v_1+(v_3-v_1)\dfrac{l_2-l_1}{l_3-l_1},
@@ -75,29 +75,29 @@ v_1+(v_3-v_1)\dfrac{l_2-l_1}{l_3-l_1},
 \dfrac{v_1+v_3}{2}+\dfrac{2l_2-l_1-l_3}{4},
 & \text{otherwise}.
 \end{cases}
-```
+$$
 
 For example, at `G8`, the original description estimates
 
-```math
+$$
 B_8=\operatorname{hue\_transit}(G_7,G_8,G_9,B_7,B_9),
 \quad
 R_8=\operatorname{hue\_transit}(G_3,G_8,G_{13},R_3,R_{13}).
-```
+$$
 
 At `R13`, the missing blue channel chooses between the two diagonals using
 separate CFA and green-difference gradients, then applies the same
 `hue_transit` function to the selected diagonal.
 
 The division in `hue_transit` occurs only in the strict monotonic branch, where
-`l_3-l_1` is nonzero. The non-monotonic branch avoids division altogether.
+$l_3-l_1$ is nonzero. The non-monotonic branch avoids division altogether.
 
 ## Modern LibRaw/darktable PPG equations
 
-For a red or blue center `F_c`, the modern kernel computes, for each cardinal
-direction `d`,
+For a red or blue center $F_c$, the modern kernel computes, for each cardinal
+direction $d$,
 
-```math
+$$
 \begin{aligned}
 \widehat G_d&=
 2(F_{c-d,G}+F_c+F_{c+d,G})-F_{c-2d,c}-F_{c+2d,c},\\
@@ -106,29 +106,29 @@ D_d={}&3\left(|F_{c-2d,c}-F_c|+|F_{c+2d,c}-F_c|
 &+2\left(|F_{c+3d,G}-F_{c+d,G}|
 +|F_{c-3d,G}-F_{c-d,G}|\right).
 \end{aligned}
-```
+$$
 
 It chooses the lower-direction cost and applies a local envelope:
 
-```math
+$$
 G_c=\operatorname{clamp}
 \left(\frac{\widehat G_d}{4},
 \min(F_{c-d,G},F_{c+d,G}),
 \max(F_{c-d,G},F_{c+d,G})\right).
-```
+$$
 
 At green sites, the missing color along a cardinal direction is reconstructed
 from color differences:
 
-```math
+$$
 \widehat C_c=\frac{F_{c-d,C}+F_{c+d,C}
 +2G_c-G_{c-d}-G_{c+d}}{2}.
-```
+$$
 
 At a red center missing blue, or a blue center missing red, the two diagonal
 guesses use
 
-```math
+$$
 \begin{aligned}
 \widehat B_{\mathrm{ne}}&=
 B_{\mathrm{ne}}+B_{\mathrm{sw}}+2G_c-G_{\mathrm{ne}}-G_{\mathrm{sw}},\\
@@ -136,7 +136,7 @@ D_{\mathrm{ne}}&=
 |B_{\mathrm{ne}}-B_{\mathrm{sw}}|
 +|G_{\mathrm{ne}}-G_c|+|G_{\mathrm{sw}}-G_c|,
 \end{aligned}
-```
+$$
 
 and the symmetric north-west estimate. The lower-cost estimate is divided by
 two; equal costs average both guesses and divide by four.
@@ -152,7 +152,7 @@ LibRaw/darktable difference equations.
 
 ### Required input range
 
-The original equations are scale-free and do not require `[0,1]`. Its archived
+The original equations are scale-free and do not require $[0,1]$. Its archived
 reference implementation uses an unsigned 16-bit host representation, but that
 is a storage limitation. Modern LibRaw uses unsigned samples and darktable
 floors outputs at zero, again implementation policies rather than properties
@@ -164,15 +164,15 @@ global zero.
 
 ### Positive scale equivariance
 
-For `s > 0`, every absolute difference, direction cost, green guess, and
-color-difference estimate scales by `s`. Direction comparisons and the
+For $s > 0$, every absolute difference, direction cost, green guess, and
+color-difference estimate scales by $s$. Direction comparisons and the
 `hue_transit` ratio are unchanged. Both formulations are therefore positively
 scale-equivariant in exact arithmetic.
 
 ### Signed finite inputs
 
-- Original Pixel Grouping compares the ordered magnitudes of `l_1`, `l_2`,
-  and `l_3`; it does not apply `log` or take a root of a signed value. The
+- Original Pixel Grouping compares the ordered magnitudes of $l_1$, $l_2$,
+  and $l_3$; it does not apply $log$ or take a root of a signed value. The
   strict monotonic ratio branch can produce signed or unbounded values, which
   is mathematically valid linear-light interpolation.
 - Modern `PPG` uses only signed sums, differences, absolute values, and

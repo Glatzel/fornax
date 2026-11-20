@@ -33,63 +33,63 @@ remains a research candidate in [the Tier 1 list](../../../TODO.md).
 
 ## Original equations
 
-Let `F(i,j)` be the scalar Bayer mosaic and let `R`, `G`, and `B` denote
+Let $F(i,j)$ be the scalar Bayer mosaic and let $R$, $G$, and $B$ denote
 channel values at sites where they are measured or reconstructed. MHC starts
 from bilinear interpolation and adds a Laplacian correction from another
 channel.
 
 At a red or blue site, the bilinear green estimate is
 
-```math
+$$
 \widehat G_{\mathrm{bl}}(i,j)
 = \frac{1}{4}\left(G_{i-1,j}+G_{i+1,j}+G_{i,j-1}+G_{i,j+1}\right).
-```
+$$
 
 The corrected green estimate is
 
-```math
+$$
 \widehat G(i,j)=\widehat G_{\mathrm{bl}}(i,j)+\alpha\Delta_C(i,j),
 \qquad \alpha=\frac{1}{2},
-```
+$$
 
-where `C` is the color measured at the center and the 5-point discrete
+where $C$ is the color measured at the center and the 5-point discrete
 Laplacian is
 
-```math
+$$
 \Delta_C(i,j)=C_{i,j}
 -\frac{1}{4}\left(C_{i-2,j}+C_{i+2,j}+C_{i,j-2}+C_{i,j+2}\right).
-```
+$$
 
 At a green site, interpolation of red uses
 
-```math
+$$
 \widehat R(i,j)=\widehat R_{\mathrm{bl}}(i,j)+\beta\Delta_G(i,j),
 \qquad \beta=\frac{5}{8},
-```
+$$
 
 with the sampled 9-point green Laplacian shown by the final MHC filter:
 
-```math
+$$
 \begin{aligned}
 \Delta_G(i,j)={}&5G_{i,j}
 -G_{i-2,j}-G_{i+2,j}\\
 &-\sum_{d_x,d_y\in\{-1,1\}}G_{i+d_x,j+d_y}
 +\frac{1}{2}\left(G_{i,j-2}+G_{i,j+2}\right).
 \end{aligned}
-```
+$$
 
 The red equation at a blue site uses the corresponding blue 5-point Laplacian
-with `gamma = 3/4`:
+with $\gamma = 3/4$:
 
-```math
+$$
 \widehat R(i,j)=\widehat R_{\mathrm{bl}}(i,j)
 +\frac{3}{4}\Delta_B(i,j).
-```
+$$
 
 Blue interpolation is symmetric. At a green site in a red row, for example,
 the complete red filter is
 
-```math
+$$
 \begin{aligned}
 \widehat R(i,j)=\frac{1}{8}\Bigl(&
 \tfrac{1}{2}G_{i,j-2}
@@ -99,7 +99,7 @@ the complete red filter is
 &-G_{i-1,j+1}-G_{i+1,j+1}
 +\tfrac{1}{2}G_{i,j+2}\Bigr).
 \end{aligned}
-```
+$$
 
 The red-row and blue-row cases exchange the orientation of the measured
 second color. The full set of eight filters, including red and blue at green
@@ -129,9 +129,9 @@ clamp. Fornax must not clamp its output.
 
 For every positive scalar `s`,
 
-```math
+$$
 \operatorname{MHC}(sF)=s\operatorname{MHC}(F)
-```
+$$
 
 within the same finite arithmetic precision, because every coefficient is
 constant and every correction is homogeneous of degree one. The chosen gains

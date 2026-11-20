@@ -12,7 +12,7 @@ normalization to `[0,1]`, adds fixed tolerances, and clamps channel outputs.
 Those are removable or replaceable implementation requirements.
 
 The unavoidable mathematical issue is the ratio denominator
-`L_0 + L_2`, which can approach or cross zero when signed samples are allowed.
+$L_0 + L_2$, which can approach or cross zero when signed samples are allowed.
 Fornax therefore needs a documented scale-relative denominator policy and a
 finite fallback. The signed variant should be named if exact RCD 2.3 behavior
 is also retained.
@@ -42,66 +42,66 @@ identified as unresolved.
 The reference first normalizes unsigned 16-bit samples to `[0,1]` and creates a
 low-pass field from same-CFA-color sites:
 
-```math
+$$
 L_p=\frac{1}{4}F_p+\frac{1}{8}\sum_{q\in N_4}F_q
 +\frac{1}{16}\sum_{q\in N_D}F_q,
-```
+$$
 
-where `N_4` and `N_D` contain axial and diagonal CFA neighbors. This is the
-`1 2 1 / 2 4 2 / 1 2 1` kernel divided by sixteen.
+where $N_4$ and `N_D` contain axial and diagonal CFA neighbors. This is the
+$1 2 1 / 2 4 2 / 1 2 1$ kernel divided by sixteen.
 
 ### Directional discrimination
 
 For vertical/horizontal selection, release 2.3 forms quadratic directional
-energies `E_v` and `E_h` over a nine-sample CFA support. The source spells them
+energies $E_v$ and $E_h$ over a nine-sample CFA support. The source spells them
 out as products of the center and neighboring CFA samples with integer
 coefficients. In compact form:
 
-```math
+$$
 E_d=\max\left(\epsilon^2,\ F^\mathsf{T}A_dF\right),
 \qquad
 w_{vh}=\frac{E_v}{E_v+E_h},
 \qquad d\in\{v,h\}.
-```
+$$
 
-The diagonal `P/Q` stage uses the same construction with its own coefficient
+The diagonal $P/Q$ stage uses the same construction with its own coefficient
 matrices. The source's exact coefficients must be transcribed from the pinned
 release rather than inferred from this compact notation.
 
 At each interpolation site, RCD compares the central discrimination value with
 the average of its four diagonal neighbors and uses whichever is closer to
-`1/2`. It then clamps that discrimination weight to `[0,1]`; this is a
+$1/2$. It then clamps that discrimination weight to $[0,1]$; this is a
 normalized interpolation weight, not a signal-range clamp.
 
 ### Green via ratio correction
 
-For cardinal neighbor estimates `N`, `S`, `W`, and `E`, release 2.3 uses
+For cardinal neighbor estimates $N$, $S$, $W$`, and $E$, release 2.3 uses
 
-```math
+$$
 \widehat C_d=F_d\left(
 1+\frac{L_0-L_{2d}}{\epsilon+L_0+L_{2d}}
 \right),
 \qquad d\in\{N,S,W,E\}.
-```
+$$
 
 The first direction gradients are sums of absolute CFA differences plus a
-fixed `epsilon`:
+fixed $\epsilon$:
 
-```math
+$$
 \begin{aligned}
 D_N&=\epsilon+|F_N-F_S|+|F_0-F_{2N}|\\
 &\quad+|F_N-F_{3N}|+|F_{2N}-F_{4N}|,
 \end{aligned}
-```
+$$
 
 and analogously for `S`, `W`, and `E`. The directional estimates are
 inverse-gradient weighted:
 
-```math
+$$
 \widehat G_v=\frac{D_S\widehat C_N+D_N\widehat C_S}{D_N+D_S},
 \qquad
 \widehat G_h=\frac{D_W\widehat C_E+D_E\widehat C_W}{D_E+D_W}.
-```
+$$
 
 The output is `w_h \widehat G_h + (1-w_h)\widehat G_v`.
 
@@ -150,9 +150,9 @@ the intended behavior.
 Absolute gradients and additive color differences remain valid for signed
 values. The ratio correction is the difficult case:
 
-```math
+$$
 1+\frac{L_0-L_{2d}}{\epsilon+L_0+L_{2d}}
-```
+$$
 
 The ratio itself is scale-invariant, but the paired low-pass values can sum to
 zero or change sign even when the field is finite. Adding a fixed epsilon does
@@ -160,11 +160,11 @@ not define a stable result at every signed crossing.
 
 ### Singularities and non-finite behavior
 
-- `L_0+L_{2d}=0` is a pole of the exact ratio-correction formula.
+- $L_0+L_{2d}=0$ is a pole of the exact ratio-correction formula.
 - Direction and color-difference averages divide by sums of non-negative
   gradients. A relative floor can keep those denominators finite.
 - The discrimination ratio requires a zero-energy convention; release 2.3
-  uses `max(epsilon^2, energy)`.
+  uses $max(epsilon^2, energy)$.
 - Near cancellation, no unique value follows from the original ratio alone.
   Fornax must define a derivative-free, deterministic fallback.
 
@@ -183,26 +183,26 @@ The current kernel in
 - implements the release-2.3 directional and color-difference structure;
 - removes the `[0,1]` RGB output clamp;
 - keeps `[0,1]` clamps only for discrimination fractions;
-- computes `epsilon` from a robust input scale and the working type;
+- computes $\epsilon$ from a robust input scale and the working type;
 - accepts signed and HDR values without an integer working buffer;
 - passes current signed, HDR, `f64`, and positive-scale invariant checks.
 
 The remaining gap is mathematical policy rather than public API: the code
-regularizes `L_0+L_2` with a very small scale-relative epsilon but does not
+regularizes $L_0+L_2$ with a very small scale-relative epsilon but does not
 explicitly define a fallback at the signed zero-crossing.
 
 ## Mandatory changes
 
 1. Keep the directional and color-difference equations, but evaluate all
    intermediate values in the input floating-point type.
-2. Replace every reference-domain `epsilon` and `epsilon^2` with an explicitly
+2. Replace every reference-domain $epsilon$ and $epsilon^2$ with an explicitly
    scale-relative tolerance derived from the input scale.
 3. Define ratio correction as:
-   - the original ratio when `abs(L_0+L_2)` exceeds the tolerance; and
+   - the original ratio when $abs(L_0+L_2)$ exceeds the tolerance; and
    - a finite color-difference fallback when it does not.
 4. Make the fallback positive-scale homogeneous and test it on signed fields
    whose low-pass values cross zero.
-5. Preserve the discrimination bounds `[0,1]`; do not restore the RGB clamp.
+5. Preserve the discrimination bounds $[0,1]$; do not restore the RGB clamp.
 6. Document the modified denominator rule as part of the Fornax RCD contract.
 
 ## Unavoidable compromises
