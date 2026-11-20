@@ -569,10 +569,7 @@ fn unpack_row(
     bits: u8,
     byte_order: ByteOrder,
 ) -> Result<(), CodecError> {
-    match byte_order {
-        ByteOrder::Little => unpack_row_grouped(source, target, bits),
-        ByteOrder::Big => unpack_row_grouped_big_endian(source, target, bits),
-    }
+    unpack_row_chunked(source, target, bits, byte_order)
 }
 
 fn unpack_row_grouped(source: &[u8], target: &mut [u16], bits: u8) -> Result<(), CodecError> {
@@ -595,6 +592,47 @@ fn unpack_row_grouped(source: &[u8], target: &mut [u16], bits: u8) -> Result<(),
         }
     }
     unpack_row_little_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], bits)
+}
+
+fn unpack_row_chunked(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+    byte_order: ByteOrder,
+) -> Result<(), CodecError> {
+    match (byte_order, bits) {
+        (ByteOrder::Little, 14) => unpack_row_chunked_14_le(source, target),
+        (ByteOrder::Little, _) => unpack_row_grouped(source, target, bits),
+        (ByteOrder::Big, _) => unpack_row_grouped_big_endian(source, target, bits),
+    }
+}
+
+fn unpack_row_chunked_14_le(source: &[u8], target: &mut [u16]) -> Result<(), CodecError> {
+    const GROUP_BYTES: usize = 14;
+    let groups = target.len() / 8;
+    let grouped_bytes = groups
+        .checked_mul(GROUP_BYTES)
+        .ok_or_else(|| invalid("Nikon packed-row group size overflow"))?;
+    let grouped_source = source
+        .get(..grouped_bytes)
+        .ok_or_else(|| invalid("Nikon packed row is truncated"))?;
+    let mut source_chunks = grouped_source.as_chunks::<GROUP_BYTES>().0.iter();
+    for values in target.as_chunks_mut::<8>().0.iter_mut() {
+        let source = source_chunks
+            .next()
+            .expect("packed source chunk count matches target groups");
+        let low = u64::from_le_bytes(source[..8].try_into().expect("checked eight-byte load"));
+        let high = u64::from_le_bytes(source[6..].try_into().expect("checked eight-byte load"));
+        values[0] = low as u16 & 0x3fff;
+        values[1] = (low >> 14) as u16 & 0x3fff;
+        values[2] = (low >> 28) as u16 & 0x3fff;
+        values[3] = (low >> 42) as u16 & 0x3fff;
+        values[4] = ((low >> 56) | (high >> 8)) as u16 & 0x3fff;
+        values[5] = (high >> 22) as u16 & 0x3fff;
+        values[6] = (high >> 36) as u16 & 0x3fff;
+        values[7] = (high >> 50) as u16 & 0x3fff;
+    }
+    unpack_row_little_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], 14)
 }
 
 fn unpack_row_grouped_big_endian(
@@ -1460,7 +1498,9 @@ mod lossless_tests {
 
 #[cfg(test)]
 mod packed_kernel_tests {
-    use super::{unpack_row_grouped, unpack_row_grouped_big_endian, unpack_row_reference};
+    use super::{
+        unpack_row_chunked, unpack_row_grouped, unpack_row_grouped_big_endian, unpack_row_reference,
+    };
     use crate::decoders::nikon::request::ByteOrder;
 
     #[test]
@@ -1487,6 +1527,31 @@ mod packed_kernel_tests {
                 assert_eq!(grouped, expected, "bits={bits}, width={width}");
                 assert_eq!(grouped, reference, "bits={bits}, width={width}");
             }
+        }
+    }
+
+    #[test]
+    fn chunked_fourteen_bit_matches_reference_around_group_boundaries() {
+        for width in [1_usize, 7, 8, 9, 15, 16, 17] {
+            let expected = (0..width)
+                .map(|index| ((index * 1_013 + 29) as u16) & 0x3fff)
+                .collect::<Vec<_>>();
+            let source = pack_little_endian(&expected, 14);
+            let row_bytes = (width * 14).div_ceil(8);
+            let mut actual = vec![0_u16; width];
+            let mut reference = vec![0_u16; width];
+
+            unpack_row_chunked(&source[..row_bytes], &mut actual, 14, ByteOrder::Little).unwrap();
+            unpack_row_reference(
+                &source[..row_bytes],
+                &mut reference,
+                14,
+                ByteOrder::Little,
+            )
+            .unwrap();
+
+            assert_eq!(actual, expected, "width={width}");
+            assert_eq!(actual, reference, "width={width}");
         }
     }
 
