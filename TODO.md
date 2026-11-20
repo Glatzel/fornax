@@ -2,8 +2,6 @@
 
 - decoder
 - demosaic
-  - tier -1
-    - [MHC]
   - tier1
     - [RCD]
     - [PPG]
