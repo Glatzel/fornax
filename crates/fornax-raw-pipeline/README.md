@@ -24,9 +24,11 @@ images. `IDemosaic`, `LazyDemosaic`, and `DemosaicError` remain available
 through the same public names used by the former stage crates.
 
 All seven demosaic variants are implemented in Rust. LibRaw and darktable are
-used only by the separate comparison crate as behavioral references. Every
-demosaic accepts and returns scene-linear data. LMMSE performs interpolation in
-an analytic gamma-encoded workspace and decodes the result before returning.
+used only as pinned behavioral references. Production readiness is currently
+limited to `Linear` and modern LibRaw/darktable `PPG`; AMaZE, RCD, LMMSE, VNG,
+and VNG4 remain implemented but are not readiness-approved. Every demosaic
+accepts and returns scene-linear data. LMMSE performs interpolation in an
+analytic gamma-encoded workspace and decodes the result before returning.
 
 LMMSE parameters are carried directly by the `Demosaic` enum:
 

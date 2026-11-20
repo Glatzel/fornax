@@ -245,6 +245,33 @@ mod tests {
 
     use super::*;
 
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    #[test]
+    fn fixed_9x9_rggb_mosaic_matches_reference() -> mischief::Result<()> {
+        // PPG reads up to three pixels in each direction. A 9x9 fixture is the
+        // smallest practical fixed oracle with a broad interior region rather
+        // than only the border fallback.
+        let input = [
+            [
+                0.0_f32, 204.0, 60.0, 264.0, 120.0, 324.0, 180.0, 36.0, 240.0,
+            ],
+            [24.0, 312.0, 252.0, 192.0, 132.0, 72.0, 12.0, 300.0, 240.0],
+            [48.0, 72.0, 96.0, 120.0, 144.0, 168.0, 192.0, 216.0, 240.0],
+            [72.0, 180.0, 288.0, 48.0, 156.0, 264.0, 24.0, 132.0, 240.0],
+            [96.0, 288.0, 132.0, 324.0, 168.0, 12.0, 204.0, 48.0, 240.0],
+            [120.0, 48.0, 324.0, 252.0, 180.0, 108.0, 36.0, 312.0, 240.0],
+            [
+                144.0, 156.0, 168.0, 180.0, 192.0, 204.0, 216.0, 228.0, 240.0,
+            ],
+            [168.0, 264.0, 12.0, 108.0, 204.0, 300.0, 48.0, 144.0, 240.0],
+            [192.0, 24.0, 204.0, 36.0, 216.0, 48.0, 228.0, 60.0, 240.0],
+        ];
+        let image = MonoImage::from_raw(9, 9, input.into_iter().flatten().collect()).unwrap();
+        let output = DemosaicPpg.lazy(&image, BayerPattern::RGGB)?.collect();
+        insta::assert_snapshot!(crate::demosaic::test_support::format_rgb_3dp(&output));
+        Ok(())
+    }
+
     #[test]
     fn uniform_mosaic_has_neutral_rgb_output() -> mischief::Result<()> {
         let image = MonoImage::from_raw(8, 8, vec![0.25_f32; 64]).unwrap();

@@ -265,177 +265,50 @@ impl DemosaicLinear {
 }
 #[cfg(test)]
 mod tests {
-
-    use image::ImageBuffer;
-
     use super::*;
 
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    fn image_3x3() -> MonoImage<f32> {
+        MonoImage::from_raw(3, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]).unwrap()
+    }
+
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_rggb() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
-
-        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear
-            .lazy(&bayer_image, BayerPattern::RGGB)?
+        let output = DemosaicLinear
+            .lazy(&image_3x3(), BayerPattern::RGGB)?
             .collect();
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
-        assert_eq!(
-            vec![
-                vec![
-                    vec![1.0, 3.0, 5.0],
-                    vec![2.0, 2.0, 5.0],
-                    vec![3.0, 4.0, 5.0]
-                ],
-                vec![
-                    vec![4.0, 4.0, 5.0],
-                    vec![5.0, 5.0, 5.0],
-                    vec![6.0, 6.0, 5.0]
-                ],
-                vec![
-                    vec![7.0, 6.0, 5.0],
-                    vec![8.0, 8.0, 5.0],
-                    vec![9.0, 7.0, 5.0]
-                ]
-            ],
-            out_vec
-        );
+        insta::assert_snapshot!(crate::demosaic::test_support::format_rgb_3dp(&output));
         Ok(())
     }
+
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_bggr() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
-
-        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear
-            .lazy(&bayer_image, BayerPattern::BGGR)?
+        let output = DemosaicLinear
+            .lazy(&image_3x3(), BayerPattern::BGGR)?
             .collect();
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
-        assert_eq!(
-            vec![
-                vec![
-                    vec![5.0, 3.0, 1.0],
-                    vec![5.0, 2.0, 2.0],
-                    vec![5.0, 4.0, 3.0]
-                ],
-                vec![
-                    vec![5.0, 4.0, 4.0],
-                    vec![5.0, 5.0, 5.0],
-                    vec![5.0, 6.0, 6.0]
-                ],
-                vec![
-                    vec![5.0, 6.0, 7.0],
-                    vec![5.0, 8.0, 8.0],
-                    vec![5.0, 7.0, 9.0]
-                ],
-            ],
-            out_vec
-        );
+        insta::assert_snapshot!(crate::demosaic::test_support::format_rgb_3dp(&output));
         Ok(())
     }
+
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_grbg() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
-
-        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear
-            .lazy(&bayer_image, BayerPattern::GRBG)?
+        let output = DemosaicLinear
+            .lazy(&image_3x3(), BayerPattern::GRBG)?
             .collect();
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
-        assert_eq!(
-            vec![
-                vec![
-                    vec![2.0, 1.0, 4.0],
-                    vec![2.0, 3.0, 5.0],
-                    vec![2.0, 3.0, 6.0]
-                ],
-                vec![
-                    vec![5.0, 4.3333335, 4.0],
-                    vec![5.0, 5.0, 5.0],
-                    vec![5.0, 5.6666665, 6.0]
-                ],
-                vec![
-                    vec![8.0, 7.0, 4.0],
-                    vec![8.0, 7.0, 5.0],
-                    vec![8.0, 9.0, 6.0]
-                ],
-            ],
-            out_vec
-        );
+        insta::assert_snapshot!(crate::demosaic::test_support::format_rgb_3dp(&output));
         Ok(())
     }
+
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_gbrg() -> mischief::Result<()> {
-        let test_vec: Vec<f32> = vec![
-            1.0, 2.0, 3.0, // Row 1
-            4.0, 5.0, 6.0, // Row 2
-            7.0, 8.0, 9.0, // Row 3
-        ];
-
-        let bayer_image = ImageBuffer::from_vec(3, 3, test_vec).unwrap();
-        let output_img = DemosaicLinear
-            .lazy(&bayer_image, BayerPattern::GBRG)?
+        let output = DemosaicLinear
+            .lazy(&image_3x3(), BayerPattern::GBRG)?
             .collect();
-        let out_vec: Vec<Vec<Vec<f32>>> = output_img
-            .as_raw()
-            .chunks(9)
-            .map(|chunk| chunk.chunks(3).map(<[f32]>::to_vec).collect())
-            .collect();
-        println!("{:?}", out_vec[0]);
-        println!("{:?}", out_vec[1]);
-        println!("{:?}", out_vec[2]);
-        assert_eq!(
-            vec![
-                vec![
-                    vec![4.0, 1.0, 2.0],
-                    vec![5.0, 3.0, 2.0],
-                    vec![6.0, 3.0, 2.0]
-                ],
-                vec![
-                    vec![4.0, 4.3333335, 5.0],
-                    vec![5.0, 5.0, 5.0],
-                    vec![6.0, 5.6666665, 5.0]
-                ],
-                vec![
-                    vec![4.0, 7.0, 8.0],
-                    vec![5.0, 7.0, 8.0],
-                    vec![6.0, 9.0, 8.0]
-                ],
-            ],
-            out_vec
-        );
+        insta::assert_snapshot!(crate::demosaic::test_support::format_rgb_3dp(&output));
         Ok(())
     }
 }

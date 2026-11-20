@@ -3,6 +3,28 @@
 This index collects demosaic source research, eligibility decisions, and
 retained provenance for conventional 2x2 RGB Bayer processing.
 
+## Production readiness
+
+Readiness is narrower than mathematical eligibility or implementation
+availability.
+
+| Algorithm or selector | Status | Decision |
+| --- | --- | --- |
+| [`Linear`](linear.md) | Ready; done | Supported bilinear baseline |
+| Modern LibRaw/darktable [`PPG`](ppg.md) | Ready; done | Supported PPG formulation |
+| `AMaZE` | Not ready | Implemented and selectable; follow-up work remains |
+| `RCD` | Not ready | Conversion details and regression coverage remain |
+| `LMMSE` | Not ready | Gamma-workspace compatibility variant remains |
+| `VNG` | Not ready | Implemented and selectable; follow-up work remains |
+| `VNG4` | Not ready | Implemented and selectable; follow-up work remains |
+| Malvar-He-Cutler | Tier -1 | Reference only; never implement |
+
+## Tier -1 reference-only
+
+| Algorithm | Mathematical status | Disposition |
+| --- | --- | --- |
+| [Malvar-He-Cutler](mhc.md) | Affine linear reconstruction | Reference only; never implement because of patent and source-license risk |
+
 ## Tier 1 eligibility report
 
 The audit uses four verdicts:
@@ -19,18 +41,17 @@ eligibility.
 
 | Algorithm or variant | Verdict | Linear-light reconstruction | Fixed input range | Positive scale equivariance | Negative finite inputs | Generic `f32`/`f64` | Current Fornax status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [Malvar-He-Cutler](mhc.md) | Eligible | Yes | No | Yes | Yes | Yes | No kernel; Tier 1 candidate |
 | [Original Pixel Grouping](ppg.md#original-pixel-grouping-equations) | Eligible | Yes | No | Yes | Yes; monotonic ratio branch has no pole | Yes | Not separately implemented |
-| [Modern LibRaw/darktable PPG](ppg.md#modern-librawdarktable-ppg-equations) | Eligible | Yes | No | Yes | Yes | Yes | Implemented as `Demosaic::Ppg` |
+| [Modern LibRaw/darktable PPG](ppg.md#modern-librawdarktable-ppg-equations) | Eligible | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Ppg` |
 | [RCD 2.3](rcd.md) | Convertible | Yes | No | Yes with scale-relative tolerances | Needs a defined denominator fallback | Yes | Implemented with most conversion work completed |
 | [Zhang-Wu LMMSE](lmmse.md) | Convertible | Yes | No | Yes with a relative variance floor | Yes | Yes | Not the current default formulation |
 | [darktable-compatible LMMSE](lmmse.md#current-fornax-behavior) | Conditional | Encoded workspace, decoded output | No, but globally scale-normalized | Yes through normalization | Yes through odd transfer extension | Yes | Current `Demosaic::Lmmse` |
 
 ## Algorithms to remove
 
-None of the four Tier 1 mathematical families is fundamentally ineligible.
-The audit does not justify deleting MHC, either Pixel Grouping formulation,
-RCD, or canonical LMMSE from the research set.
+None of the three Tier 1 mathematical families is fundamentally ineligible.
+MHC remains useful reference research, but its patent and source-license risk
+place it below the implementation tiers.
 
 This is not a recommendation to retain every current implementation unchanged.
 The following implementation claims must change:
@@ -46,34 +67,25 @@ The following implementation claims must change:
 - **`LMMSE-darktable` or equivalent:** the current gamma-workspace, PPG-seeded,
   median/refinement-compatible path may survive only as an explicitly named
   compatibility variant.
-- **`PixelGrouping`:** if the original 2003 four-gradient and `hue_transit`
-  equations are added, they require a name distinct from modern `PPG`.
+- **`PixelGrouping`:** historical only. Modern `PPG` is sufficient and a
+  separate original-formulation selector is not planned.
 
 ## Mandatory implementation changes
 
 ### MHC
 
-- Implement the eight affine 5x5 cases directly in generic floating-point
-  arithmetic.
-- Define finite-image boundary normalization and tiny-image behavior.
-- Do not restore display clamps or normalized-code conversion.
-- Complete patent and source-license review before accepting the
-  implementation.
+- Keep the equations and source provenance as research evidence only.
+- Do not implement, port, or copy MHC code into Fornax.
 
 ### Modern PPG
 
-- Keep the existing modern equations and linear-light arithmetic.
-- Document horizontal-first and diagonal-tie behavior as compatibility
-  contracts.
-- Add no conversion solely for eligibility.
+- Readiness complete: keep the modern equations and linear-light arithmetic.
+- Horizontal-first and diagonal-tie behavior are compatibility contracts.
 
 ### Original Pixel Grouping
 
-- Implement its four-gradient green equations and guarded `hue_transit`
-  formulation under a separate name.
-- Define a finite-image border rule and direction tie rule.
-- Add the same signed, scale, HDR, precision, and boundary tests as other
-  retained kernels.
+- Not planned. The equations remain historical context for the ambiguous
+  `PPG` name.
 
 ### RCD
 
@@ -98,9 +110,6 @@ The following implementation claims must change:
 
 ## Unresolved research questions
 
-- What boundary oracle should define MHC at the outer two pixels?
-- What patent posture does Fornax want before accepting MHC?
-- Should original Pixel Grouping be implemented separately from modern `PPG`?
 - What finite fallback should RCD use at a signed ratio denominator crossing?
 - What scale-relative variance floor preserves Zhang-Wu behavior in `f32`?
 - Should canonical linear LMMSE become the default while darktable compatibility
@@ -109,6 +118,7 @@ The following implementation claims must change:
 
 ## Individual reports
 
+- [Linear demosaicing readiness](linear.md)
 - [Malvar-He-Cutler eligibility](mhc.md)
 - [Patterned pixel grouping eligibility](ppg.md)
 - [Ratio-corrected demosaicing eligibility](rcd.md)

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test_support;
+
 mod amaze;
 mod buffer;
 mod linear;
