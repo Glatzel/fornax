@@ -141,7 +141,8 @@ fn decode(
     let pixel_count =
         usize::try_from(u64::from(header.mosaic_width()) * u64::from(header.mosaic_height()))
             .map_err(|_| invalid("Canon CRX mosaic dimensions exceed usize"))?;
-    let mut mosaic = vec![0_u16; pixel_count];
+    let mut mosaic = fornax_large_alloc::zeroed_samples(pixel_count)
+        .map_err(|error| invalid(format!("Canon CRX allocation failed: {error}")))?;
     if rayon::current_num_threads() == 1 {
         for (tile_index, plane_index, plane) in tasks {
             let band = plane
@@ -397,7 +398,11 @@ fn decode_plane(
         .checked_shl(u32::from(header.median_precision()))
         .and_then(|value| value.checked_sub(1))
         .ok_or_else(|| invalid("Canon CRX sample precision is invalid"))?;
-    let mut output = vec![0_u16; width * height];
+    let sample_count = width
+        .checked_mul(height)
+        .ok_or_else(|| invalid("Canon CRX plane size overflow"))?;
+    let mut output = fornax_large_alloc::zeroed_samples(sample_count)
+        .map_err(|error| invalid(format!("Canon CRX plane allocation failed: {error}")))?;
     decode_plane_rows(width, height, encoded, |row, line| {
         let start = row * width;
         for (target, value) in output[start..start + width].iter_mut().zip(line) {
