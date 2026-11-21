@@ -34,106 +34,105 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     let expected_tile_samples = geometry.chunk_sample_count()?;
     let precision =
         u8::try_from(request.bits_per_sample).expect("Sony lossless JPEG precision is at most 16");
+    let mut tile_views = tile_output_views(
+        &mut output,
+        geometry.width,
+        geometry.height,
+        geometry.chunk_width,
+        geometry.chunk_height,
+        geometry.across,
+    )?;
 
-    output
-        .par_chunks_mut(geometry.band_stride()?)
+    tile_views
+        .par_iter_mut()
         .enumerate()
-        .try_for_each(|(tile_y_index, band)| {
-            let tile_y = tile_y_index * geometry.chunk_height;
-            let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
-            for tile_x_index in 0..geometry.across {
-                let index = tile_y_index * geometry.across + tile_x_index;
-                let encoded = chunk(request.source, request.chunks[index])?;
-                let destination_x = tile_x_index * geometry.chunk_width;
-                let copy_width = geometry.chunk_width.min(geometry.width - destination_x);
-                let decoded_directly = decode_interleaved_rows(
-                    encoded,
-                    precision,
-                    geometry.chunk_width,
-                    geometry.chunk_height,
-                    |row, samples| {
-                        if samples.len() != geometry.chunk_width * 2 {
-                            return Err("Sony four-component LJPEG row has the wrong width".into());
-                        }
-                        for (output_row, components) in [0, 2].into_iter().enumerate() {
-                            let output_row = row * 2 + output_row;
-                            let start = output_row
-                                .checked_mul(geometry.width)
-                                .and_then(|offset| offset.checked_add(destination_x))
-                                .ok_or_else(|| "Sony LJPEG output offset overflow".to_owned())?;
-                            let target = band
-                                .get_mut(start..start + copy_width)
-                                .ok_or_else(|| "Sony LJPEG output range is invalid".to_owned())?;
-                            for (column, pixel) in samples.as_chunks::<4>().0.iter().enumerate() {
-                                let first = column * 2;
-                                if first < target.len() {
-                                    target[first] = pixel[components];
-                                }
-                                if first + 1 < target.len() {
-                                    target[first + 1] = pixel[components + 1];
-                                }
+        .try_for_each(|(index, tile_rows)| {
+            let copy_width = tile_rows
+                .first()
+                .map(|row| row.len())
+                .ok_or_else(|| invalid("Sony LJPEG output tile is empty"))?;
+            let encoded = chunk(request.source, request.chunks[index])?;
+            let decoded_directly = decode_interleaved_rows(
+                encoded,
+                precision,
+                geometry.chunk_width,
+                geometry.chunk_height,
+                |row, samples| {
+                    if samples.len() != geometry.chunk_width * 2 {
+                        return Err("Sony four-component LJPEG row has the wrong width".into());
+                    }
+                    for (output_row, components) in [0, 2].into_iter().enumerate() {
+                        let output_row = row * 2 + output_row;
+                        let Some(target) = tile_rows.get_mut(output_row) else {
+                            return Ok(());
+                        };
+                        for (column, pixel) in samples.as_chunks::<4>().0.iter().enumerate() {
+                            let first = column * 2;
+                            if first < target.len() {
+                                target[first] = pixel[components];
+                            }
+                            if first + 1 < target.len() {
+                                target[first + 1] = pixel[components + 1];
                             }
                         }
-                        Ok(())
-                    },
-                )
-                .map_err(|detail| ljpeg_error(index, detail))?;
-                if decoded_directly {
-                    continue;
-                }
+                    }
+                    Ok(())
+                },
+            )
+            .map_err(|detail| ljpeg_error(index, detail))?;
+            if decoded_directly {
+                return Ok(());
+            }
 
-                let decoded = decode_interleaved(encoded, precision)
-                    .map_err(|detail| ljpeg_error(index, detail))?;
-                let components = decoded.components;
-                let (tile_width, tile_height) = match components {
-                    1 => (decoded.width, decoded.height),
-                    4 => (
-                        decoded
-                            .width
-                            .checked_div(2)
-                            .ok_or_else(|| invalid("Sony LJPEG output width overflows"))?,
-                        decoded
-                            .height
-                            .checked_mul(2)
-                            .ok_or_else(|| invalid("Sony LJPEG output height overflows"))?,
-                    ),
-                    3 => {
-                        return Err(unsupported(
-                            "Sony reduced-resolution YCbCr LJPEG tiles are unsupported",
-                        ));
-                    }
-                    count => {
-                        return Err(unsupported(format!(
-                            "Sony LJPEG tiles with {count} components are unsupported"
-                        )));
-                    }
-                };
-                if (tile_width, tile_height) != (geometry.chunk_width, geometry.chunk_height) {
-                    return Err(invalid(format!(
-                        "Sony LJPEG tile {index} decodes to {tile_width}x{tile_height}, \
-                         TIFF tile geometry is {}x{}",
-                        geometry.chunk_width, geometry.chunk_height
+            let decoded = decode_interleaved(encoded, precision)
+                .map_err(|detail| ljpeg_error(index, detail))?;
+            let components = decoded.components;
+            let (tile_width, tile_height) = match components {
+                1 => (decoded.width, decoded.height),
+                4 => (
+                    decoded
+                        .width
+                        .checked_div(2)
+                        .ok_or_else(|| invalid("Sony LJPEG output width overflows"))?,
+                    decoded
+                        .height
+                        .checked_mul(2)
+                        .ok_or_else(|| invalid("Sony LJPEG output height overflows"))?,
+                ),
+                3 => {
+                    return Err(unsupported(
+                        "Sony reduced-resolution YCbCr LJPEG tiles are unsupported",
+                    ));
+                }
+                count => {
+                    return Err(unsupported(format!(
+                        "Sony LJPEG tiles with {count} components are unsupported"
                     )));
                 }
-                let mut tile = vec![0_u16; expected_tile_samples];
-                match components {
-                    1 => tile.copy_from_slice(&decoded.samples),
-                    4 => unpack_four_components(
-                        &decoded.samples,
-                        decoded.width,
-                        decoded.height,
-                        geometry.chunk_width,
-                        &mut tile,
-                    ),
-                    _ => unreachable!("component count was validated above"),
-                }
+            };
+            if (tile_width, tile_height) != (geometry.chunk_width, geometry.chunk_height) {
+                return Err(invalid(format!(
+                    "Sony LJPEG tile {index} decodes to {tile_width}x{tile_height}, \
+                     TIFF tile geometry is {}x{}",
+                    geometry.chunk_width, geometry.chunk_height
+                )));
+            }
+            let mut tile = vec![0_u16; expected_tile_samples];
+            match components {
+                1 => tile.copy_from_slice(&decoded.samples),
+                4 => unpack_four_components(
+                    &decoded.samples,
+                    decoded.width,
+                    decoded.height,
+                    geometry.chunk_width,
+                    &mut tile,
+                ),
+                _ => unreachable!("component count was validated above"),
+            }
 
-                for row in 0..copy_height {
-                    let source = row * tile_width;
-                    let destination = row * geometry.width + destination_x;
-                    band[destination..destination + copy_width]
-                        .copy_from_slice(&tile[source..source + copy_width]);
-                }
+            for (row, target) in tile_rows.iter_mut().enumerate() {
+                let source = row * tile_width;
+                target.copy_from_slice(&tile[source..source + copy_width]);
             }
             Ok::<(), CodecError>(())
         })?;
@@ -148,6 +147,48 @@ fn ljpeg_error(index: usize, detail: String) -> CodecError {
     } else {
         invalid(message)
     }
+}
+
+fn tile_output_views<'a>(
+    output: &'a mut [u16],
+    width: usize,
+    height: usize,
+    chunk_width: usize,
+    chunk_height: usize,
+    across: usize,
+) -> Result<Vec<Vec<&'a mut [u16]>>, CodecError> {
+    let sample_count = width
+        .checked_mul(height)
+        .ok_or_else(|| invalid("Sony LJPEG output size overflows"))?;
+    let down = height.div_ceil(chunk_height);
+    if output.len() != sample_count || across == 0 || down == 0 || chunk_width == 0 {
+        return Err(invalid("Sony LJPEG output geometry is invalid"));
+    }
+    let mut views = (0..across * down)
+        .map(|_| Vec::with_capacity(chunk_height))
+        .collect::<Vec<Vec<&'a mut [u16]>>>();
+    for (row, mut remaining) in output.chunks_mut(width).enumerate() {
+        let tile_row = row / chunk_height;
+        if tile_row >= down {
+            return Err(invalid("Sony LJPEG output tile row is invalid"));
+        }
+        for tile_column in 0..across {
+            if remaining.is_empty() {
+                return Err(invalid("Sony LJPEG output tile width is invalid"));
+            }
+            let take = chunk_width.min(remaining.len());
+            let (segment, rest) = remaining.split_at_mut(take);
+            views[tile_row * across + tile_column].push(segment);
+            remaining = rest;
+        }
+        if !remaining.is_empty() {
+            return Err(invalid("Sony LJPEG output row exceeds its tiles"));
+        }
+    }
+    if views.iter().any(Vec::is_empty) {
+        return Err(invalid("Sony LJPEG output tile is empty"));
+    }
+    Ok(views)
 }
 
 fn unpack_four_components(

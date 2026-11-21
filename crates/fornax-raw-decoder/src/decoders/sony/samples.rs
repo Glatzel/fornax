@@ -41,12 +41,6 @@ impl Geometry {
         })
     }
 
-    pub fn band_stride(&self) -> Result<usize, CodecError> {
-        self.chunk_height
-            .checked_mul(self.width)
-            .ok_or_else(|| invalid("decoded band size overflow"))
-    }
-
     pub fn chunk_sample_count(&self) -> Result<usize, CodecError> {
         self.chunk_width
             .checked_mul(self.chunk_height)
