@@ -96,15 +96,21 @@ assert_logged 'setup:root'
 assert_logged_prefix 'git:-c filter.lfs.required=false'
 assert_logged_prefix 'submodule update --init --remote external/raw.pixls.us'
 assert_logged 'cargo:-q run -p decoder-tracker -- manifest --check'
-assert_logged 'pixi:run -e tracker cargo -q test -p decoder-tracker --lib duckdb_'
+assert_logged 'cargo:-q run -p decoder-tracker -- golden-check'
+assert_logged 'pixi:run -e dev cargo -q test -p decoder-tracker --lib duckdb_'
 assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
 assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
 assert_logged_prefix \
     'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
-assert_logged 'cargo:-q bench -p fornax-decoder --no-run'
+assert_logged 'cargo:-q bench -p fornax-raw-decoder --no-run'
 assert_logged 'git:diff --check base --'
 assert_logged 'python3:scripts/check-doc-links.py'
+
+if grep -Fq -- '-- hash --check ' "$log_file"; then
+    printf 'routine validation materialized golden RAW payloads\n' >&2
+    exit 1
+fi
 
 if grep -Fq 'compare-demosaic' "$log_file" |
     grep -Fv -- '--exclude compare-demosaic'; then

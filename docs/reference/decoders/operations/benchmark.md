@@ -83,7 +83,7 @@ manifest by default:
 ```bash
 FORNAX_PROBE_DECODERS=fornax \
 RAYON_NUM_THREADS=1 \
-cargo bench -p fornax-raw-decoder --bench flashraw_031_probe
+cargo bench -p fornax-raw-decoder --bench flashraw_probe
 ```
 
 Its current metadata matrix and report are

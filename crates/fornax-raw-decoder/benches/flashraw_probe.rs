@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-#[path = "flashraw_031_probe/linux.rs"]
+#[path = "flashraw_probe/linux.rs"]
 mod linux;
 
 fn main() {
@@ -8,6 +8,6 @@ fn main() {
 
     #[cfg(not(target_os = "linux"))]
     eprintln!(
-        "flashraw_031_probe skipped: Linux-only huge-page advice and /proc smaps probes are unavailable"
+        "flashraw_probe skipped: Linux-only huge-page advice and /proc smaps probes are unavailable"
     );
 }

@@ -3,9 +3,10 @@
 These manifests are manually curated drafts. Maintainers may replace files as
 long as every decoder path remains covered.
 
-- `test-manifest.csv` is the fast correctness gate. It includes one smallest
-  representative per tier-0/1 lossless decoder path plus regression and layout
-  edge cases.
+- `test-manifest.csv` is the correctness gate. It includes one smallest
+  representative per tier-0/1 lossless decoder path, representative lossless
+  files for every supported native format, and explicit regression and layout
+  edge cases such as Sony ARW6.
 - `perf-manifest.csv` is the performance gate. It selects 1-3 stable files per
   path, with `overhead_only=1` marking small fixed-cost probes. Its `group`
   column is `core`, `full`, `overhead`, or `hdr`; benches default to `core`.
@@ -26,9 +27,13 @@ storage, predictor, and compression ID where applicable.
    manifest. Use `overhead_only=1` only for a small perf probe.
 3. Generate its shared hash with
    `cargo run --release -p decoder-tracker -- hash --manifest MANIFEST`.
-4. Cross-check the raw mosaic against Rawler and FlashRaw. Do not record a
-   Fornax-only hash unless no second decoder supports the input.
+4. Cross-check the raw mosaic against Rawler and FlashRaw when their raw-domain
+   semantics match. For vendor-normalized paths such as IIQ sensor correction
+   or RW2 black offset, record the Fornax hash and state the intentional
+   difference in the manifest reason or decoder report.
 5. Run `cargo run -p decoder-tracker -- golden-check`.
+6. Regenerate and verify the shared hashes once. Routine repository validation
+   leaves the full materialized-hash pass to CI.
 
 Select a benchmark group with `FORNAX_BENCH_GROUP=core` (the default),
 `full`, `overhead`, `hdr`, or `all`. A comma-separated list is accepted when

@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #767 on 2026-11-21.
+> Current guidance: [Demosaic reference index](../../reference/demosaic/README.md).
+
 # Demosaic Readiness Review Implementation Plan
 
 **Goal:** Record the independent readiness review for Linear and modern Pixel

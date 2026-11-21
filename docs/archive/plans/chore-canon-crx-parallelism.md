@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #770 on 2026-11-21.
+> Current guidance: [Canon CRX reference](../../reference/decoders/reference/canon-crx.md).
+
 # Canon CRX Parallelism Design Gate
 
 Reduce R5/R6/R7 wall time only if another exact work unit exists without unsafe aliasing or doubled full-plane memory.

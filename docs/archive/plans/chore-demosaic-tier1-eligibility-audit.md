@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #764 on 2026-11-20.
+> Current guidance: [Demosaic reference index](../../reference/demosaic/README.md).
+
 # Demosaic Tier 1 Eligibility Audit Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use

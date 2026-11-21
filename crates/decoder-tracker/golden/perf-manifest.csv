@@ -15,6 +15,7 @@ HUAWEI/CLT-L09/IMG_20191010_085409.dng,79893204,c5bef544d53e435987b158c0fb91aa6e
 LEICA CAMERA AG/LEICA SL2/L1020010.DNG,88964096,d00f05468793e4509b53230e90dcdc078e823b254eee95f1c68b29e217df99bf,dng.uncompressed.integer.14.packed-u16-14,large packed 14-bit DNG,0,full
 Leica/M9/L1049390.DNG,18324480,d1d162fce62210b8951c862189a6098329b5163b7f7492dc397c6e53bba04239,dng.uncompressed.integer.8.copy-u8,large 8-bit DNG,0,core
 Nikon/D6/D06_0312.NEF,37481216,8c8cf431f5807e2d216318f8a42e30a4d4f8561e325eb6495d9aa0e466ef53fe,NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,existing Nikon mode-10 performance target,0,full
+Nikon/D3/JD1_8207.NEF,25146048,12c75d4ee829261d15031e02d17a8461f05e72575be76b3e19d1fbdba549de54,NEF.nikon-uncompressed-words.any-bits.integer.strips.unknown-predictor,Nikon uncompressed-word decoder-path coverage,0,core
 Nikon/D850/Nikon-D850-14bit-lossless-compressed.NEF,55196715,0c9438258ddae5260b9f5a1aace6658a723f1cb1acace3a6cb507116dc6da4f2,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman generation coverage,0,full
 Nikon/Z 7/1-Nikon-Z7-RAW-14bit-uncompressed-L.NEF,89101056,ef046d37ffb11807648dd0b55589c02825f98c2c99416f4a7a74ae965a8eeb72,NEF.nikon-mode-10-packed.any-bits.integer.strips.unknown-predictor,large Nikon mode-10 packed,0,core
 Nikon/Z 7/3-Nikon-Z7-RAW-14bit-lossless-compressed-L.NEF,58708188,f0e756dbfd00f3b71cb3d8aa5b9e2e1be32f1052a6c4380e09ebc7c5e7748114,NEF.nikon-huffman.any-bits.integer.strips.unknown-predictor,large Nikon Huffman 14-bit,0,full

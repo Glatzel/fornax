@@ -41,8 +41,9 @@ scripts/agent-validation.sh --docs-only
   locally. Also run task-specific checks and record commands and outcomes.
 - For noisy probes, use `scripts/agent-run.sh -- <command>`; it preserves the
   status and writes full output under `target/agent-logs/`.
-- In a linked worktree, hard-link the main checkout's `external/` data with
-  `rsync --link-dest`; treat those files as read-only.
+- In a linked worktree, hard-link the main checkout's reusable `external/`
+  fixture data with `rsync --link-dest`; initialize the pointer-only
+  raw.pixls.us submodule in that worktree. Treat hard-linked files as read-only.
 - Commit, push, and open one semantic PR using a title such as
   `docs: rewrite agent guidance`. Only the user merges or abandons a PR; do not
   poll, watch, or close it or a linked issue.

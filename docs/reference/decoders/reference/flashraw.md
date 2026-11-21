@@ -5,13 +5,13 @@ version-relevant behavior, and known differences from Fornax.
 
 ## Sources
 
-- Crate `flashraw` 0.3.1:
-  [crates.io](https://crates.io/crates/flashraw/0.3.1) and
-  [API documentation](https://docs.rs/flashraw/0.3.1/flashraw/).
+- Crate `flashraw` 0.4.0:
+  [crates.io](https://crates.io/crates/flashraw/0.4.0) and
+  [API documentation](https://docs.rs/flashraw/0.4.0/flashraw/).
 - Release tag
-  [`v0.3.1`](https://github.com/ybouane/flashraw/releases/tag/v0.3.1),
-  package commit `61c32fb1abbc9e819084e01e62703ceb4c4998db`, release commit
-  `2994e8c550bec70ab78a938ab28a74d7762124f4`.
+  [`v0.4.0`](https://github.com/ybouane/flashraw/releases/tag/v0.4.0),
+  package and release commit
+  `c6ee7c28ee5e3e34c07502de4ad11fcff66551d1`.
 - License: MIT OR Apache-2.0.
 
 The exact package is pinned as a direct dev-dependency of
@@ -20,16 +20,20 @@ benchmark-only reference.
 
 ## Version-relevant changes
 
-FlashRaw 0.3.1 preserves the Fornax-used `FlashRaw`, `DecodeOptions`,
-`RawFrame`, and `RawPixelData` surface. Compared with the former 0.2.0 pin,
-the 0.3.x rewrite adds 64-bit bit pumps, lookup-based Huffman decoding, SIMD
-packed unpacking, tile/strip/stripe parallelism, zeroed output allocation,
-speculative parallel entropy decoding, and parallel LJPEG byte unstuffing.
+FlashRaw 0.4.0 preserves the Fornax-used `FlashRaw`, `DecodeOptions`,
+`RawFrame`, and `RawPixelData` surface. Its release change is cooperative
+cancellation: decoders and processing stages check a `CancelToken` between
+bounded work units and return `Error::Cancelled` without a partial frame. With
+no cancellation requested, the upstream release note says output remains
+bit-identical and timing changes are within measurement noise.
 
-On the lossless comparison, raw output remained bit-identical to 0.2.0.
-FlashRaw decode improved about 30% for Sony LJPEG and 27-29% for Nikon Huffman,
-while DNG LJPEG regressed about 12%. The current golden performance-set Fornax
-comparison and reproduction data are in
+The 0.3.x comparison remains useful historical context: versus 0.2.0 it added
+64-bit bit pumps, lookup-based Huffman decoding, SIMD packed unpacking,
+tile/strip/stripe parallelism, zeroed output allocation, speculative parallel
+entropy decoding, and parallel LJPEG byte unstuffing. Raw output stayed bit
+identical, Sony LJPEG improved about 30%, Nikon Huffman improved 27-29%, and DNG
+LJPEG regressed about 12%. The current 0.4.0 golden performance-set comparison
+and reproduction data are in
 [FlashRaw versus Fornax raw decode](../perf/flashraw-vs-fornax.md).
 
 ## Benchmark role

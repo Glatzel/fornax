@@ -30,7 +30,7 @@ decoder-tracker golden-coverage [--baseline F] [--corpus-manifest F]
 ```
 
 Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
-tracker and `pixi run -e tracker` for DuckDB and the README script.
+tracker, DuckDB, and the README script.
 
 Common checks:
 
@@ -40,7 +40,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- run --filename IMG_0001
 pixi run -e dev cargo run --release -q -p decoder-tracker -- hash --check \
   crates/decoder-tracker/golden/decode-hashes.csv
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage
-pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 `run` fetches only selected LFS payloads and defaults to at most two files.
@@ -143,7 +143,7 @@ reviewed artifact baseline, never the partial candidate:
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
   crates/decoder-tracker/data/baseline.csv
-pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 Inspect `git diff`, then commit and push the updated branch. Rerun the same
@@ -187,8 +187,10 @@ Follow the deliberately bounded procedure in
 - RAW payloads are never committed, cached, or uploaded as artifacts.
 - Failed rows are results, not runner failures. Distinguish typed stage errors
   from `runner:*` status before changing the baseline.
-- Golden cases must be known passing rows. A failed decode is not a valid
-  golden case and must not cause partial output.
+- Golden cases must be known passing rows. The test set may include an
+  explicit lossy regression after a full conventional-Bayer handoff, while the
+  performance set remains lossless-only. A failed decode is not a valid golden
+  case and must not cause partial output.
 - `golden-coverage` reports lossless decoder paths absent from golden and
   golden groups that duplicate the same decoder path. DNG uses codec-kernel
   groups while retaining LJPEG strip/tile layout; non-DNG formats retain their
@@ -203,7 +205,7 @@ For tracker code or guidance changes, run the task-specific tests:
 
 ```bash
 cargo test -p decoder-tracker
-pixi run -e tracker cargo test -q -p decoder-tracker duckdb_
+pixi run -e dev cargo test -q -p decoder-tracker duckdb_
 ```
 
 Run the repository validation required by the root guide. Documentation-only

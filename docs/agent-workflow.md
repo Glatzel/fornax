@@ -42,23 +42,33 @@ features; this only disables independent infrastructure such as mmap.
 
 - `git diff --check` and `scripts/check-doc-links.py`;
 - raw-image/corpus setup when missing;
-- corpus manifest and golden-hash checks;
+- corpus manifest and structural golden-set checks;
 - decoder-tracker DuckDB tests;
 - workspace tests, codec/vendor tests, nightly formatting, docs, and clippy;
 - decoder benchmark compilation;
 
 Use `--fix` for nightly rustfmt and machine-applicable clippy fixes. Use
 `--docs-only` for documentation/context-only changes. Markdown lint is CI-only.
+The CI golden job materializes the pinned RAW payloads and validates every
+committed test hash; routine local validation never fetches those payloads.
 
-Reuse the main checkout's populated `external/` directory in linked worktrees:
+Hard-link the main checkout's large raw-image fixtures in linked worktrees:
 
 ```bash
-rsync -a --link-dest="<main-checkout>/external" \
-  "<main-checkout>/external/" external/
+mkdir -p external
+rsync -a --link-dest="<main-checkout>/external/raw-images" \
+  "<main-checkout>/external/raw-images/" external/raw-images/
 ```
 
-Exclude `.git`, do not edit shared hard-linked input, and never download the
-RAW corpus again merely because a worktree is new.
+Initialize the raw.pixls.us corpus as a pointer-only submodule in each
+worktree. Do not hard-link its working tree: submodule Git metadata and
+transient LFS materialization are per-worktree. Never edit hard-linked input and
+never download the RAW corpus again merely because a worktree is new.
+
+```bash
+GIT_LFS_SKIP_SMUDGE=1 git -c filter.lfs.required=false \
+  submodule update --init external/raw.pixls.us
+```
 
 ## Quiet tooling
 

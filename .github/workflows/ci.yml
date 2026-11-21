@@ -198,6 +198,9 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         with:
           toolchain: nightly
+      - name: Verify golden-set coverage
+        shell: bash
+        run: cargo run --release -p decoder-tracker -- golden-check
       - uses: Glatzel/template/.github/actions/rust/cargo-test@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         env:
           FORNAX_GOLDEN_CORPUS_REQUIRED: "1"
