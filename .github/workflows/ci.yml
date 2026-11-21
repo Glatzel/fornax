@@ -196,13 +196,17 @@ jobs:
           include="$(python3 crates/decoder-tracker/scripts/golden_cache_include.py)"
           git -C external/raw.pixls.us lfs fetch origin --include="$include"
       - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
-      - name: Build decoder-tracker
-        run: cargo build --locked --release -p decoder-tracker
-      - name: Check golden decode hashes
-        run: |
-          target/release/decoder-tracker hash \
-            --manifest crates/decoder-tracker/golden/test-manifest.csv \
-            --check crates/decoder-tracker/golden/decode-hashes.csv
+        with:
+          toolchain: nightly
+      - uses: Glatzel/template/.github/actions/rust/cargo-test@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
+        env:
+          FORNAX_GOLDEN_CORPUS_REQUIRED: "1"
+        with:
+          global-options: --config 'profile.test.opt-level=3' -p decoder-tracker
+          examples: false
+          doc: false
+      - uses: Glatzel/template/.github/actions/common/codecov@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
+        if: ${{ !cancelled() }}
 
   main:
     needs: changed

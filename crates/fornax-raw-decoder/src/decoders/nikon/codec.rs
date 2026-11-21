@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use fornax_codec::{ICodecDecode, unpack_packed_u16_rows, unpack_u16_word_rows};
+use rayon::prelude::*;
 
 use crate::decoders::nikon::error::{invalid, unsupported};
 use crate::decoders::nikon::huffman::{BitReader, HuffmanTable};
@@ -18,6 +19,8 @@ const LOSSLESS_14_SYMBOLS: [u8; 15] = [7, 6, 8, 5, 9, 4, 10, 3, 11, 12, 2, 0, 1,
 const FUSED_BITS: u8 = 13;
 const FUSED_SIZE: usize = 1 << FUSED_BITS;
 const FAST_GROUP: usize = 4;
+const SPECULATIVE_MIN_SAMPLES: usize = 1 << 20;
+const SPECULATIVE_RESYNC_BITS: usize = 8 * 1024;
 
 #[derive(Clone, Copy, Debug)]
 struct FusedEntry {
@@ -246,33 +249,63 @@ fn decode_huffman_with_kernel(
     let payload = chunk(request.source, request.chunks[0])?;
     let (counts, symbols) = tree_tables(tree);
     let table = HuffmanTable::from_counts(counts, symbols)?;
-    let mut output = vec![0_u16; sample_count];
-    match kernel {
+    let output = match kernel {
         HuffmanKernel::Fused if payload.len() >= 8 => {
             let fused = FusedTable::build(counts, symbols, bits)?;
-            decode_huffman_fused(
+            let workers = rayon::current_num_threads();
+            let speculative = if workers > 1 && sample_count >= SPECULATIVE_MIN_SAMPLES {
+                decode_huffman_speculative(
+                    payload,
+                    request.width,
+                    request.height,
+                    bits,
+                    &table,
+                    &fused,
+                    init,
+                    curve,
+                    workers,
+                    SPECULATIVE_RESYNC_BITS,
+                )?
+            } else {
+                None
+            };
+            if let Some(output) = speculative {
+                output
+            } else {
+                let mut output =
+                    fornax_large_alloc::zeroed_samples(sample_count).map_err(|error| {
+                        invalid(format!("Nikon Huffman allocation failed: {error}"))
+                    })?;
+                decode_huffman_fused(
+                    payload,
+                    request.width,
+                    request.height,
+                    bits,
+                    &table,
+                    &fused,
+                    init,
+                    curve,
+                    &mut output,
+                )?;
+                output
+            }
+        }
+        HuffmanKernel::Fused | HuffmanKernel::Reference => {
+            let mut output = fornax_large_alloc::zeroed_samples(sample_count)
+                .map_err(|error| invalid(format!("Nikon Huffman allocation failed: {error}")))?;
+            decode_huffman_reference(
                 payload,
                 request.width,
                 request.height,
                 bits,
                 &table,
-                &fused,
                 init,
                 curve,
                 &mut output,
             )?;
+            output
         }
-        HuffmanKernel::Fused | HuffmanKernel::Reference => decode_huffman_reference(
-            payload,
-            request.width,
-            request.height,
-            bits,
-            &table,
-            init,
-            curve,
-            &mut output,
-        )?,
-    }
+    };
 
     buffer_u16(request.width, request.height, output)
 }
@@ -366,6 +399,270 @@ fn decode_huffman_fused(
         vertical[parity] = vertical_row;
     }
     Ok(())
+}
+
+#[derive(Clone, Copy)]
+struct SpeculativeBoundary {
+    bit: usize,
+    difference_index: usize,
+}
+
+struct SpeculativeChunk {
+    start_boundaries: Vec<SpeculativeBoundary>,
+    end_boundaries: Vec<SpeculativeBoundary>,
+    count: usize,
+}
+
+fn next_speculative_difference(
+    reader: &mut WindowReader<'_>,
+    fused: &FusedTable,
+    table: &HuffmanTable,
+    bits: u8,
+) -> Result<i32, CodecError> {
+    if let Some(window) = reader.window() {
+        let entry = fused.entries[(window >> (64 - FUSED_BITS)) as usize];
+        if entry.consumed != 0 {
+            reader.advance(entry.consumed)?;
+            return Ok(i32::from(entry.difference));
+        }
+    }
+    reader.decode_reference_difference(table, bits)
+}
+
+fn speculative_chunk(
+    payload: &[u8],
+    target_start: usize,
+    target_end: usize,
+    resync_bits: usize,
+    bits: u8,
+    table: &HuffmanTable,
+    fused: &FusedTable,
+    differences: &mut [u16],
+) -> SpeculativeChunk {
+    let total_bits = payload.len().saturating_mul(8);
+    let start = target_start.saturating_sub(resync_bits);
+    let stop = target_end.saturating_add(resync_bits).min(total_bits);
+    let mut reader = WindowReader {
+        source: payload,
+        bit_position: start,
+        total_bits,
+    };
+    let mut start_boundaries = Vec::new();
+    let mut end_boundaries = Vec::new();
+    let mut count = 0_usize;
+    while reader.bit_position < stop && count < differences.len() {
+        let before = reader.bit_position;
+        let Ok(difference) = next_speculative_difference(&mut reader, fused, table, bits) else {
+            break;
+        };
+        if reader.bit_position <= before {
+            break;
+        }
+        differences[count] = difference as i16 as u16;
+        let boundary = SpeculativeBoundary {
+            bit: reader.bit_position,
+            difference_index: count,
+        };
+        if reader.bit_position.abs_diff(target_start) <= resync_bits {
+            start_boundaries.push(boundary);
+        }
+        if reader.bit_position.abs_diff(target_end) <= resync_bits {
+            end_boundaries.push(boundary);
+        }
+        count += 1;
+    }
+    SpeculativeChunk {
+        start_boundaries,
+        end_boundaries,
+        count,
+    }
+}
+
+fn common_boundary(
+    previous: &[SpeculativeBoundary],
+    next: &[SpeculativeBoundary],
+    minimum_bit: usize,
+) -> Option<(SpeculativeBoundary, SpeculativeBoundary)> {
+    let mut previous_index = previous.partition_point(|boundary| boundary.bit < minimum_bit);
+    let mut next_index = next.partition_point(|boundary| boundary.bit < minimum_bit);
+    while let (Some(previous), Some(next)) = (previous.get(previous_index), next.get(next_index)) {
+        match previous.bit.cmp(&next.bit) {
+            std::cmp::Ordering::Less => previous_index += 1,
+            std::cmp::Ordering::Greater => next_index += 1,
+            std::cmp::Ordering::Equal => return Some((*previous, *next)),
+        }
+    }
+    None
+}
+
+fn merge_speculative_chunks(
+    chunks: &[SpeculativeChunk],
+    targets: &[usize],
+    sample_count: usize,
+    region_stride: usize,
+    extended: &mut [u16],
+) -> bool {
+    let mut written = 0_usize;
+    let mut previous_end = 0_usize;
+    let mut next_start_index = 0_usize;
+    for index in 0..chunks.len() - 1 {
+        let current = &chunks[index];
+        let next = &chunks[index + 1];
+        let Some((current_boundary, next_boundary)) = common_boundary(
+            &current.end_boundaries,
+            &next.start_boundaries,
+            targets[index + 1],
+        ) else {
+            return false;
+        };
+        if current_boundary.bit < previous_end
+            || next_start_index > current_boundary.difference_index
+        {
+            return false;
+        }
+        let count = current_boundary.difference_index - next_start_index + 1;
+        if written + count > sample_count {
+            return false;
+        }
+        let source_start = index * region_stride + next_start_index;
+        let source_end = source_start + count;
+        extended.copy_within(source_start..source_end, written);
+        written += count;
+        previous_end = current_boundary.bit;
+        next_start_index = next_boundary.difference_index + 1;
+    }
+    let last_index = chunks.len() - 1;
+    let last = &chunks[last_index];
+    let remaining = sample_count - written;
+    if next_start_index + remaining > last.count {
+        return false;
+    }
+    let source_start = last_index * region_stride + next_start_index;
+    let source_end = source_start + remaining;
+    extended.copy_within(source_start..source_end, written);
+    written += remaining;
+    written == sample_count
+}
+
+fn predict_speculative_output(
+    output: &mut [u16],
+    width: usize,
+    height: usize,
+    init: [[u16; 2]; 2],
+    curve: &[u16],
+) -> Result<(), CodecError> {
+    let mut vertical = init.map(|values| values.map(i32::from));
+    let mut starts = vec![[0_i32; 2]; height];
+    for row in 0..height {
+        let parity = row & 1;
+        for column in 0..2.min(width) {
+            let difference = output[row * width + column] as i16 as i32;
+            vertical[parity][column] = vertical[parity][column]
+                .checked_add(difference)
+                .ok_or_else(|| invalid("Nikon Huffman predictor overflow"))?;
+            starts[row][column] = vertical[parity][column];
+        }
+    }
+
+    let results = output
+        .par_chunks_mut(width)
+        .enumerate()
+        .map(|(row, row_output)| {
+            let mut state = starts[row];
+            for (column, sample) in row_output.iter_mut().enumerate() {
+                let phase = column & 1;
+                if column >= 2 {
+                    state[phase] = state[phase]
+                        .checked_add(*sample as i16 as i32)
+                        .ok_or_else(|| invalid("Nikon Huffman predictor overflow"))?;
+                }
+                *sample = curve_value(curve, state[phase])?;
+            }
+            Ok::<(), CodecError>(())
+        })
+        .collect::<Vec<_>>();
+    for result in results {
+        result?;
+    }
+    Ok(())
+}
+
+fn decode_huffman_speculative(
+    payload: &[u8],
+    width: usize,
+    height: usize,
+    bits: u8,
+    table: &HuffmanTable,
+    fused: &FusedTable,
+    init: [[u16; 2]; 2],
+    curve: &[u16],
+    workers: usize,
+    resync_bits: usize,
+) -> Result<Option<Vec<u16>>, CodecError> {
+    let sample_count = width
+        .checked_mul(height)
+        .ok_or_else(|| invalid("Nikon Huffman sample count overflow"))?;
+    if workers < 2 || sample_count < workers {
+        return Ok(None);
+    }
+    let total_bits = payload
+        .len()
+        .checked_mul(8)
+        .ok_or_else(|| invalid("Nikon Huffman bit count overflow"))?;
+    let mut targets = Vec::with_capacity(workers + 1);
+    targets.push(0);
+    for index in 1..workers {
+        targets.push(
+            usize::try_from(
+                (u128::try_from(total_bits).expect("bit count fits u128")
+                    * u128::try_from(index).expect("worker index fits u128"))
+                    / u128::try_from(workers).expect("worker count fits u128"),
+            )
+            .map_err(|_| invalid("Nikon Huffman target offset exceeds usize"))?,
+        );
+    }
+    targets.push(total_bits);
+    let samples_per_worker = sample_count.div_ceil(workers);
+    let region_samples = samples_per_worker
+        .checked_add(samples_per_worker / 2)
+        .ok_or_else(|| invalid("Nikon speculative region size overflow"))?;
+    let region_padding = resync_bits.saturating_mul(2).max(64);
+    let region_stride = region_samples
+        .checked_add(region_padding)
+        .ok_or_else(|| invalid("Nikon speculative region size overflow"))?;
+    let extended_len = region_stride
+        .checked_mul(workers)
+        .ok_or_else(|| invalid("Nikon speculative output size overflow"))?;
+    let mut extended = fornax_large_alloc::zeroed_samples(extended_len)
+        .map_err(|error| invalid(format!("Nikon speculative allocation failed: {error}")))?;
+    let chunks = extended
+        .par_chunks_mut(region_stride)
+        .enumerate()
+        .map(|(index, differences)| {
+            speculative_chunk(
+                payload,
+                targets[index],
+                targets[index + 1],
+                resync_bits,
+                bits,
+                table,
+                fused,
+                differences,
+            )
+        })
+        .collect::<Vec<_>>();
+    if !merge_speculative_chunks(
+        &chunks,
+        &targets,
+        sample_count,
+        region_stride,
+        &mut extended,
+    ) {
+        return Ok(None);
+    }
+    predict_speculative_output(&mut extended[..sample_count], width, height, init, curve)?;
+    extended.truncate(sample_count);
+    Ok(Some(extended))
 }
 
 #[inline(always)]
@@ -502,12 +799,7 @@ pub fn decode_unpacked_words(
             .ok_or_else(|| invalid("Nikon unpacked-word strip size overflow"))
     })?;
     let sample_count = checked_sample_count(request.width, request.height)?;
-    let mut output = if rayon::current_num_threads() == 1 {
-        fornax_large_alloc::zeroed_samples(sample_count)
-            .map_err(|error| invalid(format!("Nikon unpacked-word allocation failed: {error}")))?
-    } else {
-        vec![0_u16; sample_count]
-    };
+    let mut output = vec![0_u16; sample_count];
     let mask = (1_u16 << bits) - 1;
     let payloads = request
         .chunks
@@ -569,10 +861,7 @@ fn unpack_row(
     bits: u8,
     byte_order: ByteOrder,
 ) -> Result<(), CodecError> {
-    match byte_order {
-        ByteOrder::Little => unpack_row_grouped(source, target, bits),
-        ByteOrder::Big => unpack_row_grouped_big_endian(source, target, bits),
-    }
+    unpack_row_chunked(source, target, bits, byte_order)
 }
 
 fn unpack_row_grouped(source: &[u8], target: &mut [u16], bits: u8) -> Result<(), CodecError> {
@@ -595,6 +884,47 @@ fn unpack_row_grouped(source: &[u8], target: &mut [u16], bits: u8) -> Result<(),
         }
     }
     unpack_row_little_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], bits)
+}
+
+fn unpack_row_chunked(
+    source: &[u8],
+    target: &mut [u16],
+    bits: u8,
+    byte_order: ByteOrder,
+) -> Result<(), CodecError> {
+    match (byte_order, bits) {
+        (ByteOrder::Little, 14) => unpack_row_chunked_14_le(source, target),
+        (ByteOrder::Little, _) => unpack_row_grouped(source, target, bits),
+        (ByteOrder::Big, _) => unpack_row_grouped_big_endian(source, target, bits),
+    }
+}
+
+fn unpack_row_chunked_14_le(source: &[u8], target: &mut [u16]) -> Result<(), CodecError> {
+    const GROUP_BYTES: usize = 14;
+    let groups = target.len() / 8;
+    let grouped_bytes = groups
+        .checked_mul(GROUP_BYTES)
+        .ok_or_else(|| invalid("Nikon packed-row group size overflow"))?;
+    let grouped_source = source
+        .get(..grouped_bytes)
+        .ok_or_else(|| invalid("Nikon packed row is truncated"))?;
+    let mut source_chunks = grouped_source.as_chunks::<GROUP_BYTES>().0.iter();
+    for values in target.as_chunks_mut::<8>().0.iter_mut() {
+        let source = source_chunks
+            .next()
+            .expect("packed source chunk count matches target groups");
+        let low = u64::from_le_bytes(source[..8].try_into().expect("checked eight-byte load"));
+        let high = u64::from_le_bytes(source[6..].try_into().expect("checked eight-byte load"));
+        values[0] = low as u16 & 0x3fff;
+        values[1] = (low >> 14) as u16 & 0x3fff;
+        values[2] = (low >> 28) as u16 & 0x3fff;
+        values[3] = (low >> 42) as u16 & 0x3fff;
+        values[4] = ((low >> 56) | (high >> 8)) as u16 & 0x3fff;
+        values[5] = (high >> 22) as u16 & 0x3fff;
+        values[6] = (high >> 36) as u16 & 0x3fff;
+        values[7] = (high >> 50) as u16 & 0x3fff;
+    }
+    unpack_row_little_endian_tail(&source[grouped_bytes..], &mut target[groups * 8..], 14)
 }
 
 fn unpack_row_grouped_big_endian(
@@ -816,7 +1146,7 @@ mod lossless_tests {
         SampleFormat,
     };
 
-    use super::{HuffmanKernel, tree_tables};
+    use super::{FusedTable, HuffmanKernel, decode_huffman_speculative, tree_tables};
     use crate::decoders::nikon::NikonTreeId;
     use crate::decoders::nikon::codec::NikonCodec;
     use crate::decoders::nikon::huffman::HuffmanTable;
@@ -1098,6 +1428,191 @@ mod lossless_tests {
     }
 
     #[test]
+    fn speculative_kernel_matches_fused_and_reference_on_synthetic_rows() {
+        let tree = NikonTreeId::Lossless14;
+        let bits = 14;
+        let init = [[128, 256], [512, 1024]];
+        let mut state = 0x6d2b_79f5_u32;
+        let samples = (0..513 * 31)
+            .map(|_| {
+                state ^= state << 13;
+                state ^= state >> 17;
+                state ^= state << 5;
+                (state as u16) & 0x3fff
+            })
+            .collect::<Vec<_>>();
+        let source = encode_image(&samples, tree, init, 513, 31);
+        let curve: Arc<[u16]> = Arc::from(identity_curve(bits));
+        let (used, speculative) =
+            decode_speculative_for_test(&source, tree, init, 513, 31, curve.clone(), 4, 8 * 1024)
+                .unwrap();
+        assert!(used, "synthetic stream did not exercise speculation");
+        let fused = decode_with_curve_kernel(
+            &source,
+            tree,
+            init,
+            513,
+            31,
+            curve.clone(),
+            HuffmanKernel::Fused,
+        )
+        .unwrap();
+        let reference = decode_with_curve_kernel(
+            &source,
+            tree,
+            init,
+            513,
+            31,
+            curve,
+            HuffmanKernel::Reference,
+        )
+        .unwrap();
+
+        assert_eq!(speculative, fused);
+        assert_eq!(speculative, reference);
+    }
+
+    #[test]
+    fn speculative_kernel_preserves_bit_flip_results_or_falls_back() {
+        let tree = NikonTreeId::Lossless12;
+        let init = [[17, 29], [43, 71]];
+        let samples = (0..257 * 17)
+            .map(|index| ((index * 613 + 31) as u16) & 0x0fff)
+            .collect::<Vec<_>>();
+        let source = encode_image(&samples, tree, init, 257, 17);
+        let curve: Arc<[u16]> = Arc::from(identity_curve(12));
+        let mut speculative_successes = 0;
+        for bit in (0..source.len() * 8).step_by(37) {
+            let mut corrupt = source.clone();
+            corrupt[bit / 8] ^= 1 << (7 - bit % 8);
+            let speculative = decode_speculative_for_test(
+                &corrupt,
+                tree,
+                init,
+                257,
+                17,
+                curve.clone(),
+                4,
+                8 * 1024,
+            )
+            .map_err(|error| error.to_string());
+            let fused = decode_with_curve_kernel(
+                &corrupt,
+                tree,
+                init,
+                257,
+                17,
+                curve.clone(),
+                HuffmanKernel::Fused,
+            )
+            .map_err(|error| error.to_string());
+            match (speculative, fused) {
+                (Ok((true, speculative)), Ok(fused)) => {
+                    speculative_successes += 1;
+                    assert_eq!(speculative, fused, "flipped bit {bit}");
+                }
+                (Ok((false, _)), _) => {}
+                (Err(_), Err(_)) => {}
+                (fast, fused) => {
+                    panic!("speculative/fused disagreement at bit {bit}: {fast:?}, {fused:?}")
+                }
+            }
+        }
+        assert!(speculative_successes > 0);
+    }
+
+    #[test]
+    fn speculative_kernel_returns_false_when_resync_window_is_unavailable() {
+        let tree = NikonTreeId::Lossless14;
+        let init = [[100, 200], [300, 400]];
+        let samples = (0..129 * 9)
+            .map(|index| ((index * 997 + 5) as u16) & 0x3fff)
+            .collect::<Vec<_>>();
+        let source = encode_image(&samples, tree, init, 129, 9);
+        let curve = Arc::from(identity_curve(14));
+        let (used, _) =
+            decode_speculative_for_test(&source, tree, init, 129, 9, curve, 4, 0).unwrap();
+
+        assert!(!used);
+    }
+
+    #[test]
+    fn speculative_kernel_handles_tiny_and_odd_geometries() {
+        for (width, height) in [(1_usize, 1_usize), (1, 8), (3, 1), (31, 1), (33, 2)] {
+            let tree = NikonTreeId::Lossless14;
+            let init = [[11, 29], [47, 83]];
+            let samples = (0..width * height)
+                .map(|index| ((index * 811 + 7) as u16) & 0x3fff)
+                .collect::<Vec<_>>();
+            let source = encode_image(&samples, tree, init, width, height);
+            let curve: Arc<[u16]> = Arc::from(identity_curve(14));
+            let (used, speculative) = decode_speculative_for_test(
+                &source,
+                tree,
+                init,
+                width,
+                height,
+                curve.clone(),
+                4,
+                8 * 1024,
+            )
+            .unwrap();
+            let fused = decode_with_curve_kernel(
+                &source,
+                tree,
+                init,
+                width,
+                height,
+                curve,
+                HuffmanKernel::Fused,
+            )
+            .unwrap();
+            if used {
+                assert_eq!(speculative, fused, "width={width}, height={height}");
+            }
+        }
+    }
+
+    #[test]
+    fn speculative_kernel_matches_truncation_boundaries_or_falls_back() {
+        let tree = NikonTreeId::Lossless12;
+        let init = [[23, 41], [67, 89]];
+        let samples = (0..37 * 5)
+            .map(|index| ((index * 419 + 3) as u16) & 0x0fff)
+            .collect::<Vec<_>>();
+        let encoded_bits = encode_image_bits(&samples, tree, init, 37, 5);
+        let exact = pack_bits(encoded_bits);
+        let curve: Arc<[u16]> = Arc::from(identity_curve(12));
+        for cut in 0..=exact.len() {
+            let source = &exact[..cut];
+            let speculative =
+                decode_speculative_for_test(source, tree, init, 37, 5, curve.clone(), 4, 8 * 1024)
+                    .map_err(|error| error.to_string());
+            let fused = decode_with_curve_kernel(
+                source,
+                tree,
+                init,
+                37,
+                5,
+                curve.clone(),
+                HuffmanKernel::Fused,
+            )
+            .map_err(|error| error.to_string());
+            match (speculative, fused) {
+                (Ok((true, speculative)), Ok(fused)) => {
+                    assert_eq!(speculative, fused, "cut={cut}");
+                }
+                (Ok((false, _)), _) | (Err(_), Err(_)) => {}
+                (speculative, fused) => {
+                    panic!(
+                        "speculative/fused disagreement at cut {cut}: {speculative:?}, {fused:?}"
+                    )
+                }
+            }
+        }
+    }
+
+    #[test]
     fn fused_kernel_preserves_large_difference_fallbacks() {
         for (tree, bits, init) in [
             (NikonTreeId::Lossless12, 12_u8, [[0, 4095], [4095, 0]]),
@@ -1229,6 +1744,41 @@ mod lossless_tests {
                 assert_eq!(fast, reference, "bits={bits}, flipped bit={bit}");
             }
         }
+    }
+
+    fn decode_speculative_for_test(
+        source: &[u8],
+        tree: NikonTreeId,
+        init: [[u16; 2]; 2],
+        width: usize,
+        height: usize,
+        curve: Arc<[u16]>,
+        workers: usize,
+        resync_bits: usize,
+    ) -> Result<(bool, Vec<u16>), CodecError> {
+        let bits = match tree {
+            NikonTreeId::Lossless12 => 12,
+            NikonTreeId::Lossless14 => 14,
+        };
+        let (counts, symbols) = tree_tables(tree);
+        let table = HuffmanTable::from_counts(counts, symbols)?;
+        let fused = FusedTable::build(counts, symbols, bits)?;
+        let output = decode_huffman_speculative(
+            source,
+            width,
+            height,
+            bits,
+            &table,
+            &fused,
+            init,
+            &curve,
+            workers,
+            resync_bits,
+        )?;
+        Ok(match output {
+            Some(output) => (true, output),
+            None => (false, Vec::new()),
+        })
     }
 
     fn decode_identity(
@@ -1460,7 +2010,9 @@ mod lossless_tests {
 
 #[cfg(test)]
 mod packed_kernel_tests {
-    use super::{unpack_row_grouped, unpack_row_grouped_big_endian, unpack_row_reference};
+    use super::{
+        unpack_row_chunked, unpack_row_grouped, unpack_row_grouped_big_endian, unpack_row_reference,
+    };
     use crate::decoders::nikon::request::ByteOrder;
 
     #[test]
@@ -1487,6 +2039,26 @@ mod packed_kernel_tests {
                 assert_eq!(grouped, expected, "bits={bits}, width={width}");
                 assert_eq!(grouped, reference, "bits={bits}, width={width}");
             }
+        }
+    }
+
+    #[test]
+    fn chunked_fourteen_bit_matches_reference_around_group_boundaries() {
+        for width in [1_usize, 7, 8, 9, 15, 16, 17] {
+            let expected = (0..width)
+                .map(|index| ((index * 1_013 + 29) as u16) & 0x3fff)
+                .collect::<Vec<_>>();
+            let source = pack_little_endian(&expected, 14);
+            let row_bytes = (width * 14).div_ceil(8);
+            let mut actual = vec![0_u16; width];
+            let mut reference = vec![0_u16; width];
+
+            unpack_row_chunked(&source[..row_bytes], &mut actual, 14, ByteOrder::Little).unwrap();
+            unpack_row_reference(&source[..row_bytes], &mut reference, 14, ByteOrder::Little)
+                .unwrap();
+
+            assert_eq!(actual, expected, "width={width}");
+            assert_eq!(actual, reference, "width={width}");
         }
     }
 
