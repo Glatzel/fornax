@@ -47,36 +47,38 @@ Historical mismatch investigation and pre-fix hashes are retained in the
 Values are milliseconds; `F` is Fornax, `FR` is scalar-CPU FlashRaw, and spread
 is the Fornax one-thread process spread.
 
+Ratio colors: 🟢 ≤1.1x, 🔵 >1.1–1.5x, 🟡 >1.5–2x, 🔴 >2x.
+
 | Golden sample | Path | F 1T | FR 1T | F/FR | F 16T | FR 16T | F/FR | spread |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Canon PowerShot S3IS | DNG uncompressed 16-bit | 3.16 | 2.71 | 1.16x | 2.68 | 1.78 | 1.50x | 17.7% |
-| Canon EOS 5D Mark III | DNG LJPEG 16-bit | 10.86 | 7.31 | 1.49x | 3.22 | 1.86 | 1.73x | 8.9% |
-| Canon EOS 5D Mark III | DNG uncompressed 16-bit | 51.30 | 50.53 | 1.02x | 24.18 | 42.72 | 0.57x | 4.5% |
-| Canon EOS 5D Mark III | DNG Deflate FP16 | 178.20 | 135.99 | 1.31x | 42.20 | 45.03 | 0.94x | 5.2% |
-| Canon EOS 5D Mark III | DNG uncompressed 24-bit | 55.12 | 49.42 | 1.12x | 24.80 | 44.16 | 0.56x | 3.3% |
-| Canon EOS 5D Mark III | DNG Deflate FP24 | 295.34 | 209.06 | 1.41x | 54.14 | 44.24 | 1.22x | 7.2% |
-| Canon EOS 5D Mark III | DNG uncompressed 32-bit | 32.59 | 43.28 | 0.75x | 24.53 | 46.99 | 0.52x | 3.3% |
-| Canon EOS 5D Mark III | DNG Deflate FP32 | 337.81 | 265.19 | 1.27x | 55.41 | 47.47 | 1.17x | 4.7% |
-| Canon EOS 60D | DNG LJPEG 14-bit | 6.48 | 2.38 | 2.72x | 6.32 | 2.73 | 2.32x | 1.7% |
-| Canon EOS R5 | CR3 lossless CRX | 881.51 | 404.32 | 2.18x | 330.31 | 121.01 | 2.73x | 4.8% |
-| Canon EOS R6 | CR3 lossless CRX | 156.21 | 71.73 | 2.18x | 59.66 | 20.25 | 2.95x | 5.4% |
-| Canon EOS R7 | CR3 lossless CRX | 690.56 | 291.14 | 2.37x | 304.81 | 91.72 | 3.32x | 5.7% |
-| Canon PowerShot G1 X | DNG uncompressed 14-bit | 88.90 | 10.52 | 8.45x | 110.23 | 6.60 | 16.71x | 1.5% |
-| Nikon Z5 II | NEF Huffman | 34.13 | 33.06 | 1.03x | 12.36 | 11.18 | 1.11x | 3.1% |
-| Nikon D6 | NEF mode-10 packed 14-bit | 37.30 | 15.67 | 2.38x | 5.94 | 7.00 | 0.85x | 0.4% |
-| Nikon D850 | NEF Huffman | 142.33 | 141.25 | 1.01x | 49.26 | 54.29 | 0.91x | 6.8% |
-| Nikon Z7 | NEF mode-10 packed 14-bit | 81.39 | 31.15 | 2.61x | 11.31 | 13.62 | 0.83x | 1.6% |
-| Nikon Z7 | NEF Huffman | 176.89 | 154.22 | 1.15x | 52.47 | 54.65 | 0.96x | 8.1% |
-| Nikon Z9 | NEF Huffman | 172.84 | 153.22 | 1.13x | 52.79 | 54.47 | 0.97x | 7.8% |
-| Sigma fp | DNG uncompressed 12-bit | 1.01 | 1.28 | 0.79x | 0.99 | 0.87 | 1.14x | 6.3% |
-| Sigma fp | DNG uncompressed 10-bit | 1.02 | 1.17 | 0.87x | 1.06 | 0.86 | 1.24x | 6.9% |
-| Sigma fp | DNG uncompressed 8-bit | 2.27 | 0.91 | 2.51x | 2.29 | 0.76 | 2.99x | 5.4% |
-| Sony ILCE-1 | ARW uncompressed 14-bit | 30.75 | 30.55 | 1.01x | 12.93 | 14.81 | 0.87x | 3.5% |
-| Sony ILCE-1 | ARW LJPEG 14-bit | 402.37 | 265.50 | 1.52x | 39.75 | 52.01 | 0.76x | 3.8% |
-| Sony ILCE-7RM5 | ARW uncompressed 14-bit | 34.31 | 34.38 | 1.00x | 14.95 | 17.95 | 0.83x | 5.5% |
-| Sony ILCE-7RM5 | ARW LJPEG 14-bit | 449.70 | 272.69 | 1.65x | 44.52 | 55.87 | 0.80x | 3.8% |
-| Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.09 | 5.68 | 1.07x | 4.68 | 4.37 | 1.07x | 2.9% |
-| Sony ILCE-9M3 | ARW LJPEG 14-bit | 73.51 | 55.93 | 1.31x | 10.23 | 9.49 | 1.08x | 3.4% |
+| Canon PowerShot S3IS | DNG uncompressed 16-bit | 3.16 | 2.71 | <span style="color:#0969da">🔵 1.16x</span> | 2.68 | 1.78 | <span style="color:#0969da">🔵 1.50x</span> | 17.7% |
+| Canon EOS 5D Mark III | DNG LJPEG 16-bit | 10.86 | 7.31 | <span style="color:#0969da">🔵 1.49x</span> | 3.22 | 1.86 | <span style="color:#9a6700">🟡 1.73x</span> | 8.9% |
+| Canon EOS 5D Mark III | DNG uncompressed 16-bit | 51.30 | 50.53 | <span style="color:#1a7f37">🟢 1.02x</span> | 24.18 | 42.72 | <span style="color:#1a7f37">🟢 0.57x</span> | 4.5% |
+| Canon EOS 5D Mark III | DNG Deflate FP16 | 178.20 | 135.99 | <span style="color:#0969da">🔵 1.31x</span> | 42.20 | 45.03 | <span style="color:#1a7f37">🟢 0.94x</span> | 5.2% |
+| Canon EOS 5D Mark III | DNG uncompressed 24-bit | 55.12 | 49.42 | <span style="color:#0969da">🔵 1.12x</span> | 24.80 | 44.16 | <span style="color:#1a7f37">🟢 0.56x</span> | 3.3% |
+| Canon EOS 5D Mark III | DNG Deflate FP24 | 295.34 | 209.06 | <span style="color:#0969da">🔵 1.41x</span> | 54.14 | 44.24 | <span style="color:#0969da">🔵 1.22x</span> | 7.2% |
+| Canon EOS 5D Mark III | DNG uncompressed 32-bit | 32.59 | 43.28 | <span style="color:#1a7f37">🟢 0.75x</span> | 24.53 | 46.99 | <span style="color:#1a7f37">🟢 0.52x</span> | 3.3% |
+| Canon EOS 5D Mark III | DNG Deflate FP32 | 337.81 | 265.19 | <span style="color:#0969da">🔵 1.27x</span> | 55.41 | 47.47 | <span style="color:#0969da">🔵 1.17x</span> | 4.7% |
+| Canon EOS 60D | DNG LJPEG 14-bit | 6.48 | 2.38 | <span style="color:#cf222e">🔴 2.72x</span> | 6.32 | 2.73 | <span style="color:#cf222e">🔴 2.32x</span> | 1.7% |
+| Canon EOS R5 | CR3 lossless CRX | 881.51 | 404.32 | <span style="color:#cf222e">🔴 2.18x</span> | 330.31 | 121.01 | <span style="color:#cf222e">🔴 2.73x</span> | 4.8% |
+| Canon EOS R6 | CR3 lossless CRX | 156.21 | 71.73 | <span style="color:#cf222e">🔴 2.18x</span> | 59.66 | 20.25 | <span style="color:#cf222e">🔴 2.95x</span> | 5.4% |
+| Canon EOS R7 | CR3 lossless CRX | 690.56 | 291.14 | <span style="color:#cf222e">🔴 2.37x</span> | 304.81 | 91.72 | <span style="color:#cf222e">🔴 3.32x</span> | 5.7% |
+| Canon PowerShot G1 X | DNG uncompressed 14-bit | 88.90 | 10.52 | <span style="color:#cf222e">🔴 8.45x</span> | 110.23 | 6.60 | <span style="color:#cf222e">🔴 16.71x</span> | 1.5% |
+| Nikon Z5 II | NEF Huffman | 34.13 | 33.06 | <span style="color:#1a7f37">🟢 1.03x</span> | 12.36 | 11.18 | <span style="color:#0969da">🔵 1.11x</span> | 3.1% |
+| Nikon D6 | NEF mode-10 packed 14-bit | 37.30 | 15.67 | <span style="color:#cf222e">🔴 2.38x</span> | 5.94 | 7.00 | <span style="color:#1a7f37">🟢 0.85x</span> | 0.4% |
+| Nikon D850 | NEF Huffman | 142.33 | 141.25 | <span style="color:#1a7f37">🟢 1.01x</span> | 49.26 | 54.29 | <span style="color:#1a7f37">🟢 0.91x</span> | 6.8% |
+| Nikon Z7 | NEF mode-10 packed 14-bit | 81.39 | 31.15 | <span style="color:#cf222e">🔴 2.61x</span> | 11.31 | 13.62 | <span style="color:#1a7f37">🟢 0.83x</span> | 1.6% |
+| Nikon Z7 | NEF Huffman | 176.89 | 154.22 | <span style="color:#0969da">🔵 1.15x</span> | 52.47 | 54.65 | <span style="color:#1a7f37">🟢 0.96x</span> | 8.1% |
+| Nikon Z9 | NEF Huffman | 172.84 | 153.22 | <span style="color:#0969da">🔵 1.13x</span> | 52.79 | 54.47 | <span style="color:#1a7f37">🟢 0.97x</span> | 7.8% |
+| Sigma fp | DNG uncompressed 12-bit | 1.01 | 1.28 | <span style="color:#1a7f37">🟢 0.79x</span> | 0.99 | 0.87 | <span style="color:#0969da">🔵 1.14x</span> | 6.3% |
+| Sigma fp | DNG uncompressed 10-bit | 1.02 | 1.17 | <span style="color:#1a7f37">🟢 0.87x</span> | 1.06 | 0.86 | <span style="color:#0969da">🔵 1.24x</span> | 6.9% |
+| Sigma fp | DNG uncompressed 8-bit | 2.27 | 0.91 | <span style="color:#cf222e">🔴 2.51x</span> | 2.29 | 0.76 | <span style="color:#cf222e">🔴 2.99x</span> | 5.4% |
+| Sony ILCE-1 | ARW uncompressed 14-bit | 30.75 | 30.55 | <span style="color:#1a7f37">🟢 1.01x</span> | 12.93 | 14.81 | <span style="color:#1a7f37">🟢 0.87x</span> | 3.5% |
+| Sony ILCE-1 | ARW LJPEG 14-bit | 402.37 | 265.50 | <span style="color:#9a6700">🟡 1.52x</span> | 39.75 | 52.01 | <span style="color:#1a7f37">🟢 0.76x</span> | 3.8% |
+| Sony ILCE-7RM5 | ARW uncompressed 14-bit | 34.31 | 34.38 | <span style="color:#1a7f37">🟢 1.00x</span> | 14.95 | 17.95 | <span style="color:#1a7f37">🟢 0.83x</span> | 5.5% |
+| Sony ILCE-7RM5 | ARW LJPEG 14-bit | 449.70 | 272.69 | <span style="color:#9a6700">🟡 1.65x</span> | 44.52 | 55.87 | <span style="color:#1a7f37">🟢 0.80x</span> | 3.8% |
+| Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.09 | 5.68 | <span style="color:#1a7f37">🟢 1.07x</span> | 4.68 | 4.37 | <span style="color:#1a7f37">🟢 1.07x</span> | 2.9% |
+| Sony ILCE-9M3 | ARW LJPEG 14-bit | 73.51 | 55.93 | <span style="color:#0969da">🔵 1.31x</span> | 10.23 | 9.49 | <span style="color:#1a7f37">🟢 1.08x</span> | 3.4% |
 
 The final interleaved Nikon/CRX measurements, paired ranges, controls,
 throughput, and faults are in
