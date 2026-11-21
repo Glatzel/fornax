@@ -20,7 +20,7 @@ Out of scope:
 
 - Public API changes, demosaic, unrelated crates, unsafe code, explicit SIMD
   intrinsics, copied decoder source, X-Trans/non-Bayer claims, and production
-  changes from the Phase 2 speculative-parallel designs.
+  Canon speculative starts without a verifiable checkpoint.
 
 ## Assumptions
 
@@ -100,7 +100,9 @@ under the emitted Rayon closure.
 - [x] Task 6, Phase 2B: if Canon utilization remains low, write a design note
   and throwaway CRX parallel prototype covering the predictor dependencies and
   output exactness.
-- [ ] Task 7, docs: update the current results, open priorities, reusable future
+- [x] Task 7, Nikon Phase 2 production: land the reviewed speculative decode
+  with exact-boundary merge, deterministic fallback, and row-parallel predictor.
+- [x] Task 8, docs: update the current results, open priorities, reusable future
   facts, and one-line rejected-experiment entries.
 
 ## Files Expected to Change
@@ -137,3 +139,6 @@ under the emitted Rayon closure.
 - No production vector intrinsics or new unsafe code are allowed.
 - A missing target is reported with its measured floor and a concrete next
   design step rather than replaced with an unverified claim.
+- Multi-thread performance takes priority over a one-thread-only optimization.
+  Allocation policy is selected by allocation and write behavior, never by the
+  active Rayon thread count.
