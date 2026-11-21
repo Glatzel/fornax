@@ -30,14 +30,14 @@ mischief = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }
 # other
 assert_cmd = "2.2.2"
 bytemuck = "1.25.2"
-clap = { version = "4.6.7", features = ["derive", "string"] }
+clap = { version = "4.6.9", features = ["derive", "string"] }
 clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
-criterion = { package = "codspeed-criterion-compat", version = "6.0.0" }
+criterion = { package = "codspeed-criterion-compat", version = "6.1.0" }
 csv = "1.4.0"
 flate2 = "1.1.11"
 globset = "0.4.21"
 hex = "0.4.3"
-insta = "1.43.1"
+insta = "1.49.0"
 jxl-oxide = "0.12.6"
 libc = "0.2.191"
 memmap2 = "0.9.12"
@@ -54,7 +54,7 @@ sha2 = "0.11.1"
 strum = { version = "0.28.0", features = ["derive"] }
 tempfile = "3.27.0"
 thiserror = "2.0.21"
-toml = "1.2.1"
+toml = "1.2.2"
 weezl = "0.2.1"
 zstd = "0.14.4"
 zune-jpeg = "0.5.15"
