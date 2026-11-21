@@ -30,12 +30,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         .width
         .checked_mul(geometry.height)
         .ok_or_else(|| invalid("Sony lossless JPEG sample count overflows"))?;
-    let mut output = if rayon::current_num_threads() == 1 {
-        fornax_large_alloc::zeroed_samples(sample_count)
-            .map_err(|error| invalid(format!("Sony lossless JPEG allocation failed: {error}")))?
-    } else {
-        vec![0_u16; sample_count]
-    };
+    let mut output = vec![0_u16; sample_count];
     let expected_tile_samples = geometry.chunk_sample_count()?;
     let precision =
         u8::try_from(request.bits_per_sample).expect("Sony lossless JPEG precision is at most 16");
