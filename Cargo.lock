@@ -700,9 +700,9 @@ checksum = "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48"
 
 [[package]]
 name = "flashraw"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e681e196f6702c666b1e61eb9c7b7e44b29b0d4735c61465fae7c113f924b1a5"
+checksum = "a16a6e1526a3cb82ca7db0e747b3f6729ff8bebc9a8c8639256fb6b7105d9c25"
 dependencies = [
  "flashraw-camera-db",
  "flashraw-codecs",
@@ -715,9 +715,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-camera-db"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "453dc8151a8e8ca08720c95c439d8129b940bb6e7f95d57dcc884300906a0f68"
+checksum = "3f7332b1dad44a37b93eb4750d9d0047f094c4effac302536c5ec66a299c8c68"
 dependencies = [
  "serde",
  "serde_json",
@@ -725,9 +725,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-codecs"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5b4620263e974353fe9aab34c31d9ca9c7723ce15939ec219200cd01c81218f"
+checksum = "352f9c00d257a2594bbd2e3143df77a1080e65cc01158ed2a013e16f457088e5"
 dependencies = [
  "flashraw-core",
  "rayon",
@@ -738,9 +738,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-core"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0d5d8783f9164fc398faca7294fb1894143295da448a81a6670f6940102b70a"
+checksum = "b46ad6996a066ef0787d419a5be30e36502b3633f4dfc0a5c137dc744a396550"
 dependencies = [
  "libc",
  "rayon",
@@ -749,9 +749,9 @@ dependencies = [
 
 [[package]]
 name = "flashraw-formats"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ef788871f028f6643686b883e96fd5d7dce619b4cbbee7ac855ae05609aab06"
+checksum = "7cf018720f432ad81130f42f52056f8aa1d6be7e283ff5b3350d4be925b5a9f9"
 dependencies = [
  "flashraw-camera-db",
  "flashraw-codecs",

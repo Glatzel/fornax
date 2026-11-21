@@ -5,7 +5,7 @@ use csv::{ReaderBuilder, StringRecord};
 use serde::Deserialize;
 
 use crate::csvio::{BaselineCsv, read_baseline_csv, read_manifest_csv};
-use crate::golden::{GoldenCsv, decode_path, golden_encoding, read_golden_csv};
+use crate::golden::{GoldenCsv, decode_path, fully_passing, golden_encoding, read_golden_csv};
 use crate::manifest::{derive_identity, validate_pointer};
 use crate::model::{ManifestRow, Result, TrackerError};
 
@@ -211,8 +211,10 @@ pub fn check_golden_sets(
                     decode_path(baseline_row)
                 ));
             }
-            if !golden_encoding(baseline_row) {
+            if is_perf && !golden_encoding(baseline_row) {
                 failures.push(format!("{path} is not a fully passing lossless file"));
+            } else if !is_perf && !fully_passing(baseline_row) {
+                failures.push(format!("{path} is not fully passing"));
             }
             if !hash_paths.contains(path) {
                 failures.push(format!("{path} has no decode hash"));
@@ -239,6 +241,19 @@ pub fn check_golden_sets(
     let mut path_counts = BTreeMap::<String, usize>::new();
     for row in baseline.rows.iter().filter(|row| golden_encoding(row)) {
         *path_counts.entry(decode_path(row)).or_default() += 1;
+    }
+    let supported_formats = baseline
+        .rows
+        .iter()
+        .filter(|row| fully_passing(row))
+        .map(|row| row.format.as_str())
+        .collect::<BTreeSet<_>>();
+    let test_formats = test
+        .iter()
+        .map(|entry| entry.manifest.format.as_str())
+        .collect::<BTreeSet<_>>();
+    for format in supported_formats.difference(&test_formats) {
+        failures.push(format!("test manifest does not cover format {format}"));
     }
     let test_paths = test
         .iter()
@@ -379,7 +394,14 @@ fn validate_header(actual: &StringRecord) -> Result<bool> {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
     use super::*;
+    use crate::csvio::BaselineCsv;
+    use crate::golden::{GoldenCsv, GoldenRow, decode_path};
+    use crate::model::{ManifestRow, status_for_stages};
 
     #[test]
     fn parses_extended_manifest_metadata() {
@@ -406,5 +428,148 @@ Canon/Cam/a.dng,42,aa,dng.test,representative,0,core\n";
 Canon/Cam/a.dng,42,aa,dng.test,first,0\n\
 Canon/Cam/a.dng,42,aa,dng.test,second,1\n";
         assert!(read_golden_manifest_csv(csv).is_err());
+    }
+
+    fn manifest_row(path: &str, byte: char) -> ManifestRow {
+        let (vendor, camera, model, filename) = derive_identity(path).unwrap();
+        ManifestRow {
+            sha256: byte.to_string().repeat(64),
+            size: 42,
+            path: path.into(),
+            vendor,
+            camera,
+            model,
+            format: path.rsplit_once('.').unwrap().1.to_ascii_uppercase(),
+            filename,
+        }
+    }
+
+    fn baseline_row(manifest: &ManifestRow, lossless: bool) -> crate::model::BaselineRow {
+        crate::model::BaselineRow {
+            status: status_for_stages([1; 4]).into(),
+            camera: manifest.camera.clone(),
+            format: manifest.format.clone(),
+            path: manifest.path.clone(),
+            decode_pass: 1,
+            raw_mosaic_pass: 1,
+            raw_sha256: "11".repeat(32),
+            process_metadata_pass: 1,
+            handoff_pass: 1,
+            error_kind: String::new(),
+            width: 64,
+            height: 32,
+            cfa: "RGGB".into(),
+            compression_id: Some(7),
+            compression_name: if manifest.format == "ARW" {
+                "sony-arw6".into()
+            } else {
+                "lossless-jpeg".into()
+            },
+            compression_lossless: Some(u8::from(lossless)),
+            storage: "strips".into(),
+            bits_per_sample: Some(14),
+            sample_format: "integer".into(),
+            predictor: None,
+            rows_per_strip: Some(1),
+            tile_width: None,
+            tile_height: None,
+        }
+    }
+
+    fn golden_entry(
+        manifest: &ManifestRow,
+        baseline: &crate::model::BaselineRow,
+    ) -> GoldenManifestEntry {
+        GoldenManifestEntry {
+            manifest: manifest.clone(),
+            decoder_path: decode_path(baseline),
+            reason: "format coverage".into(),
+            overhead_only: false,
+            group: None,
+        }
+    }
+
+    fn hash_row(path: &str) -> GoldenRow {
+        GoldenRow {
+            path: path.into(),
+            sample_type: "u16".into(),
+            width: 64,
+            height: 32,
+            raw_sha256: "11".repeat(32),
+            cropped_width: 64,
+            cropped_height: 32,
+            cropped_sha256: "22".repeat(32),
+            process_sha256: "33".repeat(32),
+            dng_sha256: "44".repeat(32),
+        }
+    }
+
+    fn write_pointer(corpus: &Path, manifest: &ManifestRow) {
+        let path = corpus.join(&manifest.path);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(
+            path,
+            format!(
+                "version https://git-lfs.github.com/spec/v1\noid sha256:{}\nsize {}\n",
+                manifest.sha256, manifest.size
+            ),
+        )
+        .unwrap();
+    }
+
+    #[test]
+    fn rejects_test_set_missing_supported_format() {
+        let dng = manifest_row("Canon/Cam/file.DNG", 'a');
+        let raf = manifest_row("Fujifilm/Cam/file.RAF", 'b');
+        let baseline = BaselineCsv {
+            rows: vec![baseline_row(&dng, true), baseline_row(&raf, true)],
+        };
+
+        let error = check_golden_sets(
+            Path::new("unused"),
+            &baseline,
+            &[dng, raf],
+            &[],
+            &[],
+            &GoldenCsv { rows: Vec::new() },
+            GoldenCheckOptions {
+                allow_uncovered: true,
+            },
+        )
+        .unwrap_err();
+
+        assert!(
+            error
+                .to_string()
+                .contains("test manifest does not cover format RAF")
+        );
+    }
+
+    #[test]
+    fn accepts_fully_passing_lossy_regression_in_test_set() {
+        let corpus = tempdir().unwrap();
+        let arw = manifest_row("Sony/Cam/arw6.ARW", 'a');
+        let baseline_row = baseline_row(&arw, false);
+        let baseline = BaselineCsv {
+            rows: vec![baseline_row.clone()],
+        };
+        write_pointer(corpus.path(), &arw);
+
+        let report = check_golden_sets(
+            corpus.path(),
+            &baseline,
+            std::slice::from_ref(&arw),
+            &[golden_entry(&arw, &baseline_row)],
+            &[],
+            &GoldenCsv {
+                rows: vec![hash_row(&arw.path)],
+            },
+            GoldenCheckOptions {
+                allow_uncovered: false,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(report.test_count, 1);
     }
 }

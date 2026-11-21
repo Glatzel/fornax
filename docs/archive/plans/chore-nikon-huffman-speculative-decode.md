@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #770 on 2026-11-21.
+> Current guidance: [Nikon NEF reference](../../reference/decoders/reference/nikon-nef.md).
+
 # Nikon Huffman Speculative Parallel Decode
 
 Reduce the single-strip Nikon Huffman gap at 8T/16T without changing output or corruption behavior.

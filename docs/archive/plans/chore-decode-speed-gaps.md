@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #770 on 2026-11-21.
+> Current guidance: [FlashRaw versus Fornax raw decode](../../reference/decoders/perf/flashraw-vs-fornax.md).
+
 # Decode Speed Gap Plan
 
 ## Goal

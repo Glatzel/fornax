@@ -18,7 +18,7 @@ name = "dng_gap_probe"
 
 [[bench]]
 harness = false
-name = "flashraw_031_probe"
+name = "flashraw_probe"
 
 [dependencies]
 clerk.workspace = true
@@ -37,7 +37,7 @@ rayon.workspace = true
 bytemuck.workspace = true
 criterion.workspace = true
 csv.workspace = true
-flashraw = "=0.3.1"
+flashraw = "=0.4.0"
 libc.workspace = true
 rawler = "0.8.0"
 sha2.workspace = true

@@ -7,82 +7,100 @@ preprocessing, hashing, or CSV work is inside the timed region.
 The sample set is the stable decoder-path representatives selected from the
 [golden performance manifest](../../../../crates/decoder-tracker/golden/perf-manifest.csv),
 plus separately measured Nikon path targets and R5 CRX coverage. The current
-performance manifest has 33 grouped inputs. Its 20-row decoder-path matrix is
-[golden-benchmark-matrix.csv](data/golden-benchmark-matrix.csv). Per-batch
-timings, throughput, faults, sample types, and hashes are in
-[golden-flashraw-vs-fornax-2026-11-17.csv](data/golden-flashraw-vs-fornax-2026-11-17.csv).
+performance manifest has 34 grouped inputs and 19 decoder paths. Its matrix is
+[golden-benchmark-matrix.csv](data/golden-benchmark-matrix.csv). Process-level
+medians, ranges, faults, sample types, and hashes are in
+[fornax-vs-flashraw-0.4.0-2026-11-21.csv](data/fornax-vs-flashraw-0.4.0-2026-11-21.csv).
 Dated measurement CSVs are immutable snapshots.
 
 ## Method
 
-- FlashRaw 0.3.1: `open_path` plus `decode`, strict corruption handling, raw
+- FlashRaw 0.4.0: `open_path` plus `decode`, strict corruption handling, raw
   output, crop and opcodes disabled, scalar CPU backend.
 - Fornax: native `Decoder::decode` plus `raw_mosaic`.
-- Target rows use interleaved base/new and FlashRaw processes with warmups and
-  repeated rounds. Displayed spread is the range of independent
-  release-profile process medians; paired ranges and controls are in review
-  evidence rather than this current-results table.
+- Each decoder/thread configuration runs three independent processes. Each
+  process performs two warmups and five measured rounds. The displayed value is
+  the median of the three process medians; the committed snapshot records the
+  process spread, page faults, sample type, and dimensions.
 - One and sixteen threads are aligned through `RAYON_NUM_THREADS` and explicit
   FlashRaw worker counts.
 - Measurements use warm page cache, `lto=thin`, and `codegen-units=1` on the AMD
   Ryzen 7 5800H WSL2 host: 8 cores/16 threads, 16 visible CPUs, 12 GiB RAM,
   Rust 1.100.0.
+- Corpus revision: raw.pixls.us
+  `bdef075de28da656976c7cf54f89c1214dbc65d4`.
+
+FlashRaw 0.4.0 was also paired against 0.3.1 on the same 34 inputs, thread
+counts, rounds, and corpus. The median 0.4.0/0.3.1 latency ratio was `1.005x`
+at one thread and `0.995x` at sixteen threads. No comparable sample moved by
+5% in either direction; the 10th-90th percentile range was `0.987-1.029x` at
+one thread and `0.965-1.022x` at sixteen. Raw outputs stayed identical. The
+per-input evidence is in
+[flashraw-0.3.1-vs-0.4.0-2026-11-21.csv](data/flashraw-0.3.1-vs-0.4.0-2026-11-21.csv).
+The 0.4.0 release therefore improves cancellation, not uncancelled decode
+throughput.
 
 ## Correctness
 
-All current golden raw mosaics match the accepted Fornax baseline for both
-decoders. This includes 16-bit and floating-point DNG, Sony uncompressed and
-lossless JPEG, Canon CRX and DNG, Nikon Huffman and packed words, and the Sigma
-fp 8/10/12-bit samples. Truncated or invalid streams return errors rather than
-being padded and decoded. Nikon speculative chunks fall back to the sequential
-kernel unless an emitted symbol boundary exactly matches the preceding
-accepted boundary; synthetic truncation, forced-resync-failure, bit-flip, odd
-width, and partial-row tests exercise the same fallback.
+All Fornax rows match the accepted baseline. All 33 FlashRaw-comparable inputs
+also produce the same storage-native hash; the Blackmagic 12-bit uncompressed
+DNG differs during FlashRaw preflight and is reported as `n/a` rather than
+timed. This coverage includes 16-bit and floating-point DNG, Sony uncompressed,
+lossless JPEG, and ARW6, Canon CRX and DNG, Nikon Huffman and packed variants,
+and the Sigma fp 8/10/12-bit samples.
+
+The broader test golden set was also checked against FlashRaw 0.4.0. Fornax and
+FlashRaw agree for its new ARW6, RAF, and 3FR representatives. FlashRaw exposes
+different storage-native values for the selected IIQ and RW2 files because
+Fornax applies vendor normalization while the reference run disables crop and
+opcodes; those rows remain Fornax regression hashes rather than cross-reference
+equality claims. Truncated or invalid streams return errors rather than being
+padded and decoded.
 
 Historical mismatch investigation and pre-fix hashes are retained in the
 [decoder performance archive](../../../archive/reference/decoders/perf/).
 
 ## Results
 
-Values are milliseconds; `F` is Fornax, `FR` is scalar-CPU FlashRaw, and spread
-is the Fornax one-thread process spread.
+Values are milliseconds as `F / FR (F divided by FR)`; lower ratios favor
+Fornax. `n/a` means FlashRaw rejected the input during hash preflight.
 
-Ratio colors: 🟢 ≤1.1x, 🔵 >1.1–1.5x, 🟡 >1.5–2x, 🔴 >2x.
-
-| Golden sample | Path | F 1T | FR 1T | F/FR | F 16T | FR 16T | F/FR | spread |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Canon PowerShot S3IS | DNG uncompressed 16-bit | 3.16 | 2.71 | <span style="color:#0969da">🔵 1.16x</span> | 2.68 | 1.78 | <span style="color:#0969da">🔵 1.50x</span> | 17.7% |
-| Canon EOS 5D Mark III | DNG LJPEG 16-bit | 10.86 | 7.31 | <span style="color:#0969da">🔵 1.49x</span> | 3.22 | 1.86 | <span style="color:#9a6700">🟡 1.73x</span> | 8.9% |
-| Canon EOS 5D Mark III | DNG uncompressed 16-bit | 51.30 | 50.53 | <span style="color:#1a7f37">🟢 1.02x</span> | 24.18 | 42.72 | <span style="color:#1a7f37">🟢 0.57x</span> | 4.5% |
-| Canon EOS 5D Mark III | DNG Deflate FP16 | 178.20 | 135.99 | <span style="color:#0969da">🔵 1.31x</span> | 42.20 | 45.03 | <span style="color:#1a7f37">🟢 0.94x</span> | 5.2% |
-| Canon EOS 5D Mark III | DNG uncompressed 24-bit | 55.12 | 49.42 | <span style="color:#0969da">🔵 1.12x</span> | 24.80 | 44.16 | <span style="color:#1a7f37">🟢 0.56x</span> | 3.3% |
-| Canon EOS 5D Mark III | DNG Deflate FP24 | 295.34 | 209.06 | <span style="color:#0969da">🔵 1.41x</span> | 54.14 | 44.24 | <span style="color:#0969da">🔵 1.22x</span> | 7.2% |
-| Canon EOS 5D Mark III | DNG uncompressed 32-bit | 32.59 | 43.28 | <span style="color:#1a7f37">🟢 0.75x</span> | 24.53 | 46.99 | <span style="color:#1a7f37">🟢 0.52x</span> | 3.3% |
-| Canon EOS 5D Mark III | DNG Deflate FP32 | 337.81 | 265.19 | <span style="color:#0969da">🔵 1.27x</span> | 55.41 | 47.47 | <span style="color:#0969da">🔵 1.17x</span> | 4.7% |
-| Canon EOS 60D | DNG LJPEG 14-bit | 6.48 | 2.38 | <span style="color:#cf222e">🔴 2.72x</span> | 6.32 | 2.73 | <span style="color:#cf222e">🔴 2.32x</span> | 1.7% |
-| Canon EOS R5 | CR3 lossless CRX | 881.51 | 404.32 | <span style="color:#cf222e">🔴 2.18x</span> | 330.31 | 121.01 | <span style="color:#cf222e">🔴 2.73x</span> | 4.8% |
-| Canon EOS R6 | CR3 lossless CRX | 156.21 | 71.73 | <span style="color:#cf222e">🔴 2.18x</span> | 59.66 | 20.25 | <span style="color:#cf222e">🔴 2.95x</span> | 5.4% |
-| Canon EOS R7 | CR3 lossless CRX | 690.56 | 291.14 | <span style="color:#cf222e">🔴 2.37x</span> | 304.81 | 91.72 | <span style="color:#cf222e">🔴 3.32x</span> | 5.7% |
-| Canon PowerShot G1 X | DNG uncompressed 14-bit | 88.90 | 10.52 | <span style="color:#cf222e">🔴 8.45x</span> | 110.23 | 6.60 | <span style="color:#cf222e">🔴 16.71x</span> | 1.5% |
-| Nikon Z5 II | NEF Huffman | 34.13 | 33.06 | <span style="color:#1a7f37">🟢 1.03x</span> | 12.36 | 11.18 | <span style="color:#0969da">🔵 1.11x</span> | 3.1% |
-| Nikon D6 | NEF mode-10 packed 14-bit | 37.30 | 15.67 | <span style="color:#cf222e">🔴 2.38x</span> | 5.94 | 7.00 | <span style="color:#1a7f37">🟢 0.85x</span> | 0.4% |
-| Nikon D850 | NEF Huffman | 142.33 | 141.25 | <span style="color:#1a7f37">🟢 1.01x</span> | 49.26 | 54.29 | <span style="color:#1a7f37">🟢 0.91x</span> | 6.8% |
-| Nikon Z7 | NEF mode-10 packed 14-bit | 81.39 | 31.15 | <span style="color:#cf222e">🔴 2.61x</span> | 11.31 | 13.62 | <span style="color:#1a7f37">🟢 0.83x</span> | 1.6% |
-| Nikon Z7 | NEF Huffman | 176.89 | 154.22 | <span style="color:#0969da">🔵 1.15x</span> | 52.47 | 54.65 | <span style="color:#1a7f37">🟢 0.96x</span> | 8.1% |
-| Nikon Z9 | NEF Huffman | 172.84 | 153.22 | <span style="color:#0969da">🔵 1.13x</span> | 52.79 | 54.47 | <span style="color:#1a7f37">🟢 0.97x</span> | 7.8% |
-| Sigma fp | DNG uncompressed 12-bit | 1.01 | 1.28 | <span style="color:#1a7f37">🟢 0.79x</span> | 0.99 | 0.87 | <span style="color:#0969da">🔵 1.14x</span> | 6.3% |
-| Sigma fp | DNG uncompressed 10-bit | 1.02 | 1.17 | <span style="color:#1a7f37">🟢 0.87x</span> | 1.06 | 0.86 | <span style="color:#0969da">🔵 1.24x</span> | 6.9% |
-| Sigma fp | DNG uncompressed 8-bit | 2.27 | 0.91 | <span style="color:#cf222e">🔴 2.51x</span> | 2.29 | 0.76 | <span style="color:#cf222e">🔴 2.99x</span> | 5.4% |
-| Sony ILCE-1 | ARW uncompressed 14-bit | 30.75 | 30.55 | <span style="color:#1a7f37">🟢 1.01x</span> | 12.93 | 14.81 | <span style="color:#1a7f37">🟢 0.87x</span> | 3.5% |
-| Sony ILCE-1 | ARW LJPEG 14-bit | 402.37 | 265.50 | <span style="color:#9a6700">🟡 1.52x</span> | 39.75 | 52.01 | <span style="color:#1a7f37">🟢 0.76x</span> | 3.8% |
-| Sony ILCE-7RM5 | ARW uncompressed 14-bit | 34.31 | 34.38 | <span style="color:#1a7f37">🟢 1.00x</span> | 14.95 | 17.95 | <span style="color:#1a7f37">🟢 0.83x</span> | 5.5% |
-| Sony ILCE-7RM5 | ARW LJPEG 14-bit | 449.70 | 272.69 | <span style="color:#9a6700">🟡 1.65x</span> | 44.52 | 55.87 | <span style="color:#1a7f37">🟢 0.80x</span> | 3.8% |
-| Sony ILCE-9M3 | ARW uncompressed 14-bit | 6.09 | 5.68 | <span style="color:#1a7f37">🟢 1.07x</span> | 4.68 | 4.37 | <span style="color:#1a7f37">🟢 1.07x</span> | 2.9% |
-| Sony ILCE-9M3 | ARW LJPEG 14-bit | 73.51 | 55.93 | <span style="color:#0969da">🔵 1.31x</span> | 10.23 | 9.49 | <span style="color:#1a7f37">🟢 1.08x</span> | 3.4% |
-
-The final interleaved Nikon/CRX measurements, paired ranges, controls,
-throughput, and faults are in
-[golden-nikon-crx-ab-2026-11-18.csv](data/golden-nikon-crx-ab-2026-11-18.csv).
+| Format | Camera | Encoding | 1T | 16T |
+| --- | --- | --- | ---: | ---: |
+| DNG | Adobe DNG Canon 5D Mark III | uncompressed 16-bit | 14.64 / 14.80 (0.99x) | 7.94 / 8.48 (0.94x) |
+| DNG | Blackmagic Pocket Cinema 6K Pro | uncompressed 12-bit | 53.91 / n/a | 55.11 / n/a |
+| DNG | Canon 5D Mark III | Deflate FP16 | 187.70 / 146.26 (1.28x) | 43.42 / 44.57 (0.97x) |
+| DNG | Canon 5D Mark III | Deflate FP24 | 308.44 / 224.49 (1.37x) | 56.01 / 45.74 (1.22x) |
+| DNG | Canon 5D Mark III | Deflate FP32 | 360.30 / 289.77 (1.24x) | 58.20 / 48.01 (1.21x) |
+| DNG | Canon 5D Mark III | uncompressed FP16 | 71.06 / 73.33 (0.97x) | 25.78 / 41.54 (0.62x) |
+| DNG | Canon 5D Mark III | uncompressed FP24 | 87.34 / 83.90 (1.04x) | 26.73 / 43.24 (0.62x) |
+| DNG | Canon 5D Mark III | uncompressed FP32 | 73.70 / 87.14 (0.85x) | 25.91 / 39.37 (0.66x) |
+| DNG | Canon PowerShot G1 X | uncompressed 14-bit | 97.64 / 25.00 (3.91x) | 101.74 / 9.90 (10.28x) |
+| DNG | Google Pixel 8 Pro | lossless JPEG 16-bit | 271.17 / 203.90 (1.33x) | 49.63 / 37.84 (1.31x) |
+| DNG | HUAWEI CLT-L09 | uncompressed 16-bit | 22.25 / 23.57 (0.94x) | 26.64 / 30.84 (0.86x) |
+| DNG | Leica SL2 | uncompressed 14-bit | 222.74 / 36.03 (6.18x) | 257.11 / 14.43 (17.82x) |
+| DNG | Leica M9 | uncompressed 8-bit | 26.23 / 12.25 (2.14x) | 27.23 / 6.35 (4.29x) |
+| DNG | Nokia Lumia 1020 | uncompressed 10-bit | 292.31 / 27.72 (10.55x) | 337.37 / 12.76 (26.45x) |
+| DNG | Pentax 645Z | lossless JPEG 14-bit | 327.46 / 267.06 (1.23x) | 323.72 / 131.85 (2.46x) |
+| DNG | Sigma fp | uncompressed 8-bit | 3.03 / 1.86 (1.63x) | 3.19 / 1.02 (3.13x) |
+| DNG | Sigma fp | uncompressed 10-bit | 2.16 / 2.32 (0.93x) | 2.31 / 1.17 (1.98x) |
+| DNG | Sigma fp | uncompressed 12-bit | 2.46 / 2.60 (0.95x) | 2.51 / 1.27 (1.98x) |
+| DNG | Sigma fp L | lossless JPEG 14-bit | 324.96 / 256.44 (1.27x) | 56.95 / 41.90 (1.36x) |
+| CR3 | Canon EOS R6 | lossless CRX | 155.75 / 77.14 (2.02x) | 58.20 / 21.10 (2.76x) |
+| CR3 | Canon EOS R7 | lossless CRX | 692.75 / 295.82 (2.34x) | 295.91 / 90.65 (3.26x) |
+| NEF | Nikon D3 | uncompressed words 14-bit | 18.31 / 17.48 (1.05x) | 5.77 / 7.60 (0.76x) |
+| NEF | Nikon D6 | mode-10 packed 14-bit | 55.16 / 33.85 (1.63x) | 6.96 / 11.33 (0.61x) |
+| NEF | Nikon D850 | Huffman 14-bit | 145.67 / 143.94 (1.01x) | 47.90 / 49.97 (0.96x) |
+| NEF | Nikon Z7 | Huffman 14-bit | 172.39 / 153.94 (1.12x) | 55.08 / 51.58 (1.07x) |
+| NEF | Nikon Z7 | mode-10 packed 14-bit | 80.67 / 30.37 (2.66x) | 12.82 / 13.75 (0.93x) |
+| NEF | Nikon Z9 | Huffman 14-bit | 170.43 / 154.12 (1.11x) | 51.75 / 50.80 (1.02x) |
+| ARW | Sony ILCE-1 | uncompressed 14-bit | 27.96 / 25.52 (1.10x) | 12.15 / 14.69 (0.83x) |
+| ARW | Sony ILCE-1 | lossless JPEG 14-bit | 460.28 / 278.95 (1.65x) | 44.52 / 52.26 (0.85x) |
+| ARW | Sony ILCE-7RM4 | uncompressed 12-bit | 86.61 / 84.93 (1.02x) | 22.40 / 26.30 (0.85x) |
+| ARW | Sony ILCE-7RM5 | uncompressed 14-bit | 32.07 / 32.30 (0.99x) | 17.41 / 17.31 (1.01x) |
+| ARW | Sony ILCE-7RM5 | lossless JPEG 14-bit | 523.53 / 293.61 (1.78x) | 52.62 / 59.48 (0.88x) |
+| ARW | Sony ILCE-9M3 | uncompressed 14-bit | 15.40 / 15.21 (1.01x) | 8.10 / 6.42 (1.26x) |
+| ARW | Sony ILCE-9M3 | lossless JPEG 14-bit | 92.22 / 67.29 (1.37x) | 13.09 / 10.13 (1.29x) |
 
 The 5D3 uncompressed rows show Fornax faster than FlashRaw at sixteen threads,
 but FlashRaw's 16-thread wall time is slower than its one-thread result on this
@@ -92,62 +110,68 @@ their absolute differences are sub-millisecond to low-millisecond.
 
 ## Format findings
 
-- **DNG uncompressed** is not one performance class. Direct 8/10/14-bit rows
-  remove the generic scratch pass. The 10-bit Sigma row is near parity, while
-  the 8-bit row remains 2.51x/2.99x slower because parsing, allocation, and
-  fixed DNG decode work dominate its low-millisecond total. The 14-bit G1 X row
-  is 8.45x/16.71x slower; `OpcodeList1` conversion, `roundf`, and temporary
-  buffers dominate rather than packed-bit unpacking.
-- **DNG lossless JPEG** is 1.49-2.72x slower. The small 60D image is
-  operationally noisy, but the larger 16-bit 5D3 tile case is a repeatable
-  1.49x/1.73x gap.
-- **DNG Deflate FP16/24/32** is 1.27-1.41x slower at one thread. At edge
-  completion Fornax is slightly faster for FP16 and 1.17-1.22x slower for
-  FP24/FP32.
-- **Canon CR3 CRX** is 2.18-2.37x slower at one thread and 2.73-3.32x at edge
-  completion across R5/R6/R7. Large-page mosaic and plane buffers improve 16T
-  by 12-15%, but each sample has one lossless tile with four stateful plane
-  tasks, so most 16T workers remain idle.
-- **Nikon Huffman** is 1.01-1.15x slower at one thread and 0.91-1.11x at edge
-  completion. Independent bit-stream segments resynchronize on exact symbol
-  boundaries; the predictor pre-pass computes two states per row before a
-  row-parallel curve lookup.
-- **Nikon mode-10 packed** is 2.38-2.61x slower at one thread and 0.83-0.85x at
-  edge completion. Fixed 14-byte/eight-sample groups and autovectorized stores
-  clear the multi-thread target; the one-thread gap remains allocation and
-  memory-bandwidth bound.
-- **Sony uncompressed** is 1.00-1.07x at one thread and 0.83-1.07x at 16T.
-  Native full-strip copies use 16 MiB parallel chunks for large images and
-  8 MiB chunks below 64 MiB; the existing row path remains for serial or
-  transformed input. **Sony LJPEG** is 1.31-1.65x at one thread and 0.76-1.08x
-  at 16T after switching from tile-row tasks to safe per-tile output views.
-- **Sigma 12-bit uncompressed** is effectively at parity. The 10-bit sample is
-  near parity and the 8-bit sample is bounded by fixed decode overhead.
+- **DNG uncompressed has two distinct profiles.** Direct DNG rows without a
+  full-plane transform are at parity or faster: Adobe 16-bit `0.99x/0.94x`,
+  Huawei 16-bit `0.94x/0.86x`, and floating-point rows `0.62-1.04x`. The
+  measured 10-bit Nokia and 14-bit Leica SL2 rows are `10.55x/26.45x` and
+  `6.18x/17.82x`; `perf` attributes 55-64% of samples to OpcodeList1
+  conversion, opcode application, `roundf`, and the full `f32` temporary
+  mosaic. G1 X has the same shape at `3.91x/10.28x`.
+- **DNG lossless JPEG** is `1.23-1.36x` at one thread across the larger rows.
+  At 16T Google and Sigma fp L are `1.31-1.36x`, while Pentax 645Z is `2.46x`;
+  the latter needs a strip/tile scheduler review rather than another entropy
+  kernel change.
+- **DNG Deflate FP16/24/32** is `1.24-1.37x` slower at one thread. FP16 is
+  effectively at parity at 16T; FP24/FP32 remain `1.21-1.22x` slower.
+- **Canon CR3 CRX** is `2.02-2.34x` slower at one thread and `2.76-3.26x` at
+  16T. Large-page mosaic and plane buffers help, but each accepted file has
+  one tile with four stateful plane tasks and no fifth exact work unit.
+- **Nikon Huffman** is `1.01-1.12x` at one thread and `0.96-1.07x` at 16T.
+  Exact-boundary speculative chunks plus row-parallel prediction keep this
+  family near parity.
+- **Nikon mode-10 packed** is `1.63-2.66x` slower at one thread and `0.61-0.93x`
+  at 16T. Fixed eight-sample extraction clears parallel targets; the remaining
+  one-thread gap is row-kernel and allocation work.
+- **Sony uncompressed** is `0.99-1.10x` at one thread and `0.83-1.26x` at 16T.
+  **Sony LJPEG** remains `1.37-1.78x` slower at one thread. A1 and 7RM5 are
+  faster at 16T; 9M3 remains `1.29x` slower, so one shared one-thread kernel win
+  has the clearest cross-generation value.
+- **Small Sigma samples** are dominated by fixed overhead. The 10/12-bit rows
+  are near parity at one thread but lose `1.98x` at 16T; the 8-bit row is
+  `1.63x/3.13x` slower. These are allocation and setup probes, not evidence for
+  another packed-row algorithm.
 
 ## Improvement priorities
 
 Ranked by measured impact and implementation leverage. Each item states the
 evidence required before work starts.
 
-1. **Canon CRX edge completion.** R5/R6/R7 are 2.73-3.32x slower at 16T, but
-   each file has four plane tasks and uses only about 2.3-2.6 CPUs. Require a
-   verifiable intra-plane checkpoint or a parser representation that separates
-   run/context decisions from reconstruction before code changes. Timing
-   reaches its knee at four threads; no fifth exact leaf exists today.
-2. **Sony LJPEG one-thread kernel.** A1, 7RM5, and 9M3 remain 1.31-1.65x slower
-   at one thread; all three meet parity at 16T. Require a Huffman/refill kernel
-   that improves both thread counts without regressing DNG LJPEG controls.
-3. **Nikon mode-10 one-thread residual.** D6 and Z7 remain 2.38x and 2.61x
-   slower after fixed-group extraction. Further work must improve the row
-   kernel or allocation policy at parallel thread counts too; thread-selected
-   allocation is not acceptable.
-4. **DNG Deflate kernel.** FP32 inflate and predictor reversal dominate the
-   one-thread gap. Require a both-thread-count win; zlib-rs was mixed in
-   measurement and is not accepted from a one-thread result.
-5. **DNG `OpcodeList1` output conversion.** The G1 X profile spends most
-   cycles converting a full `f32` mosaic, applying opcode passes, and rounding
-   back to `u16`. Require a correctness-focused design outside the packed-row
-   kernel.
+1. **DNG OpcodeList1 execution.** This has the largest measured upside. On
+   Nokia Lumia 1020, `perf` reports `20.6%` in `opcodes::apply`, `20.1%` in
+   the full-plane input conversion, `14.2%` in `roundf`, and `12.9%` in output
+   conversion. Leica SL2 shows the same profile without `roundf` dominating.
+   Start with cached opcode metadata and chunk-local or row-fused transforms
+   that preserve the specified `f32` operation order. Require exact raw hashes
+   for G1 X, Nokia, and Leica controls plus parity-or-better Gaussian and
+   floating-point DNG controls.
+2. **Canon CRX edge completion.** R6/R7 remain `2.76x/3.26x` slower at 16T.
+   A speculative intra-plane start is only eligible with a verifiable
+   checkpoint that preserves corruption behavior. The four-plane task count is
+   already at its safe scaling knee.
+3. **Sony LJPEG one-thread kernel.** A1 and 7RM5 are `1.65x/1.78x` slower at
+   one thread. Their 16T results are already faster than FlashRaw, so optimize
+   the fixed scalar Huffman/refill path without regressing tile scheduling or
+   DNG LJPEG controls.
+4. **Nikon mode-10 one-thread residual.** D6 and Z7 remain `1.63x/2.66x` slower
+   at one thread. Require a row-kernel or allocation win that also improves 16T
+   or leaves it at least 10% faster than FlashRaw.
+5. **DNG lossless-JPEG 16T scheduling.** Pentax 645Z is `2.46x` slower while
+   the other large lossless-JPEG rows are `1.31-1.36x`. Inspect strip bytes,
+   tile counts, and scheduler granularity before changing the shared LJPEG
+   entropy kernel.
+6. **DNG Deflate FP24/FP32.** The one-thread path is `1.24-1.37x` slower and
+   FP24/FP32 remain about `1.21x` slower at 16T. Require a both-thread-count win
+   with FP16 and integer controls.
 
 ## Notes for future work
 

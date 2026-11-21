@@ -41,7 +41,7 @@ reference, and active planning documentation.
 
 | Document | Summary |
 | --- | --- |
-| [Demosaic Tier 1 Eligibility Audit](plans/chore-demosaic-tier1-eligibility-audit.md) | Add research reports and an eligibility matrix for MHC, PPG, RCD, and LMMSE. |
+| [0.4.0 Release Readiness](plans/chore-0.4.0-release-readiness.md) | FlashRaw comparison refresh, supported-format golden coverage, and CI-owned payload validation. |
 
 ## Reference
 

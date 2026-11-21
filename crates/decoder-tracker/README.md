@@ -148,7 +148,7 @@ pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --can
 pixi run -e dev cargo run --release -p decoder-tracker -- hash --check GOLDEN
 pixi run -e dev cargo run -p decoder-tracker -- golden-coverage --baseline BASELINE \
   --corpus-manifest MANIFEST --golden GOLDEN
-pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 The committed corpus metadata manifest is `data/manifest.csv`; decoder pass
@@ -176,7 +176,9 @@ of the test set for one release.
 
 `golden-coverage` reports missing and redundant lossless encoding groups and
 names the lowest-pixel passing representative for each decoder path.
-`golden-check` validates pointer metadata, baseline pass/lossless status,
-shared hashes, duplicates, grouped performance coverage, and overhead-only perf
-coverage. The benchmark default is the `core` group. Run `hash --check` in
-release mode so full RAW decodes complete in bounded CI time.
+`golden-check` validates pointer metadata, baseline pass status, supported
+format and decoder-path coverage, shared hash rows, duplicates, grouped
+performance coverage, and overhead-only perf coverage. The benchmark default
+is the `core` group. The CI golden job runs `hash --check` in release mode so
+full RAW decodes complete without making routine local validation fetch every
+golden payload.

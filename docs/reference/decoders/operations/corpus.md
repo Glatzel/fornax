@@ -41,7 +41,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candida
 pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
 pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
   --baseline F --corpus-manifest F --golden F --out FILE
-pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 `run` does not apply an implicit format filter. With the default manifest and
@@ -180,10 +180,12 @@ specific decoder path. Join `data/manifest.csv` by `path` for file size.
 
 ## Golden decode outputs
 
-`golden/test-manifest.csv` is the manual, fast correctness gate;
-`golden/perf-manifest.csv` is the manual stable-performance gate. Both use
-pointer-only tier-0/1 lossless files and cover DNG, ARW, CR3, and NEF. The
-shared `golden/decode-hashes.csv` covers their union. The legacy
+`golden/test-manifest.csv` is the manual correctness gate;
+`golden/perf-manifest.csv` is the manual stable-performance gate. The test set
+uses pointer-only files and covers every supported native format, including
+lossless DNG, ARW, CR3, NEF, RAF, 3FR, RW2, and IIQ representatives plus an
+explicitly lossy ARW6 regression. The performance set remains lossless-only.
+The shared `golden/decode-hashes.csv` covers their union. The legacy
 `golden/selected-manifest.csv` is a three-column alias of the test set for one
 release. Performance rows carry `core`, `full`, `overhead`, or `hdr` in their
 group column; benchmark tools select `core` by default.
@@ -211,6 +213,9 @@ Golden corpus hashing must use the release profile; debug-mode decodes are too
 slow for routine local verification and CI. `hash` materializes only the
 selected LFS payloads. A failed decode aborts without writing a partial CSV.
 The golden manifest and hashes are generated data and must not be hand-edited.
+The CI `golden` job is the routine materialized-hash gate. Local
+`scripts/agent-validation.sh` runs structural `golden-check` only, so it does
+not fetch every golden payload.
 
 Audit golden coverage without changing the golden set:
 
@@ -244,7 +249,7 @@ pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
 
 The test/perf manifests are maintainer-edited drafts checked by
 `decoder-tracker golden-check`, not silently regenerated. The current coverage
-contains 18 decoder paths: 13 DNG, 2 ARW, 1 CR3, and 2 NEF. Sony ARW and Nikon
+contains 19 decoder paths: 13 DNG, 2 ARW, 1 CR3, and 3 NEF. Sony ARW and Nikon
 NEF groups choose the highest available bit depth (for example, 14 over 12).
 Lossy Sony ARW2/ARW6 and IIQ nonlinear/Sv2 paths are excluded.
 Codec identifiers that can carry
@@ -404,7 +409,7 @@ candidate from a partial selection must never replace the committed baseline:
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
   crates/decoder-tracker/data/baseline.csv
-pixi run -e tracker bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
 ```
 
 `update-badge.sh` owns the regions between the decoder-tracker badge markers.

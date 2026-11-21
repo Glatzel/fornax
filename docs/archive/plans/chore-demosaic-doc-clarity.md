@@ -1,3 +1,7 @@
+> Status: archived completed plan.
+> Merged: #769 on 2026-11-21.
+> Current guidance: [RCD reference](../../reference/demosaic/rcd.md) and [LMMSE reference](../../reference/demosaic/lmmse.md).
+
 # Demosaic Equation Documentation Clarity Plan
 
 **Goal:** Rewrite the RCD and LMMSE demosaic research notes so every equation
