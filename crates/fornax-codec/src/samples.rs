@@ -6,6 +6,10 @@ use crate::error::invalid;
 use crate::request::{ByteOrder, Chunk, SampleFormat};
 use crate::sample_buffer::SampleBuffer;
 
+const LARGE_NATIVE_U16_COPY_CHUNK: usize = 16 * 1024 * 1024;
+const SMALL_NATIVE_U16_COPY_CHUNK: usize = 8 * 1024 * 1024;
+const LARGE_NATIVE_U16_COPY_THRESHOLD: usize = 64 * 1024 * 1024;
+
 pub struct Geometry {
     pub width: usize,
     pub height: usize,
@@ -827,6 +831,33 @@ pub fn unpack_u16_word_rows(
         }
     }
 
+    let threads = rayon::current_num_threads();
+    let byte_count = sample_count
+        .checked_mul(2)
+        .ok_or_else(|| invalid("word-row byte count overflow"))?;
+    if byte_order == native_order()
+        && mask == u16::MAX
+        && payloads.len() == 1
+        && should_parallelize_word_rows(output.len(), threads)
+    {
+        let source = payloads[0]
+            .get(..byte_count)
+            .ok_or_else(|| invalid("word-row strip is truncated"))?;
+        let chunk_bytes = if byte_count >= LARGE_NATIVE_U16_COPY_THRESHOLD {
+            LARGE_NATIVE_U16_COPY_CHUNK
+        } else {
+            SMALL_NATIVE_U16_COPY_CHUNK
+        };
+        let samples_per_item = chunk_bytes / 2;
+        output
+            .par_chunks_mut(samples_per_item)
+            .zip(source.par_chunks(chunk_bytes))
+            .for_each(|(target, source)| {
+                bytemuck::cast_slice_mut(target).copy_from_slice(source);
+            });
+        return Ok(());
+    }
+
     let unpack_row = |row: usize, target: &mut [u16]| {
         let chunk = row / chunk_height;
         let within_chunk = row % chunk_height;
@@ -834,7 +865,6 @@ pub fn unpack_u16_word_rows(
         let source = &payloads[chunk][start..start + row_bytes];
         unpack_u16_word_row(source, target, byte_order, mask);
     };
-    let threads = rayon::current_num_threads();
     if output.len() >= PARALLEL_ROW_MIN_SAMPLES && threads > 1 {
         let rows_per_item = height.div_ceil(threads * 4).max(1);
         let samples_per_item = width
@@ -1029,6 +1059,36 @@ mod tests {
         let mut fourteen = [0_u16; 3];
         unpack_14_msb(&[0xff, 0xfc, 0x00, 0x1a, 0xaa, 0x80], &mut fourteen);
         assert_eq!(fourteen, [0x3fff, 0x0001, 0x2aaa]);
+    }
+
+    #[test]
+    fn parallel_native_u16_copy_preserves_a_partial_final_chunk() {
+        let width = 8_190;
+        let height = 1_025;
+        let expected = (0..width * height)
+            .map(|index| (index as u16).wrapping_mul(29))
+            .collect::<Vec<_>>();
+        let source = bytemuck::cast_slice(&expected).to_vec();
+        let mut actual = vec![0_u16; expected.len()];
+
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .unwrap()
+            .install(|| {
+                unpack_u16_word_rows(
+                    &[&source],
+                    &mut actual,
+                    width,
+                    height,
+                    height,
+                    ByteOrder::Little,
+                    u16::MAX,
+                )
+                .unwrap();
+            });
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
