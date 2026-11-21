@@ -47,6 +47,8 @@ Out of scope:
   diff.
 - [x] Commit, push, and open one semantic PR:
   [#773](https://github.com/Glatzel/fornax/pull/773).
+- [x] Remove superseded active FlashRaw comparison CSVs and point the decoder
+  reference index at the 0.4.0 snapshot.
 
 ## Files Expected To Change
 
@@ -108,3 +110,5 @@ manifest with `FORNAX_GOLDEN_CORPUS_REQUIRED=1`.
   path. That is now the first-ranked decoder improvement candidate.
 - `scripts/agent-validation.sh` passes after correcting the stale
   `pixi run -e tracker` references to the existing `dev` environment.
+- Active performance data now contains only the current 0.4.0 per-sample and
+  version-comparison snapshots plus the stable input matrix.

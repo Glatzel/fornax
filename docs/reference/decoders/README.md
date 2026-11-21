@@ -23,7 +23,7 @@ Current decoder documentation is grouped by primary purpose:
 - [Golden test manifest](../../../crates/decoder-tracker/golden/test-manifest.csv)
 - [Golden perf manifest](../../../crates/decoder-tracker/golden/perf-manifest.csv)
 - [Golden performance matrix](perf/data/golden-benchmark-matrix.csv)
-- [Canonical per-sample results](perf/data/golden-flashraw-vs-fornax-2026-11-16.csv)
+- [Canonical 0.4.0 per-sample results](perf/data/fornax-vs-flashraw-0.4.0-2026-11-21.csv)
 
 Historical FlashRaw 0.2.0/0.3.1 reports, DNG experiment logs, Sony ARW
 inventories, raw profile artifacts, and negative-result evidence are in the
