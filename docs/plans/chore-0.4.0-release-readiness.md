@@ -45,7 +45,8 @@ Out of scope:
   reported row, and record a dated snapshot plus current improvement priorities.
 - [x] Run task-specific tests, repository validation, and inspect the complete
   diff.
-- [ ] Commit, push, and open one semantic PR.
+- [x] Commit, push, and open one semantic PR:
+  [#773](https://github.com/Glatzel/fornax/pull/773).
 
 ## Files Expected To Change
 
