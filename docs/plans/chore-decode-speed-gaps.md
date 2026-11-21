@@ -85,19 +85,19 @@ under the emitted Rayon closure.
 
 ## Task Checklist
 
-- [ ] Task 1, Nikon mode-10: add a fixed-size 12/14-bit chunk test against the
+- [x] Task 1, Nikon mode-10: add a fixed-size 14-bit chunk test against the
   existing reference oracle, implement safe fixed-width chunk extraction, and
   retain only a measured win.
-- [ ] Task 2, Canon CRX: use the profile to make one Rice/line-kernel change at
+- [x] Task 2, Canon CRX: use the profile to make one Rice/line-kernel change at
   a time, retaining only independent measured wins; stop after two changes if
   combined 1T gain is below 10%.
-- [ ] Task 3, Sony uncompressed: A/B task/chunk sizing and mapping advice
+- [x] Task 3, Sony uncompressed: A/B task/chunk sizing and mapping advice
   against the page-fault evidence; keep only a reproducible 16T win.
-- [ ] Task 4, Sony LJPEG: time-box two fast-window/placement/scheduling
+- [x] Task 4, Sony LJPEG: time-box two fast-window/placement/scheduling
   experiments; report DNG LJPEG regression controls.
-- [ ] Task 5, Phase 2A: write a design note and throwaway Nikon Huffman
+- [x] Task 5, Phase 2A: write a design note and throwaway Nikon Huffman
   speculative prototype; measure real-file resynchronization and 8T/16T upside.
-- [ ] Task 6, Phase 2B: if Canon utilization remains low, write a design note
+- [x] Task 6, Phase 2B: if Canon utilization remains low, write a design note
   and throwaway CRX parallel prototype covering the predictor dependencies and
   output exactness.
 - [ ] Task 7, docs: update the current results, open priorities, reusable future
