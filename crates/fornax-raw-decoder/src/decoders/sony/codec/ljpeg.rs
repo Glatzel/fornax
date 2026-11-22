@@ -66,14 +66,16 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                         let Some(target) = tile_rows.get_mut(output_row) else {
                             return Ok(());
                         };
-                        for (column, pixel) in samples.as_chunks::<4>().0.iter().enumerate() {
-                            let first = column * 2;
-                            if first < target.len() {
-                                target[first] = pixel[components];
-                            }
-                            if first + 1 < target.len() {
-                                target[first + 1] = pixel[components + 1];
-                            }
+                        let pixels = samples.as_chunks::<4>().0;
+                        let (pairs, tail) = target.as_chunks_mut::<2>();
+                        for (pair, pixel) in pairs.iter_mut().zip(pixels) {
+                            pair[0] = pixel[components];
+                            pair[1] = pixel[components + 1];
+                        }
+                        if let (Some(value), Some(pixel)) =
+                            (tail.first_mut(), pixels.get(pairs.len()))
+                        {
+                            *value = pixel[components];
                         }
                     }
                     Ok(())
