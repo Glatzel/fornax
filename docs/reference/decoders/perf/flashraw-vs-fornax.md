@@ -63,44 +63,46 @@ Historical mismatch investigation and pre-fix hashes are retained in the
 ## Results
 
 Values are milliseconds as `F / FR (F divided by FR)`; lower ratios favor
-Fornax. `n/a` means FlashRaw rejected the input during hash preflight.
+Fornax. `n/a` means FlashRaw rejected the input during hash preflight. The
+speedup column is Fornax `1T / 16T` wall time; values above 1 mean 16T is
+faster.
 
-| Format | Camera | Encoding | 1T | 16T | 16T/1T |
+| Format | Camera | Encoding | 1T | 16T | 1T/16T speedup |
 | --- | --- | --- | ---: | ---: | ---: |
-| DNG | Adobe DNG Canon 5D Mark III | uncompressed 16-bit | 14.64 / 14.80 (0.99x) | 7.94 / 8.48 (0.94x) | 0.542x |
-| DNG | Blackmagic Pocket Cinema 6K Pro | uncompressed 12-bit | 53.91 / n/a | 55.11 / n/a | 1.022x |
-| DNG | Canon 5D Mark III | Deflate FP16 | 187.70 / 146.26 (1.28x) | 43.42 / 44.57 (0.97x) | 0.231x |
-| DNG | Canon 5D Mark III | Deflate FP24 | 308.44 / 224.49 (1.37x) | 56.01 / 45.74 (1.22x) | 0.182x |
-| DNG | Canon 5D Mark III | Deflate FP32 | 360.30 / 289.77 (1.24x) | 58.20 / 48.01 (1.21x) | 0.162x |
-| DNG | Canon 5D Mark III | uncompressed FP16 | 71.06 / 73.33 (0.97x) | 25.78 / 41.54 (0.62x) | 0.363x |
-| DNG | Canon 5D Mark III | uncompressed FP24 | 87.34 / 83.90 (1.04x) | 26.73 / 43.24 (0.62x) | 0.306x |
-| DNG | Canon 5D Mark III | uncompressed FP32 | 73.70 / 87.14 (0.85x) | 25.91 / 39.37 (0.66x) | 0.352x |
-| DNG | Canon PowerShot G1 X | uncompressed 14-bit | 25.12 / 11.25 (2.23x) | 23.57 / 6.54 (3.61x) | 0.938x |
-| DNG | Google Pixel 8 Pro | lossless JPEG 16-bit | 271.17 / 203.90 (1.33x) | 49.63 / 37.84 (1.31x) | 0.183x |
-| DNG | HUAWEI CLT-L09 | uncompressed 16-bit | 22.25 / 23.57 (0.94x) | 26.64 / 30.84 (0.86x) | 1.197x |
-| DNG | Leica SL2 | uncompressed 14-bit | 74.41 / 36.03 (2.07x) | 50.99 / 14.86 (3.43x) | 0.685x |
-| DNG | Leica M9 | uncompressed 8-bit | 26.23 / 12.25 (2.14x) | 27.23 / 6.35 (4.29x) | 1.038x |
-| DNG | Nokia Lumia 1020 | uncompressed 10-bit | 262.67 / 28.73 (9.14x) | 63.52 / 12.32 (5.16x) | 0.242x |
-| DNG | Pentax 645Z | lossless JPEG 14-bit | 327.46 / 267.06 (1.23x) | 323.72 / 131.85 (2.46x) | 0.989x |
-| DNG | Sigma fp | uncompressed 8-bit | 3.03 / 1.86 (1.63x) | 3.19 / 1.02 (3.13x) | 1.053x |
-| DNG | Sigma fp | uncompressed 10-bit | 2.16 / 2.32 (0.93x) | 2.31 / 1.17 (1.98x) | 1.069x |
-| DNG | Sigma fp | uncompressed 12-bit | 2.46 / 2.60 (0.95x) | 2.51 / 1.27 (1.98x) | 1.020x |
-| DNG | Sigma fp L | lossless JPEG 14-bit | 324.96 / 256.44 (1.27x) | 56.95 / 41.90 (1.36x) | 0.175x |
-| CR3 | Canon EOS R6 | lossless CRX | 155.75 / 77.14 (2.02x) | 58.20 / 21.10 (2.76x) | 0.374x |
-| CR3 | Canon EOS R7 | lossless CRX | 692.75 / 295.82 (2.34x) | 295.91 / 90.65 (3.26x) | 0.427x |
-| NEF | Nikon D3 | uncompressed words 14-bit | 18.31 / 17.48 (1.05x) | 5.77 / 7.60 (0.76x) | 0.315x |
-| NEF | Nikon D6 | mode-10 packed 14-bit | 55.16 / 33.85 (1.63x) | 6.96 / 11.33 (0.61x) | 0.126x |
-| NEF | Nikon D850 | Huffman 14-bit | 145.67 / 143.94 (1.01x) | 47.90 / 49.97 (0.96x) | 0.329x |
-| NEF | Nikon Z7 | Huffman 14-bit | 172.39 / 153.94 (1.12x) | 55.08 / 51.58 (1.07x) | 0.320x |
-| NEF | Nikon Z7 | mode-10 packed 14-bit | 80.67 / 30.37 (2.66x) | 12.82 / 13.75 (0.93x) | 0.159x |
-| NEF | Nikon Z9 | Huffman 14-bit | 170.43 / 154.12 (1.11x) | 51.75 / 50.80 (1.02x) | 0.304x |
-| ARW | Sony ILCE-1 | uncompressed 14-bit | 27.96 / 25.52 (1.10x) | 12.15 / 14.69 (0.83x) | 0.435x |
-| ARW | Sony ILCE-1 | lossless JPEG 14-bit | 386.47 / 273.12 (1.41x) | 37.11 / 50.56 (0.73x) | 0.096x |
-| ARW | Sony ILCE-7RM4 | uncompressed 12-bit | 86.61 / 84.93 (1.02x) | 22.40 / 26.30 (0.85x) | 0.259x |
-| ARW | Sony ILCE-7RM5 | uncompressed 14-bit | 32.07 / 32.30 (0.99x) | 17.41 / 17.31 (1.01x) | 0.543x |
-| ARW | Sony ILCE-7RM5 | lossless JPEG 14-bit | 423.86 / 279.29 (1.52x) | 41.08 / 56.17 (0.73x) | 0.097x |
-| ARW | Sony ILCE-9M3 | uncompressed 14-bit | 15.40 / 15.21 (1.01x) | 8.10 / 6.42 (1.26x) | 0.526x |
-| ARW | Sony ILCE-9M3 | lossless JPEG 14-bit | 92.22 / 67.29 (1.37x) | 13.09 / 10.13 (1.29x) | 0.142x |
+| DNG | Adobe DNG Canon 5D Mark III | uncompressed 16-bit | 14.64 / 14.80 (0.99x) | 7.94 / 8.48 (0.94x) | 1.844x |
+| DNG | Blackmagic Pocket Cinema 6K Pro | uncompressed 12-bit | 53.91 / n/a | 55.11 / n/a | 0.978x |
+| DNG | Canon 5D Mark III | Deflate FP16 | 187.70 / 146.26 (1.28x) | 43.42 / 44.57 (0.97x) | 4.323x |
+| DNG | Canon 5D Mark III | Deflate FP24 | 308.44 / 224.49 (1.37x) | 56.01 / 45.74 (1.22x) | 5.507x |
+| DNG | Canon 5D Mark III | Deflate FP32 | 360.30 / 289.77 (1.24x) | 58.20 / 48.01 (1.21x) | 6.191x |
+| DNG | Canon 5D Mark III | uncompressed FP16 | 71.06 / 73.33 (0.97x) | 25.78 / 41.54 (0.62x) | 2.756x |
+| DNG | Canon 5D Mark III | uncompressed FP24 | 87.34 / 83.90 (1.04x) | 26.73 / 43.24 (0.62x) | 3.267x |
+| DNG | Canon 5D Mark III | uncompressed FP32 | 73.70 / 87.14 (0.85x) | 25.91 / 39.37 (0.66x) | 2.844x |
+| DNG | Canon PowerShot G1 X | uncompressed 14-bit | 25.12 / 11.25 (2.23x) | 23.57 / 6.54 (3.61x) | 1.066x |
+| DNG | Google Pixel 8 Pro | lossless JPEG 16-bit | 271.17 / 203.90 (1.33x) | 49.63 / 37.84 (1.31x) | 5.464x |
+| DNG | HUAWEI CLT-L09 | uncompressed 16-bit | 22.25 / 23.57 (0.94x) | 26.64 / 30.84 (0.86x) | 0.835x |
+| DNG | Leica SL2 | uncompressed 14-bit | 74.41 / 36.03 (2.07x) | 50.99 / 14.86 (3.43x) | 1.459x |
+| DNG | Leica M9 | uncompressed 8-bit | 26.23 / 12.25 (2.14x) | 27.23 / 6.35 (4.29x) | 0.963x |
+| DNG | Nokia Lumia 1020 | uncompressed 10-bit | 262.67 / 28.73 (9.14x) | 63.52 / 12.32 (5.16x) | 4.135x |
+| DNG | Pentax 645Z | lossless JPEG 14-bit | 327.46 / 267.06 (1.23x) | 323.72 / 131.85 (2.46x) | 1.012x |
+| DNG | Sigma fp | uncompressed 8-bit | 3.03 / 1.86 (1.63x) | 3.19 / 1.02 (3.13x) | 0.950x |
+| DNG | Sigma fp | uncompressed 10-bit | 2.16 / 2.32 (0.93x) | 2.31 / 1.17 (1.98x) | 0.935x |
+| DNG | Sigma fp | uncompressed 12-bit | 2.46 / 2.60 (0.95x) | 2.51 / 1.27 (1.98x) | 0.980x |
+| DNG | Sigma fp L | lossless JPEG 14-bit | 324.96 / 256.44 (1.27x) | 56.95 / 41.90 (1.36x) | 5.706x |
+| CR3 | Canon EOS R6 | lossless CRX | 155.75 / 77.14 (2.02x) | 58.20 / 21.10 (2.76x) | 2.676x |
+| CR3 | Canon EOS R7 | lossless CRX | 692.75 / 295.82 (2.34x) | 295.91 / 90.65 (3.26x) | 2.341x |
+| NEF | Nikon D3 | uncompressed words 14-bit | 18.31 / 17.48 (1.05x) | 5.77 / 7.60 (0.76x) | 3.173x |
+| NEF | Nikon D6 | mode-10 packed 14-bit | 55.16 / 33.85 (1.63x) | 6.96 / 11.33 (0.61x) | 7.925x |
+| NEF | Nikon D850 | Huffman 14-bit | 145.67 / 143.94 (1.01x) | 47.90 / 49.97 (0.96x) | 3.041x |
+| NEF | Nikon Z7 | Huffman 14-bit | 172.39 / 153.94 (1.12x) | 55.08 / 51.58 (1.07x) | 3.130x |
+| NEF | Nikon Z7 | mode-10 packed 14-bit | 80.67 / 30.37 (2.66x) | 12.82 / 13.75 (0.93x) | 6.293x |
+| NEF | Nikon Z9 | Huffman 14-bit | 170.43 / 154.12 (1.11x) | 51.75 / 50.80 (1.02x) | 3.293x |
+| ARW | Sony ILCE-1 | uncompressed 14-bit | 27.96 / 25.52 (1.10x) | 12.15 / 14.69 (0.83x) | 2.301x |
+| ARW | Sony ILCE-1 | lossless JPEG 14-bit | 386.47 / 273.12 (1.41x) | 37.11 / 50.56 (0.73x) | 10.414x |
+| ARW | Sony ILCE-7RM4 | uncompressed 12-bit | 86.61 / 84.93 (1.02x) | 22.40 / 26.30 (0.85x) | 3.867x |
+| ARW | Sony ILCE-7RM5 | uncompressed 14-bit | 32.07 / 32.30 (0.99x) | 17.41 / 17.31 (1.01x) | 1.842x |
+| ARW | Sony ILCE-7RM5 | lossless JPEG 14-bit | 423.86 / 279.29 (1.52x) | 41.08 / 56.17 (0.73x) | 10.318x |
+| ARW | Sony ILCE-9M3 | uncompressed 14-bit | 15.40 / 15.21 (1.01x) | 8.10 / 6.42 (1.26x) | 1.901x |
+| ARW | Sony ILCE-9M3 | lossless JPEG 14-bit | 92.22 / 67.29 (1.37x) | 13.09 / 10.13 (1.29x) | 7.045x |
 
 The 5D3 uncompressed rows show Fornax faster than FlashRaw at sixteen threads,
 but FlashRaw's 16-thread wall time is slower than its one-thread result on this
