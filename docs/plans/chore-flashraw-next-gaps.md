@@ -32,6 +32,9 @@ Out of scope:
 - [x] Phase 1: implement and measure chunk-local OpcodeList1 execution.
 - [x] Phase 2: establish whether Pentax work can be scheduled safely.
 - [x] Phase 3: measure safe CRX changes and write the speculative design gate.
+- [x] Phase 4: profile Deflate, test parallel tile reconstruction, and retain
+  only passing changes.
+- [x] Phase 5: profile and test two shared Sony/Nikon kernel changes.
 - [x] Final: update current performance findings and rejected experiments.
 
 ## Phase 0 baseline and plan
@@ -108,3 +111,7 @@ the committed census therefore covers 30 materialized successful DNG files.
   entropy segment.
 - Phase 3 stopped at the checkpoint gate. The design note is
   [CRX intra-plane start](chore-crx-intra-plane-start.md).
+- Phase 4 rejected tile-first Deflate reconstruction because it regressed all
+  three float rows at 16T and raised peak memory.
+- Phase 5 retained Sony pair placement and zero-point-transform specialization;
+  the Nikon paired packed-group candidate regressed 16T and was dropped.
