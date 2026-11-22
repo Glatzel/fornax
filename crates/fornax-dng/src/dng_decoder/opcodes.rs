@@ -103,7 +103,7 @@ impl OpcodeList {
             .count()
     }
 
-    pub(super) fn is_single_bad_pixels_constant(&self, value: u32) -> bool {
+    pub(super) const fn is_single_bad_pixels_constant(&self, value: u32) -> bool {
         matches!(
             self.opcodes.as_slice(),
             [Opcode::FixBadPixelsConstant { constant }] if *constant == value
