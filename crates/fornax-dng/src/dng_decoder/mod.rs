@@ -1020,7 +1020,9 @@ mod tests {
     fn transforms_route_full_size_outputs_through_the_shared_allocator() {
         let source = include_str!("transforms.rs");
         assert!(source.contains("fornax_large_alloc::zeroed_samples"));
-        assert!(source.contains("let mut samples = zeroed_samples::<f32>"));
+        assert!(!source.contains("zeroed_samples::<f32>(width * height)"));
+        assert!(source.contains("let mut scratch = zeroed_samples::<f32>(expected)"));
+        assert!(source.contains("let mut output = zeroed_samples::<T>(expected)"));
         assert!(source.contains("let mut mapped = zeroed_samples::<u16>"));
     }
 

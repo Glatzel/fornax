@@ -82,9 +82,56 @@ impl Opcode {
             _ => None,
         }
     }
+
+    const fn is_neighborhood(&self) -> bool {
+        matches!(
+            self,
+            Self::FixBadPixelsConstant { .. } | Self::FixBadPixelsList { .. }
+        )
+    }
 }
 
-pub(super) fn apply(
+pub(super) struct OpcodeList {
+    opcodes: Vec<Opcode>,
+}
+
+impl OpcodeList {
+    pub(super) fn neighborhood_barriers(&self) -> usize {
+        self.opcodes
+            .iter()
+            .filter(|opcode| opcode.is_neighborhood())
+            .count()
+    }
+
+    pub(super) fn apply_full(&self, samples: &mut [f32], width: usize, height: usize) {
+        self.apply_band(samples, width, height, 0, 0, height);
+    }
+
+    pub(super) fn apply_band(
+        &self,
+        samples: &mut [f32],
+        image_width: usize,
+        image_height: usize,
+        scratch_start_row: usize,
+        target_start_row: usize,
+        target_rows: usize,
+    ) {
+        for opcode in &self.opcodes {
+            apply_opcode_band(
+                opcode,
+                samples,
+                image_width,
+                image_height,
+                scratch_start_row,
+                target_start_row,
+                target_rows,
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+fn apply(
     bytes: &[u8],
     samples: &mut [f32],
     width: usize,
@@ -101,25 +148,11 @@ pub(super) fn apply(
         return Err(corrupt("opcode image geometry or samples are invalid"));
     }
 
-    let opcodes = parse(bytes)?;
-    let unsupported = opcodes
-        .iter()
-        .filter_map(Opcode::unsupported_name)
-        .collect::<Vec<_>>();
-    if !unsupported.is_empty() {
-        return Err(corrupt(format!(
-            "OpcodeList1 contains operations outside the Bayer raw domain: {}",
-            unsupported.join(", ")
-        )));
-    }
-
-    for opcode in opcodes {
-        apply_opcode(&opcode, samples, width, height);
-    }
+    parse(bytes)?.apply_full(samples, width, height);
     Ok(())
 }
 
-fn parse(bytes: &[u8]) -> Result<Vec<Opcode>, DecodeError> {
+pub(super) fn parse(bytes: &[u8]) -> Result<OpcodeList, DecodeError> {
     let mut cursor = Cursor::new(bytes);
     let count = cursor.u32()? as usize;
     if count > MAX_OPCODES {
@@ -247,10 +280,31 @@ fn parse(bytes: &[u8]) -> Result<Vec<Opcode>, DecodeError> {
             _ => Opcode::Unsupported("Other"),
         });
     }
-    Ok(opcodes)
+    let unsupported = opcodes
+        .iter()
+        .filter_map(Opcode::unsupported_name)
+        .collect::<Vec<_>>();
+    if !unsupported.is_empty() {
+        return Err(corrupt(format!(
+            "OpcodeList1 contains operations outside the Bayer raw domain: {}",
+            unsupported.join(", ")
+        )));
+    }
+    Ok(OpcodeList { opcodes })
 }
 
-fn apply_opcode(opcode: &Opcode, samples: &mut [f32], width: usize, height: usize) {
+fn apply_opcode_band(
+    opcode: &Opcode,
+    samples: &mut [f32],
+    width: usize,
+    height: usize,
+    scratch_start_row: usize,
+    target_start_row: usize,
+    target_rows: usize,
+) {
+    let scratch_rows = samples.len() / width;
+    let scratch_end_row = scratch_start_row + scratch_rows;
+    let target_end_row = target_start_row + target_rows;
     match opcode {
         Opcode::Unsupported(_) => {
             unreachable!("unsupported opcodes are rejected before application")
@@ -259,7 +313,16 @@ fn apply_opcode(opcode: &Opcode, samples: &mut [f32], width: usize, height: usiz
             coefficients,
             center_x,
             center_y,
-        } => apply_vignette(samples, width, height, coefficients, *center_x, *center_y),
+        } => apply_vignette(
+            samples,
+            width,
+            height,
+            scratch_start_row,
+            scratch_end_row,
+            coefficients,
+            *center_x,
+            *center_y,
+        ),
         Opcode::FixBadPixelsConstant { constant } => {
             let constant = *constant as f32;
             let bad = samples
@@ -267,44 +330,77 @@ fn apply_opcode(opcode: &Opcode, samples: &mut [f32], width: usize, height: usiz
                 .enumerate()
                 .filter_map(|(index, sample)| (*sample == constant).then_some(index))
                 .collect();
-            repair_bad_pixels(samples, width, height, bad);
+            repair_bad_pixels(
+                samples,
+                width,
+                scratch_rows,
+                bad,
+                target_start_row,
+                target_end_row,
+            );
         }
         Opcode::FixBadPixelsList { points, rectangles } => {
             let mut bad = Vec::new();
             for &(row, column) in points {
-                if let Some(index) = checked_index(row, column, width, height) {
-                    bad.push(index);
+                if (row as usize) >= scratch_start_row
+                    && (row as usize) < scratch_end_row
+                    && (column as usize) < width
+                {
+                    bad.push((row as usize - scratch_start_row) * width + column as usize);
                 }
             }
             for &(top, left, bottom, right) in rectangles {
-                for row in top..bottom.min(height as u32) {
+                for row in top.max(scratch_start_row as u32)
+                    ..bottom.min(scratch_end_row as u32).min(height as u32)
+                {
                     for column in left..right.min(width as u32) {
-                        bad.push(row as usize * width + column as usize);
+                        bad.push((row as usize - scratch_start_row) * width + column as usize);
                     }
                 }
             }
-            repair_bad_pixels(samples, width, height, bad);
+            repair_bad_pixels(
+                samples,
+                width,
+                scratch_rows,
+                bad,
+                target_start_row,
+                target_end_row,
+            );
         }
         Opcode::MapTable { region, table } if !table.is_empty() => {
             let last = (table.len() - 1) as f32;
-            for_each_region(*region, width, height, |index, _, _| {
-                let table_index = samples[index].round().clamp(0.0, last) as usize;
-                samples[index] = table[table_index] as f32;
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, _, _| {
+                    let table_index = samples[index].round().clamp(0.0, last) as usize;
+                    samples[index] = table[table_index] as f32;
+                },
+            );
         }
         Opcode::MapTable { .. } => {}
         Opcode::MapPolynomial {
             region,
             coefficients,
         } => {
-            for_each_region(*region, width, height, |index, _, _| {
-                let x = samples[index] as f64 / 65_535.0;
-                let mut value = 0.0;
-                for coefficient in coefficients.iter().rev() {
-                    value = value * x + coefficient;
-                }
-                samples[index] = (value * 65_535.0) as f32;
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, _, _| {
+                    let x = samples[index] as f64 / 65_535.0;
+                    let mut value = 0.0;
+                    for coefficient in coefficients.iter().rev() {
+                        value = value * x + coefficient;
+                    }
+                    samples[index] = (value * 65_535.0) as f32;
+                },
+            );
         }
         Opcode::GainMap {
             region,
@@ -320,6 +416,8 @@ fn apply_opcode(opcode: &Opcode, samples: &mut [f32], width: usize, height: usiz
             samples,
             width,
             height,
+            scratch_start_row,
+            scratch_end_row,
             *region,
             *points_v,
             *points_h,
@@ -331,48 +429,79 @@ fn apply_opcode(opcode: &Opcode, samples: &mut [f32], width: usize, height: usiz
             gains,
         ),
         Opcode::DeltaPerRow { region, values } => {
-            for_each_region(*region, width, height, |index, _, row| {
-                let offset = (row - region.top as usize) / region.row_pitch as usize;
-                samples[index] += values.get(offset).copied().unwrap_or(0.0) * 65_535.0;
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, _, row| {
+                    let offset = (row - region.top as usize) / region.row_pitch as usize;
+                    samples[index] += values.get(offset).copied().unwrap_or(0.0) * 65_535.0;
+                },
+            );
         }
         Opcode::DeltaPerColumn { region, values } => {
-            for_each_region(*region, width, height, |index, column, _| {
-                let offset = (column - region.left as usize) / region.col_pitch as usize;
-                samples[index] += values.get(offset).copied().unwrap_or(0.0) * 65_535.0;
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, column, _| {
+                    let offset = (column - region.left as usize) / region.col_pitch as usize;
+                    samples[index] += values.get(offset).copied().unwrap_or(0.0) * 65_535.0;
+                },
+            );
         }
         Opcode::ScalePerRow { region, values } => {
-            for_each_region(*region, width, height, |index, _, row| {
-                let offset = (row - region.top as usize) / region.row_pitch as usize;
-                samples[index] *= values.get(offset).copied().unwrap_or(1.0);
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, _, row| {
+                    let offset = (row - region.top as usize) / region.row_pitch as usize;
+                    samples[index] *= values.get(offset).copied().unwrap_or(1.0);
+                },
+            );
         }
         Opcode::ScalePerColumn { region, values } => {
-            for_each_region(*region, width, height, |index, column, _| {
-                let offset = (column - region.left as usize) / region.col_pitch as usize;
-                samples[index] *= values.get(offset).copied().unwrap_or(1.0);
-            });
+            for_each_region_band(
+                *region,
+                width,
+                height,
+                scratch_start_row,
+                scratch_end_row,
+                |index, column, _| {
+                    let offset = (column - region.left as usize) / region.col_pitch as usize;
+                    samples[index] *= values.get(offset).copied().unwrap_or(1.0);
+                },
+            );
         }
     }
 }
 
-fn for_each_region(
+fn for_each_region_band(
     region: Region,
     width: usize,
     height: usize,
+    scratch_start_row: usize,
+    scratch_end_row: usize,
     mut operation: impl FnMut(usize, usize, usize),
 ) {
     if region.plane != 0 || region.planes == 0 {
         return;
     }
-    let top = region.top as usize;
+    let top = (region.top as usize).max(scratch_start_row);
     let bottom = (region.bottom as usize).min(height);
+    let bottom = bottom.min(scratch_end_row);
     let left = region.left as usize;
     let right = (region.right as usize).min(width);
     for row in (top..bottom).step_by(region.row_pitch as usize) {
         for column in (left..right).step_by(region.col_pitch as usize) {
-            operation(row * width + column, column, row);
+            operation((row - scratch_start_row) * width + column, column, row);
         }
     }
 }
@@ -381,6 +510,8 @@ fn apply_vignette(
     samples: &mut [f32],
     width: usize,
     height: usize,
+    scratch_start_row: usize,
+    scratch_end_row: usize,
     coefficients: &[f64; 5],
     center_x: f64,
     center_y: f64,
@@ -399,7 +530,7 @@ fn apply_vignette(
     if max_distance_squared <= 0.0 || !max_distance_squared.is_finite() {
         return;
     }
-    for row in 0..height {
+    for row in scratch_start_row..scratch_end_row {
         let row_distance = (row as f64 - center_y).powi(2);
         for column in 0..width {
             let radius_squared =
@@ -414,7 +545,7 @@ fn apply_vignette(
                                         + radius_squared
                                             * (coefficients[3]
                                                 + radius_squared * coefficients[4]))));
-            samples[row * width + column] *= gain as f32;
+            samples[(row - scratch_start_row) * width + column] *= gain as f32;
         }
     }
 }
@@ -423,6 +554,8 @@ fn apply_gain_map(
     samples: &mut [f32],
     width: usize,
     height: usize,
+    scratch_start_row: usize,
+    scratch_end_row: usize,
     region: Region,
     points_v: u32,
     points_h: u32,
@@ -445,8 +578,9 @@ fn apply_gain_map(
     {
         return;
     }
-    let top = region.top as usize;
+    let top = (region.top as usize).max(scratch_start_row);
     let bottom = (region.bottom as usize).min(height);
+    let bottom = bottom.min(scratch_end_row);
     let left = region.left as usize;
     let right = (region.right as usize).min(width);
     for row in (top..bottom).step_by(region.row_pitch as usize) {
@@ -461,7 +595,8 @@ fn apply_gain_map(
             let bottom_right = gains[(v1 * points_h + h1) * map_planes];
             let top_gain = top_left + (top_right - top_left) * horizontal_weight;
             let bottom_gain = bottom_left + (bottom_right - bottom_left) * horizontal_weight;
-            samples[row * width + column] *= top_gain + (bottom_gain - top_gain) * vertical_weight;
+            samples[(row - scratch_start_row) * width + column] *=
+                top_gain + (bottom_gain - top_gain) * vertical_weight;
         }
     }
 }
@@ -485,20 +620,28 @@ fn interpolate_index(
     )
 }
 
-fn checked_index(row: u32, column: u32, width: usize, height: usize) -> Option<usize> {
-    ((row as usize) < height && (column as usize) < width)
-        .then_some(row as usize * width + column as usize)
-}
-
-fn repair_bad_pixels(samples: &mut [f32], width: usize, height: usize, mut bad: Vec<usize>) {
+fn repair_bad_pixels(
+    samples: &mut [f32],
+    width: usize,
+    height: usize,
+    mut bad: Vec<usize>,
+    repair_start_row: usize,
+    repair_end_row: usize,
+) {
     bad.sort_unstable();
     bad.dedup();
     let mut is_bad = vec![false; samples.len()];
     for &index in &bad {
-        is_bad[index] = true;
+        if let Some(entry) = is_bad.get_mut(index) {
+            *entry = true;
+        }
     }
     let mut fixes = Vec::with_capacity(bad.len());
     for index in bad {
+        let repair_row = index / width;
+        if repair_row < repair_start_row || repair_row >= repair_end_row {
+            continue;
+        }
         let row = index / width;
         let column = index % width;
         let mut sum = 0.0;
@@ -603,7 +746,7 @@ impl<'a> Cursor<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::apply;
+    use super::{apply, parse};
 
     fn opcode(id: u32, body: &[u8]) -> Vec<u8> {
         let mut bytes = id.to_be_bytes().to_vec();
@@ -769,5 +912,49 @@ mod tests {
         let mut body = all_region();
         body.extend_from_slice(&u32::MAX.to_be_bytes());
         assert!(apply(&list(&[opcode(10, &body)]), &mut [1.0], 1, 1).is_err());
+    }
+
+    #[test]
+    fn row_bands_preserve_neighborhood_halo_and_operation_order() {
+        let mut table = region(0, 0, u32::MAX, u32::MAX, 1);
+        table.extend_from_slice(&8_u32.to_be_bytes());
+        for value in [0_u16, 1, 2, 3, 4, 5, 6, 7] {
+            table.extend_from_slice(&value.to_be_bytes());
+        }
+        let bad = 0_u32.to_be_bytes().to_vec();
+        let mut scale = region(0, 0, u32::MAX, u32::MAX, 1);
+        scale.extend_from_slice(&2_u32.to_be_bytes());
+        for value in [1.0_f32, 2.0] {
+            scale.extend_from_slice(&value.to_bits().to_be_bytes());
+        }
+
+        let width = 8;
+        let height = 6;
+        let mut samples = (0..width * height)
+            .map(|index| ((index % 7) + 1) as f32)
+            .collect::<Vec<_>>();
+        samples[3 * width + 4] = 0.0;
+
+        let bytes = list(&[opcode(7, &table), opcode(4, &bad), opcode(12, &scale)]);
+        let parsed = parse(&bytes).unwrap();
+        let mut expected = samples.clone();
+        parsed.apply_full(&mut expected, width, height);
+
+        let source = samples.clone();
+        let mut actual = samples;
+        for start in (0..height).step_by(2) {
+            let rows = 2;
+            let top_halo = start.min(2);
+            let bottom_halo = (height - start - rows).min(2);
+            let scratch_start = start - top_halo;
+            let scratch_rows = top_halo + rows + bottom_halo;
+            let mut scratch =
+                source[scratch_start * width..(scratch_start + scratch_rows) * width].to_vec();
+            parsed.apply_band(&mut scratch, width, height, scratch_start, top_halo, rows);
+            actual[start * width..(start + rows) * width]
+                .copy_from_slice(&scratch[top_halo * width..(top_halo + rows) * width]);
+        }
+
+        assert_eq!(actual, expected);
     }
 }
