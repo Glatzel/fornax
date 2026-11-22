@@ -29,10 +29,10 @@ Out of scope:
 - [x] Phase 0: capture interleaved 1T/8T/16T baselines and required profiles.
 - [x] Phase 0: census materialized DNG OpcodeList1 IDs and record the
   unmaterialized-corpus limitation.
-- [ ] Phase 1: implement and measure chunk-local OpcodeList1 execution.
-- [ ] Phase 2: establish whether Pentax work can be scheduled safely.
-- [ ] Phase 3: measure safe CRX changes and write the speculative design gate.
-- [ ] Final: update current performance findings and rejected experiments.
+- [x] Phase 1: implement and measure chunk-local OpcodeList1 execution.
+- [x] Phase 2: establish whether Pentax work can be scheduled safely.
+- [x] Phase 3: measure safe CRX changes and write the speculative design gate.
+- [x] Final: update current performance findings and rejected experiments.
 
 ## Phase 0 baseline and plan
 
@@ -101,3 +101,10 @@ the committed census therefore covers 30 materialized successful DNG files.
   restart-free single-scan gate.
 - R5/R6/R7 have one tile, four independent planes, one subband per plane, and
   zero transform levels. Placement is already fused in the direct path.
+- Phase 1 retained two independently measured commits: 32K-sample row bands
+  and a fused zero-constant bad-pixel path. Final 16T times are 23.57 ms for
+  G1 X, 63.52 ms for Nokia, and 50.99 ms for Leica SL2.
+- Phase 2 stopped without a code change: Pentax 645Z has one strip and one
+  entropy segment.
+- Phase 3 stopped at the checkpoint gate. The design note is
+  [CRX intra-plane start](chore-crx-intra-plane-start.md).
