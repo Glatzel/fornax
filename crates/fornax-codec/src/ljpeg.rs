@@ -816,6 +816,35 @@ fn decode_scan_four_rows_with_scratch(
     scratch.resize(output_width, point_transform != 0);
     let mut bits = FastBitReader::new(entropy);
 
+    if point_transform == 0 {
+        for row in 0..frame.height {
+            let mut predictions = [initial; 4];
+            if row != 0 {
+                for (prediction, &previous) in predictions.iter_mut().zip(&scratch.previous) {
+                    *prediction = i32::from(previous);
+                }
+            }
+            for chunk in scratch.current.as_chunks_mut::<4>().0 {
+                for component in 0..4 {
+                    bits.refill();
+                    let value = apply_difference(
+                        predictions[component],
+                        tables[component].decode_difference_fast(&mut bits),
+                        mask,
+                    );
+                    chunk[component] = value;
+                    predictions[component] = i32::from(value);
+                }
+            }
+            sink(row, &scratch.current)?;
+            std::mem::swap(&mut scratch.previous, &mut scratch.current);
+        }
+        if let Some(error) = bits.take_error() {
+            return Err(error.to_owned());
+        }
+        return Ok(());
+    }
+
     for row in 0..frame.height {
         let mut predictions = [initial; 4];
         if row != 0 {
@@ -845,11 +874,7 @@ fn decode_scan_four_rows_with_scratch(
                 }
             }
         }
-        if point_transform == 0 {
-            sink(row, &scratch.current)?;
-        } else {
-            sink(row, &scratch.shifted)?;
-        }
+        sink(row, &scratch.shifted)?;
         std::mem::swap(&mut scratch.previous, &mut scratch.current);
     }
     if let Some(error) = bits.take_error() {
