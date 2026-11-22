@@ -263,16 +263,14 @@ impl DemosaicLinear {
         })
     }
 }
-#[cfg(test)]
+#[cfg(all(target_os = "linux", target_arch = "x86_64", test))]
 mod tests {
     use super::*;
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     fn image_3x3() -> MonoImage<f32> {
         MonoImage::from_raw(3, 3, vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]).unwrap()
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_rggb() -> mischief::Result<()> {
         let output = DemosaicLinear
@@ -282,7 +280,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_bggr() -> mischief::Result<()> {
         let output = DemosaicLinear
@@ -292,7 +289,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_grbg() -> mischief::Result<()> {
         let output = DemosaicLinear
@@ -302,7 +298,6 @@ mod tests {
         Ok(())
     }
 
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     #[test]
     fn test_linear_gbrg() -> mischief::Result<()> {
         let output = DemosaicLinear
