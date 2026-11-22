@@ -159,10 +159,13 @@ where
         }
         (SampleKind::U16, RawMosaic::U16(image)) => {
             let source = image.into_raw();
-            let converted =
+            let converted = if opcodes.is_single_bad_pixels_constant(0) {
+                apply_zero_bad_pixels_constant(&source, width, height)?
+            } else {
                 apply_opcode_bands(&source, width, height, &opcodes, f32::from, |value| {
                     convert_sample(value, u16::MAX)
-                })?;
+                })?
+            };
             MonoImage::from_raw(width_u32, height_u32, converted)
                 .map(RawMosaic::U16)
                 .ok_or_else(|| corrupt("opcode image dimensions are invalid"))
@@ -296,6 +299,68 @@ where
             Ok::<(), DecodeError>(())
         })
         .try_for_each(std::convert::identity)?;
+    Ok(output)
+}
+
+fn apply_zero_bad_pixels_constant(
+    source: &[u16],
+    width: usize,
+    height: usize,
+) -> Result<Vec<u16>, DecodeError> {
+    let expected = width
+        .checked_mul(height)
+        .ok_or_else(|| corrupt("opcode image sample count overflows"))?;
+    if width == 0 || height == 0 || source.len() != expected {
+        return Err(corrupt("opcode image sample count is invalid"));
+    }
+    let band_rows = (OPCODE_BAND_SAMPLES / width).max(1);
+    let band_len = band_rows * width;
+    let mut output = zeroed_samples::<u16>(expected)?;
+    output.copy_from_slice(source);
+    output
+        .par_chunks_mut(band_len)
+        .enumerate()
+        .for_each(|(band_index, output_band)| {
+            let start_row = band_index * band_rows;
+            for (local_row, output_row) in output_band.chunks_mut(width).enumerate() {
+                let row = start_row + local_row;
+                for column in 0..width {
+                    if source[row * width + column] != 0 {
+                        continue;
+                    }
+                    let mut sum = 0.0_f32;
+                    let mut count = 0.0_f32;
+                    for (dx, dy) in [
+                        (-2_isize, 0_isize),
+                        (2, 0),
+                        (0, -2),
+                        (0, 2),
+                        (-2, -2),
+                        (2, 2),
+                        (-2, 2),
+                        (2, -2),
+                    ] {
+                        let Some(neighbor_row) = row.checked_add_signed(dy) else {
+                            continue;
+                        };
+                        let Some(neighbor_column) = column.checked_add_signed(dx) else {
+                            continue;
+                        };
+                        if neighbor_row >= height || neighbor_column >= width {
+                            continue;
+                        }
+                        let value = source[neighbor_row * width + neighbor_column];
+                        if value != 0 {
+                            sum += f32::from(value);
+                            count += 1.0;
+                        }
+                    }
+                    if count > 0.0 {
+                        output_row[column] = (sum / count).round() as u16;
+                    }
+                }
+            }
+        });
     Ok(output)
 }
 
@@ -485,5 +550,29 @@ mod tests {
         .unwrap();
 
         assert_eq!(output, source);
+    }
+
+    #[test]
+    fn zero_bad_pixel_fast_path_matches_f32_oracle() {
+        let width = 8;
+        let height = 6;
+        let mut source = (0..width * height)
+            .map(|index| u16::try_from(index + 1).unwrap())
+            .collect::<Vec<_>>();
+        source[3 * width + 4] = 0;
+        let mut list = Vec::new();
+        for value in [1_u32, 4, 1, 0, 4] {
+            list.extend_from_slice(&value.to_be_bytes());
+        }
+        list.extend_from_slice(&0_u32.to_be_bytes());
+        let parsed = opcodes::parse(&list).unwrap();
+
+        let expected = apply_opcode_bands(&source, width, height, &parsed, f32::from, |value| {
+            super::convert_sample(value, u16::MAX)
+        })
+        .unwrap();
+        let actual = super::apply_zero_bad_pixels_constant(&source, width, height).unwrap();
+
+        assert_eq!(actual, expected);
     }
 }

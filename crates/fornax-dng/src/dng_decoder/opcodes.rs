@@ -103,6 +103,13 @@ impl OpcodeList {
             .count()
     }
 
+    pub(super) fn is_single_bad_pixels_constant(&self, value: u32) -> bool {
+        matches!(
+            self.opcodes.as_slice(),
+            [Opcode::FixBadPixelsConstant { constant }] if *constant == value
+        )
+    }
+
     pub(super) fn apply_full(&self, samples: &mut [f32], width: usize, height: usize) {
         self.apply_band(samples, width, height, 0, 0, height);
     }
