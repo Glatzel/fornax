@@ -1508,8 +1508,7 @@ mod lossless_tests {
                     speculative_successes += 1;
                     assert_eq!(speculative, fused, "flipped bit {bit}");
                 }
-                (Ok((false, _)), _) => {}
-                (Err(_), Err(_)) => {}
+                (Ok((false, _)), _) | (Err(_), Err(_)) => {}
                 (fast, fused) => {
                     panic!("speculative/fused disagreement at bit {bit}: {fast:?}, {fused:?}")
                 }
@@ -1772,10 +1771,7 @@ mod lossless_tests {
             workers,
             resync_bits,
         )?;
-        Ok(match output {
-            Some(output) => (true, output),
-            None => (false, Vec::new()),
-        })
+        Ok(output.map_or_else(|| (false, Vec::new()), |output| (true, output)))
     }
 
     fn decode_identity(

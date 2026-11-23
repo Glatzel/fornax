@@ -118,8 +118,7 @@ pub const fn classify_decode_error(error: &DecodeError) -> &'static str {
         | DecodeError::InvalidBlackPattern
         | DecodeError::BlackDeltaWidthMismatch { .. }
         | DecodeError::BlackDeltaHeightMismatch { .. } => "invalid_input",
-        DecodeError::Unsupported(_) => "unsupported",
-        DecodeError::UnsupportedPattern(_) => "unsupported",
+        DecodeError::Unsupported(_) | DecodeError::UnsupportedPattern(_) => "unsupported",
         DecodeError::Backend(_) => "backend",
         DecodeError::InvalidMetadata(_) => "invalid_metadata",
         DecodeError::InvalidOutput(_) => "invalid_output",

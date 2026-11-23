@@ -100,7 +100,7 @@ fn encoding_metadata_distinguishes_nikon_layout_modes() {
     let huffman = LayoutKind::NikonHuffman {
         bits: 14,
         init: [[0; 2]; 2],
-        curve: vec![0_u16; 16].into(),
+        curve: vec![0_u16; 16],
     };
     for (compression_id, mode, kind, expected_name) in [
         (

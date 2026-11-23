@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code, reason = "shared with the Criterion decoder benchmark")]
 
 use std::path::PathBuf;
 
