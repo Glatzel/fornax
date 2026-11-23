@@ -14,7 +14,6 @@
 mod bayer;
 mod crop_cast;
 mod decoder;
-mod decoders;
 mod demosaic;
 pub mod dng;
 pub mod error;
@@ -30,7 +29,6 @@ pub mod utils;
 pub use bayer::{BayerChannel, BayerPattern};
 pub use crop_cast::crop_and_cast;
 pub use decoder::Decoder;
-pub use decoders::{canon, fujifilm, hasselblad, nikon, panasonic, phase_one, sony};
 pub use demosaic::{AnyLazy, Demosaic, IDemosaic, LazyDemosaic, LmmseMode};
 pub use error::{
     DecodeError, DemosaicError, MetadataValidationError, PostProcessError, PreprocessError,
