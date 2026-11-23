@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use fornax_tiff::{ByteOrder, Directory, Tag, Value, unsigned_scalar};
 
 use crate::decoder::fujifilm::profiles::{ModelProfile, profile};
@@ -35,9 +33,9 @@ pub struct RawLayout {
     pub byte_order: ByteOrder,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Container {
-    pub source: Arc<[u8]>,
+    pub source: Box<[u8]>,
     pub model: String,
     pub cfa: crate::decoder::fujifilm::Cfa,
     pub profile: Option<ModelProfile>,
@@ -121,7 +119,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
 
     let compression = classify_compression(payload, width, height, bits)?;
     Ok(Container {
-        source: Arc::from(source),
+        source: Box::from(source),
         model,
         cfa,
         profile,

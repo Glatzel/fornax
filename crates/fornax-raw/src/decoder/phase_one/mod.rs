@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```no_run
-//! use fornax_raw::phase_one::IiqImage;
+//! use fornax_raw::decoder::phase_one::IiqImage;
 //!
 //! let bytes = std::fs::read("photo.IIQ")?;
 //! let decoder = IiqImage::parse(&bytes)?;
@@ -51,7 +51,7 @@ mod codec_contract_tests;
 /// # Examples
 ///
 /// ```no_run
-/// use fornax_raw::phase_one::IiqImage;
+/// use fornax_raw::decoder::phase_one::IiqImage;
 ///
 /// let bytes = std::fs::read("photo.IIQ")?;
 /// let decoder = IiqImage::parse(&bytes)?;
@@ -78,7 +78,7 @@ impl IiqImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::phase_one::IiqImage;
+    /// use fornax_raw::decoder::phase_one::IiqImage;
     ///
     /// let bytes = std::fs::read("photo.IIQ")?;
     /// let decoder = IiqImage::parse(&bytes)?;

@@ -37,8 +37,8 @@ use crate::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 /// # Examples
 ///
 /// ```no_run
+/// use fornax_raw::decoder::sony::ArwImage;
 /// use fornax_raw::protocol::IDecoder;
-/// use fornax_raw::sony::ArwImage;
 ///
 /// let decoder = ArwImage::decode(std::path::Path::new("photo.ARW"))?;
 /// let mosaic = decoder.raw_mosaic()?;

@@ -28,7 +28,7 @@ use crate::metadata::{EncodingMetadata, ProcessMetadata};
 use crate::protocol::{IDecoder, IDecoderEncoding};
 use crate::{CroppedMosaic, RawFloat, RawFormat, RawMosaic};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum Decoder {
     Dng(DngImage),
     Cr3(Cr3Image),

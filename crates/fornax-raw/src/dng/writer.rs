@@ -25,7 +25,7 @@ impl From<fornax_tiff::TiffError> for DngWriteError {
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::writer::DngWriterCompression;
+/// use fornax_raw::dng::writer::DngWriterCompression;
 ///
 /// assert_eq!(
 ///     DngWriterCompression::default(),
@@ -54,7 +54,7 @@ pub enum DngWriterCompression {
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::writer::DngVersion;
+/// use fornax_raw::dng::writer::DngVersion;
 ///
 /// assert_eq!(DngVersion::latest().minor, 7);
 /// ```

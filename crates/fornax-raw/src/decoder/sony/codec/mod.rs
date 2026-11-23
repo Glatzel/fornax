@@ -55,7 +55,7 @@ fn decode_ljpeg(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError>
 /// # Examples
 ///
 /// ```text
-/// assert_eq!(fornax_raw::sony::codec::arw2_white_level(None), 4095);
+/// assert_eq!(fornax_raw::decoder::sony::codec::arw2_white_level(None), 4095);
 /// ```
 pub fn arw2_white_level(curve: Option<[u16; 4]>) -> u16 { arw2::white_level(curve) }
 
@@ -64,7 +64,7 @@ pub fn arw2_white_level(curve: Option<[u16; 4]>) -> u16 { arw2::white_level(curv
 /// # Examples
 ///
 /// ```text
-/// assert_eq!(fornax_raw::sony::codec::arw6_white_level(), 39002);
+/// assert_eq!(fornax_raw::decoder::sony::codec::arw6_white_level(), 39002);
 /// ```
 pub const fn arw6_white_level() -> u16 { LLVC3_CURVE[4095] }
 

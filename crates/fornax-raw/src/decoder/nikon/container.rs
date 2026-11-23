@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use fornax_codec::{ByteOrder as CodecByteOrder, Chunk};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
@@ -25,7 +23,7 @@ pub enum LayoutKind {
     NikonHuffman {
         bits: u8,
         init: [[u16; 2]; 2],
-        curve: Arc<[u16]>,
+        curve: Vec<u16>,
     },
 }
 

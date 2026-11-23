@@ -92,7 +92,7 @@ fn cmt_tiff_header_allows_a_bounded_payload_prefix() {
 fn unknown_color_data_errors_at_process_metadata() {
     let header = CanonCrxHeader::new(0x0100, 4, 2, 4, 2, 14, 0, 0, 0x70, 14).unwrap();
     let image = Cr3Image {
-        source: Arc::from([]),
+        source: Box::from([]),
         sample: container::SampleRange { offset: 0, size: 0 },
         header: container::CodecHeader {
             header,

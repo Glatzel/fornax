@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```no_run
-//! use fornax_raw::hasselblad::HasselbladImage;
+//! use fornax_raw::decoder::hasselblad::HasselbladImage;
 //!
 //! let bytes = std::fs::read("photo.3FR")?;
 //! let decoder = HasselbladImage::parse(&bytes)?;
@@ -24,7 +24,6 @@ mod codec_contract_tests;
 mod tests;
 
 use std::path::Path;
-use std::sync::Arc;
 
 use codec::HasselbladCodec;
 use fornax_codec::{
@@ -46,16 +45,16 @@ use crate::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 /// # Examples
 ///
 /// ```no_run
-/// use fornax_raw::hasselblad::HasselbladImage;
+/// use fornax_raw::decoder::hasselblad::HasselbladImage;
 ///
 /// let bytes = std::fs::read("photo.3FR")?;
 /// let decoder = HasselbladImage::parse(&bytes)?;
 /// assert!(decoder.dng_metadata()?.len() > 0);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct HasselbladImage {
-    source: Arc<[u8]>,
+    source: Box<[u8]>,
     layout: container::RawLayout,
     metadata: Directory,
 }
@@ -71,7 +70,7 @@ impl HasselbladImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::hasselblad::HasselbladImage;
+    /// use fornax_raw::decoder::hasselblad::HasselbladImage;
     ///
     /// let bytes = std::fs::read("photo.3FR")?;
     /// let decoder = HasselbladImage::parse(&bytes)?;
@@ -98,7 +97,7 @@ impl HasselbladImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::hasselblad::HasselbladImage;
+    /// use fornax_raw::decoder::hasselblad::HasselbladImage;
     ///
     /// let bytes = std::fs::read("photo.3FR")?;
     /// let decoder = HasselbladImage::parse(&bytes)?;
@@ -145,7 +144,7 @@ impl HasselbladImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::hasselblad::HasselbladImage;
+    /// use fornax_raw::decoder::hasselblad::HasselbladImage;
     ///
     /// let bytes = std::fs::read("photo.3FR")?;
     /// let decoder = HasselbladImage::parse(&bytes)?;
@@ -168,7 +167,7 @@ impl HasselbladImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::hasselblad::HasselbladImage;
+    /// use fornax_raw::decoder::hasselblad::HasselbladImage;
     ///
     /// let bytes = std::fs::read("photo.3FR")?;
     /// let decoder = HasselbladImage::parse(&bytes)?;
@@ -193,7 +192,7 @@ impl HasselbladImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::hasselblad::HasselbladImage;
+    /// use fornax_raw::decoder::hasselblad::HasselbladImage;
     ///
     /// let bytes = std::fs::read("photo.3FR")?;
     /// let decoder = HasselbladImage::parse(&bytes)?;

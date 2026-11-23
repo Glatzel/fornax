@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use fornax_codec::{ICodecDecode, unpack_packed_u16_rows, unpack_u16_word_rows};
 use rayon::prelude::*;
 
@@ -167,7 +165,7 @@ pub enum NikonCodec {
         bits: u8,
         tree: NikonTreeId,
         init: [[u16; 2]; 2],
-        curve: Arc<[u16]>,
+        curve: Vec<u16>,
     },
 }
 
@@ -1139,7 +1137,6 @@ fn validate_bits(bits: u8) -> Result<(), CodecError> {
 
 #[cfg(test)]
 mod lossless_tests {
-    use std::sync::Arc;
 
     use fornax_codec::{
         ByteOrder, Chunk, CodecError, DecodeRequest, ICodecDecode, Predictor, SampleBuffer,
@@ -1204,7 +1201,7 @@ mod lossless_tests {
 
     #[test]
     fn non_trivial_curve_maps_predictor_indices() {
-        let curve: Arc<[u16]> = Arc::from([100, 200, 300, 400]);
+        let curve: Vec<u16> = vec![100, 200, 300, 400];
         let decoded = decode_with_curve(
             &[0xe7, 0x90],
             NikonTreeId::Lossless12,
@@ -1226,7 +1223,7 @@ mod lossless_tests {
             [[0, 1], [0, 0]],
             2,
             1,
-            Arc::from([100, 200]),
+            vec![100, 200],
         )
         .unwrap_err();
 
@@ -1260,7 +1257,7 @@ mod lossless_tests {
 
     #[test]
     fn single_strip_may_declare_more_rows_than_the_image() {
-        let curve = Arc::from(identity_curve(12));
+        let curve = identity_curve(12);
         let chunks = [Chunk {
             offset: 0,
             byte_count: 2,
@@ -1292,7 +1289,7 @@ mod lossless_tests {
 
     #[test]
     fn multiple_strips_are_unsupported() {
-        let curve = Arc::from(identity_curve(12));
+        let curve = identity_curve(12);
         let chunks = [
             Chunk {
                 offset: 0,
@@ -1328,7 +1325,7 @@ mod lossless_tests {
 
     #[test]
     fn oversized_dimensions_fail_before_output_allocation() {
-        let curve = Arc::from(identity_curve(12));
+        let curve = identity_curve(12);
         let chunks = [Chunk {
             offset: 0,
             byte_count: 1,
@@ -1442,7 +1439,7 @@ mod lossless_tests {
             })
             .collect::<Vec<_>>();
         let source = encode_image(&samples, tree, init, 513, 31);
-        let curve: Arc<[u16]> = Arc::from(identity_curve(bits));
+        let curve: Vec<u16> = identity_curve(bits);
         let (used, speculative) =
             decode_speculative_for_test(&source, tree, init, 513, 31, curve.clone(), 4, 8 * 1024)
                 .unwrap();
@@ -1480,7 +1477,7 @@ mod lossless_tests {
             .map(|index| ((index * 613 + 31) as u16) & 0x0fff)
             .collect::<Vec<_>>();
         let source = encode_image(&samples, tree, init, 257, 17);
-        let curve: Arc<[u16]> = Arc::from(identity_curve(12));
+        let curve: Vec<u16> = identity_curve(12);
         let mut speculative_successes = 0;
         for bit in (0..source.len() * 8).step_by(37) {
             let mut corrupt = source.clone();
@@ -1529,7 +1526,7 @@ mod lossless_tests {
             .map(|index| ((index * 997 + 5) as u16) & 0x3fff)
             .collect::<Vec<_>>();
         let source = encode_image(&samples, tree, init, 129, 9);
-        let curve = Arc::from(identity_curve(14));
+        let curve = identity_curve(14);
         let (used, _) =
             decode_speculative_for_test(&source, tree, init, 129, 9, curve, 4, 0).unwrap();
 
@@ -1545,7 +1542,7 @@ mod lossless_tests {
                 .map(|index| ((index * 811 + 7) as u16) & 0x3fff)
                 .collect::<Vec<_>>();
             let source = encode_image(&samples, tree, init, width, height);
-            let curve: Arc<[u16]> = Arc::from(identity_curve(14));
+            let curve: Vec<u16> = identity_curve(14);
             let (used, speculative) = decode_speculative_for_test(
                 &source,
                 tree,
@@ -1582,7 +1579,7 @@ mod lossless_tests {
             .collect::<Vec<_>>();
         let encoded_bits = encode_image_bits(&samples, tree, init, 37, 5);
         let exact = pack_bits(encoded_bits);
-        let curve: Arc<[u16]> = Arc::from(identity_curve(12));
+        let curve: Vec<u16> = identity_curve(12);
         for cut in 0..=exact.len() {
             let source = &exact[..cut];
             let speculative =
@@ -1752,7 +1749,7 @@ mod lossless_tests {
         init: [[u16; 2]; 2],
         width: usize,
         height: usize,
-        curve: Arc<[u16]>,
+        curve: Vec<u16>,
         workers: usize,
         resync_bits: usize,
     ) -> Result<(bool, Vec<u16>), CodecError> {
@@ -1792,14 +1789,7 @@ mod lossless_tests {
             NikonTreeId::Lossless12 => 12,
             NikonTreeId::Lossless14 => 14,
         };
-        decode_with_curve(
-            source,
-            tree,
-            init,
-            width,
-            height,
-            Arc::from(identity_curve(bits)),
-        )
+        decode_with_curve(source, tree, init, width, height, identity_curve(bits))
     }
 
     fn decode_with_curve(
@@ -1808,7 +1798,7 @@ mod lossless_tests {
         init: [[u16; 2]; 2],
         width: usize,
         height: usize,
-        curve: Arc<[u16]>,
+        curve: Vec<u16>,
     ) -> Result<Vec<u16>, CodecError> {
         decode_with_curve_kernel(
             source,
@@ -1839,7 +1829,7 @@ mod lossless_tests {
             init,
             width,
             height,
-            Arc::from(identity_curve(bits)),
+            identity_curve(bits),
             kernel,
         )
     }
@@ -1850,7 +1840,7 @@ mod lossless_tests {
         init: [[u16; 2]; 2],
         width: usize,
         height: usize,
-        curve: Arc<[u16]>,
+        curve: Vec<u16>,
         kernel: HuffmanKernel,
     ) -> Result<Vec<u16>, CodecError> {
         let bits = match tree {
@@ -1897,7 +1887,7 @@ mod lossless_tests {
         Ok(image.into_raw())
     }
 
-    fn request_curve(codec: &NikonCodec) -> Arc<[u16]> {
+    fn request_curve(codec: &NikonCodec) -> Vec<u16> {
         match codec {
             NikonCodec::Huffman { curve, .. } => curve.clone(),
             _ => panic!("test helper requires a Huffman codec"),

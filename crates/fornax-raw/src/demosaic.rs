@@ -33,7 +33,7 @@ use crate::{BayerPattern, MonoImage, RawFloat};
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::Demosaic;
+/// use fornax_raw::demosaic::Demosaic;
 ///
 /// assert_eq!(Demosaic::default(), Demosaic::Rcd);
 /// ```
@@ -64,7 +64,7 @@ pub enum Demosaic {
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::LmmseMode;
+/// use fornax_raw::demosaic::LmmseMode;
 ///
 /// assert_eq!(LmmseMode::default(), LmmseMode::Median);
 /// ```
@@ -87,7 +87,7 @@ impl Demosaic {
     /// # Examples
     ///
     /// ```
-    /// use fornax_raw::{Demosaic, LmmseMode};
+    /// use fornax_raw::demosaic::{Demosaic, LmmseMode};
     ///
     /// assert_eq!(
     ///     Demosaic::lmmse(),

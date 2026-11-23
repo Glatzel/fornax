@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar, unsigned_vec};
 use image::math::Rect;
@@ -31,9 +29,9 @@ pub struct Cfa {
     pub layout: u16,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Container {
-    pub source: Arc<[u8]>,
+    pub source: Box<[u8]>,
     pub make: String,
     pub model: String,
     pub unique_model: String,
@@ -86,7 +84,7 @@ pub fn parse_container(source: &[u8]) -> Result<Container, DecodeError> {
     let layout = raw_layout(source.len(), raw)?;
     let exif = exif_directory(source, parsed.root())?;
     Ok(Container {
-        source: Arc::from(source),
+        source: Box::from(source),
         make,
         model,
         unique_model,

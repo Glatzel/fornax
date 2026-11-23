@@ -49,7 +49,7 @@ impl DirectoryLookup for Directory {
 /// Owned backing storage for parsed TIFF bytes.
 #[derive(Clone)]
 pub enum TiffSource {
-    Owned(Arc<Vec<u8>>),
+    Owned(Arc<[u8]>),
     #[cfg(feature = "mmap")]
     Mapped(Arc<memmap2::Mmap>),
 }
@@ -76,7 +76,7 @@ impl TiffSource {
     }
 
     /// Creates source storage from an owned vector without copying it.
-    pub fn from_vec(bytes: Vec<u8>) -> Self { Self::Owned(Arc::new(bytes)) }
+    pub fn from_vec(bytes: Vec<u8>) -> Self { Self::Owned(Arc::from(bytes)) }
 
     /// Creates source storage from a read-only memory mapping.
     #[cfg(feature = "mmap")]

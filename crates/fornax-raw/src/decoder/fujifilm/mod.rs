@@ -3,7 +3,7 @@
 //! # Examples
 //!
 //! ```no_run
-//! use fornax_raw::fujifilm::RafImage;
+//! use fornax_raw::decoder::fujifilm::RafImage;
 //!
 //! let bytes = std::fs::read("photo.RAF")?;
 //! let decoder = RafImage::parse(&bytes)?;
@@ -23,7 +23,6 @@ mod request;
 mod tests;
 
 use std::path::Path;
-use std::sync::Arc;
 
 use codec::FujiCodec;
 use fornax_codec::{ByteOrder, Chunk, ICodecDecode, Predictor, SampleFormat};
@@ -67,16 +66,16 @@ impl Cfa {
 /// # Examples
 ///
 /// ```no_run
-/// use fornax_raw::fujifilm::RafImage;
+/// use fornax_raw::decoder::fujifilm::RafImage;
 ///
 /// let bytes = std::fs::read("photo.RAF")?;
 /// let decoder = RafImage::parse(&bytes)?;
 /// assert!(decoder.dng_metadata()?.len() > 0);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct RafImage {
-    source: Arc<[u8]>,
+    source: Box<[u8]>,
     layout: container::RawLayout,
     cfa: Cfa,
     metadata: Directory,
@@ -94,7 +93,7 @@ impl RafImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::fujifilm::RafImage;
+    /// use fornax_raw::decoder::fujifilm::RafImage;
     ///
     /// let bytes = std::fs::read("photo.RAF")?;
     /// let decoder = RafImage::parse(&bytes)?;
@@ -122,7 +121,7 @@ impl RafImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::fujifilm::RafImage;
+    /// use fornax_raw::decoder::fujifilm::RafImage;
     ///
     /// let bytes = std::fs::read("photo.RAF")?;
     /// let decoder = RafImage::parse(&bytes)?;
@@ -196,7 +195,7 @@ impl RafImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::fujifilm::RafImage;
+    /// use fornax_raw::decoder::fujifilm::RafImage;
     ///
     /// let bytes = std::fs::read("photo.RAF")?;
     /// let decoder = RafImage::parse(&bytes)?;
@@ -221,7 +220,7 @@ impl RafImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::fujifilm::RafImage;
+    /// use fornax_raw::decoder::fujifilm::RafImage;
     ///
     /// let bytes = std::fs::read("gfx.raf")?;
     /// let decoder = RafImage::parse(&bytes)?;
@@ -252,7 +251,7 @@ impl RafImage {
     /// # Examples
     ///
     /// ```no_run
-    /// use fornax_raw::fujifilm::RafImage;
+    /// use fornax_raw::decoder::fujifilm::RafImage;
     ///
     /// let bytes = std::fs::read("gfx.raf")?;
     /// let decoder = RafImage::parse(&bytes)?;

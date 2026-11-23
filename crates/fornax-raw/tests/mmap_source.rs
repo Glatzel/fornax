@@ -1,9 +1,10 @@
 #![cfg(all(feature = "mmap", unix))]
 
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::DngTag;
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
-use fornax_raw::{Decoder, MonoImage, RawMosaic};
+use fornax_raw::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Directory, Tag, Value};
 

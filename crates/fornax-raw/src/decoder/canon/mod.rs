@@ -2,7 +2,6 @@
 
 use std::fs;
 use std::path::Path;
-use std::sync::Arc;
 
 use crate::dng::Directory;
 use crate::dng::metadata::IDecoderDng;
@@ -29,9 +28,9 @@ pub use request::CanonCrxHeader;
 mod codec_contract_tests;
 
 /// A parsed Canon CR3 or CRM image.
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Cr3Image {
-    source: Arc<[u8]>,
+    source: Box<[u8]>,
     sample: container::SampleRange,
     header: container::CodecHeader,
     metadata: Directory,
@@ -58,7 +57,7 @@ impl Cr3Image {
     pub fn parse_sample(source: &[u8], sample_index: usize) -> Result<Self, DecodeError> {
         let parsed = container::parse(source, sample_index)?;
         Ok(Self {
-            source: Arc::from(source),
+            source: Box::from(source),
             sample: parsed.sample,
             header: parsed.header,
             metadata: parsed.metadata,

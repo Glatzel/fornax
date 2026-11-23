@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use fornax_tiff::{ByteOrder, Directory, Tag};
 
 use crate::decoder::nikon::makernote::bytes;
@@ -11,7 +9,7 @@ const LOSSLESS_VERSION: [u8; 2] = [0x46, 0x30];
 
 pub struct NikonCurve {
     pub init: [[u16; 2]; 2],
-    pub curve: Arc<[u16]>,
+    pub curve: Vec<u16>,
 }
 
 pub fn parse(directory: &Directory, bits: u8, order: ByteOrder) -> Result<NikonCurve, DecodeError> {
@@ -51,11 +49,7 @@ pub fn parse(directory: &Directory, bits: u8, order: ByteOrder) -> Result<NikonC
 
     Ok(NikonCurve {
         init,
-        curve: Arc::from(
-            (0..curve_limit)
-                .map(|value| value as u16)
-                .collect::<Vec<_>>(),
-        ),
+        curve: (0..curve_limit).map(|value| value as u16).collect(),
     })
 }
 

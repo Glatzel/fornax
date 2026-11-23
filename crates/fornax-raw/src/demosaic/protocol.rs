@@ -8,7 +8,8 @@ use crate::{BayerPattern, MonoImage, RawFloat, RgbImage};
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::{BayerPattern, Demosaic, IDemosaic, LazyDemosaic, MonoImage};
+/// use fornax_raw::demosaic::{Demosaic, IDemosaic, LazyDemosaic};
+/// use fornax_raw::{BayerPattern, MonoImage};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();
 /// let lazy = Demosaic::Linear
@@ -91,7 +92,8 @@ where
 /// # Examples
 ///
 /// ```
-/// use fornax_raw::{BayerPattern, Demosaic, IDemosaic, LazyDemosaic, MonoImage};
+/// use fornax_raw::demosaic::{Demosaic, IDemosaic, LazyDemosaic};
+/// use fornax_raw::{BayerPattern, MonoImage};
 ///
 /// let mosaic = MonoImage::from_raw(2, 2, vec![0.25_f32; 4]).unwrap();
 /// let lazy = Demosaic::Linear

@@ -36,7 +36,7 @@ mod codec_contract_tests;
 /// # Examples
 ///
 /// ```no_run
-/// use fornax_raw::panasonic::Rw2Image;
+/// use fornax_raw::decoder::panasonic::Rw2Image;
 ///
 /// let bytes = std::fs::read("photo.RW2")?;
 /// let decoder = Rw2Image::parse(&bytes)?;
