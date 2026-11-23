@@ -2,13 +2,12 @@ use std::marker::PhantomData;
 use std::path::{self, Path, PathBuf};
 use std::{fmt, fs};
 
-use fornax_dng::Directory;
-use fornax_dng::metadata::{IDecoderDng, directory_to_json_value};
-use fornax_dng::writer::DngWriter;
-use fornax_raw::error::{DecodeError, PostProcessError, PreprocessError};
+use fornax_raw::dng::Directory;
+use fornax_raw::dng::metadata::{IDecoderDng, directory_to_json_value};
 use fornax_raw::protocol::{IDecoder, IPostProcessor, IPreprocessor};
 use fornax_raw::raw_pipeline::{OutputColorSpace, PostProcessor, Preprocessor};
-use fornax_raw::{Decoder, RawFormat, RgbImage};
+use fornax_raw::writer::DngWriter;
+use fornax_raw::{Decoder, RawError, RawFormat, RgbImage};
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};
 use num_traits::ToPrimitive;
@@ -80,13 +79,7 @@ pub enum CliError {
 #[derive(Debug, Error)]
 enum ConvertError {
     #[error(transparent)]
-    Decode(#[from] DecodeError),
-    #[error(transparent)]
-    PostProcess(#[from] PostProcessError),
-    #[error(transparent)]
-    Preprocess(#[from] PreprocessError),
-    #[error(transparent)]
-    DngWrite(#[from] fornax_dng::writer::DngWriteError),
+    Raw(#[from] RawError),
     #[error("creating output directory {path} failed: {source}")]
     OutputDirectory {
         path: PathBuf,

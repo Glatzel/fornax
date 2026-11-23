@@ -7,11 +7,11 @@ import benchmark_matrix
 
 
 def test_direct_vendor_changes_select_only_that_vendor():
-    assert benchmark_matrix.impacted_formats(["crates/fornax-raw-decoder/src/decoders/sony/codec/mod.rs"]) == frozenset(
+    assert benchmark_matrix.impacted_formats(["crates/fornax-raw/src/decoders/sony/codec/mod.rs"]) == frozenset(
         {"ARW"}
     )
     assert benchmark_matrix.impacted_formats(
-        ["crates/fornax-raw-decoder/src/decoders/panasonic/codec/v8.rs"]
+        ["crates/fornax-raw/src/decoders/panasonic/codec/v8.rs"]
     ) == frozenset({"RW2"})
 
 
@@ -22,7 +22,7 @@ def test_bmff_selects_canon_and_codec_selects_everything():
 
 def test_shared_benchmark_and_manifest_changes_select_everything():
     for path in (
-        "crates/fornax-raw-decoder/benches/decoder.rs",
+        "crates/fornax-raw/benches/decoder.rs",
         "crates/fornax-tiff/src/raster.rs",
         "Cargo.toml",
         "crates/decoder-tracker/golden/test-manifest.csv",

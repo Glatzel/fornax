@@ -51,8 +51,8 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic.rs`
-- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
+- Modify: `crates/fornax-raw/src/demosaic.rs`
+- Modify: `crates/fornax-raw/src/lib.rs`
 - Modify: `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 
 **Interfaces:**
@@ -76,7 +76,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -96,7 +96,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- Modify: `crates/fornax-raw/src/demosaic/lmmse.rs`
 
 **Interfaces:**
 
@@ -115,7 +115,7 @@ outputs and comparison baselines.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
+- Modify: `crates/fornax-raw/src/lib.rs`
 
 **Interfaces:**
 
@@ -149,10 +149,10 @@ outputs and comparison baselines.
 
 ## Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
-- `crates/fornax-raw-pipeline/src/lib.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/dcb.rs`
+- `crates/fornax-raw/src/demosaic/lmmse.rs`
+- `crates/fornax-raw/src/lib.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
 - `crates/compare-demosaic/src/cases.rs`

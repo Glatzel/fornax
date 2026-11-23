@@ -210,7 +210,7 @@ $$
 
 ## Current Fornax behavior
 
-[`lmmse.rs`](../../../crates/fornax-raw-pipeline/src/demosaic/lmmse.rs)
+[`lmmse.rs`](../../../crates/fornax-raw/src/demosaic/lmmse.rs)
 implements a darktable-compatible variant. The processing order is:
 
 1. Normalize the mosaic by a robust positive scale.

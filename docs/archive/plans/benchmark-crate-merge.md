@@ -321,7 +321,7 @@ git diff --check
   baseline formatting differences. `cargo +nightly fmt --check`: PASS.
 - `cargo clippy --workspace --all-features --all-targets -- -D warnings`:
   FAIL on the pre-existing `clippy::too_many_arguments` finding in
-  `crates/fornax-raw-pipeline/src/demosaic/ahd.rs`.
+  `crates/fornax-raw/src/demosaic/ahd.rs`.
   `cargo clippy -p fornax-raw-pipeline --all-features
 --all-targets -- -D warnings -A clippy::too_many_arguments`: PASS with no
   issues in the changed packages.

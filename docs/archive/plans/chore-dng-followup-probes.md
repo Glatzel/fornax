@@ -60,7 +60,7 @@ graphs and annotation, existing Synthetic LJPEG and DNG comparison adapters.
 - Modify: `crates/fornax-codec/src/samples.rs`
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify only for probe support if needed:
-  `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
+  `crates/fornax-raw/benches/dng_gap_probe.rs`
 
 **Interfaces:**
 
@@ -102,7 +102,7 @@ time or faults improve meaningfully without a noisy-case regression.
 
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- Modify: `crates/fornax-raw-decoder/benches/dng_gap_probe.rs` only for
+- Modify: `crates/fornax-raw/benches/dng_gap_probe.rs` only for
   counter-only invocation support
 
 **Interfaces:**

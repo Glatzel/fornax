@@ -1,0 +1,60 @@
+use std::path::Path;
+
+use fornax_core::{MonoImage, RgbImage};
+
+use crate::error::{DecodeError, PostProcessError, PreprocessError};
+use crate::metadata::{
+    ColorCalibration, ColorTransform, EncodingMetadata, Levels, ProcessMetadata,
+};
+use crate::{BayerPattern, CroppedMosaic, NormalizedMosaic, RawFloat, RawMosaic};
+pub trait IDecoder: Send + Sync {
+    fn decode(input: &Path) -> Result<Self, DecodeError>
+    where
+        Self: Sized;
+    fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
+    fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
+    where
+        T: RawFloat;
+    fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
+}
+
+/// Reports the source encoding selected by a successfully parsed decoder.
+pub trait IDecoderEncoding {
+    fn encoding_metadata(&self) -> EncodingMetadata;
+}
+
+pub trait IPreprocessor<T>: Sized
+where
+    T: RawFloat,
+{
+    fn process(
+        &self,
+        decoded: CroppedMosaic<T>,
+        levels: &Levels,
+    ) -> Result<NormalizedMosaic<T>, PreprocessError>;
+}
+pub trait IPostProcessMetadata: Sync {
+    fn bayer_pattern(&self) -> BayerPattern;
+
+    /// Normalized color calibration (white balance, profiles, camera -> XYZ
+    /// D50).
+    fn color_calibration(&self) -> &ColorCalibration;
+
+    /// Black/white levels; drop this method (and `T`) if the trait is
+    /// color-only.
+    fn levels(&self) -> &Levels;
+
+    /// Convenience: build the transforms for a white point.
+    fn resolve_color(&self) -> ColorTransform { self.color_calibration().resolve() }
+}
+pub trait IPostProcessor<T, M>
+where
+    T: RawFloat,
+    M: IPostProcessMetadata,
+{
+    fn process(
+        &self,
+        bayer_image: MonoImage<T>,
+        metadata: &M,
+    ) -> Result<RgbImage<T>, PostProcessError>;
+}

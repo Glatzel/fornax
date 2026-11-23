@@ -87,7 +87,7 @@ Out of scope:
 - `crates/fornax-codec/src/ljpeg.rs`
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs` only if measurement support
   is required
-- `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if
+- `crates/fornax-raw/benches/dng_gap_probe/linux.rs` only if
   counter-only or exact-input measurement support is required
 - `docs/reference/decoders/perf/dng-gap-profiles/*`
 - `docs/reference/decoders/perf/dng-remaining-gap.md`

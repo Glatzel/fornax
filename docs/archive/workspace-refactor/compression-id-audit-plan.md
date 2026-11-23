@@ -101,9 +101,9 @@ git commit -m "docs: audit TIFF compression id ownership"
 - Modify: `crates/fornax-tiff/Cargo.toml`
 - Modify: `crates/fornax-tiff/tests/constants.rs`
 - Modify: `crates/fornax-tiff/tests/raster.rs`
-- Modify: `crates/fornax-dng/src/constants.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
-- Modify: `crates/fornax-dng/src/writer.rs`
+- Modify: `crates/fornax-raw/src/dng/constants.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/dng/writer.rs`
 - Modify: `crates/fornax-dng/Cargo.toml`
 - Modify: `crates/fornax-tiff/README.md`
 - Modify: `crates/fornax-dng/README.md`

@@ -15,7 +15,7 @@ version-relevant behavior, and known differences from Fornax.
 - License: MIT OR Apache-2.0.
 
 The exact package is pinned as a direct dev-dependency of
-`fornax-raw-decoder`. Rawler 0.8.0 is pinned beside it as the other
+`fornax-raw`. Rawler 0.8.0 is pinned beside it as the other
 benchmark-only reference.
 
 ## Version-relevant changes

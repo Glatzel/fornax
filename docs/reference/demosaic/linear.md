@@ -31,7 +31,7 @@ constant scenes neutral and preserves signed values without a global clamp.
 
 ## Current Fornax behavior
 
-[`LinearLazy`](../../../crates/fornax-raw-pipeline/src/demosaic/linear.rs)
+[`LinearLazy`](../../../crates/fornax-raw/src/demosaic/linear.rs)
 uses a checked border path and a compile-time channel-specialized interior
 path. It produces normalized scene-linear RGB for all four conventional 2x2
 Bayer patterns supported by `BayerPattern`.

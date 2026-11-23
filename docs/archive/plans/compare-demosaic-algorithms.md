@@ -167,10 +167,10 @@ comparison adapter pins the supported Bayer branch and direct RGB copy-out.
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs` only if the public lazy wrapper
+- `crates/fornax-raw/src/demosaic/vng.rs`
+- `crates/fornax-raw/src/demosaic.rs` only if the public lazy wrapper
   must change; the preferred result keeps `DenseLazy`
-- `crates/fornax-raw-pipeline/src/demosaic/buffer.rs` only for tested
+- `crates/fornax-raw/src/demosaic/buffer.rs` only for tested
   code-domain helpers
 - `crates/compare-demosaic/src/snapshots/*-VNG-*.snap`
 - `crates/compare-demosaic/README.md` VNG note outside generated markers
@@ -318,12 +318,12 @@ waiver.
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/ppg.rs` if the seed helper is
+- `crates/fornax-raw/src/demosaic/lmmse.rs`
+- `crates/fornax-raw/src/demosaic/ppg.rs` if the seed helper is
   extracted
-- `crates/fornax-raw-pipeline/src/demosaic.rs` if the profile enum loses
+- `crates/fornax-raw/src/demosaic.rs` if the profile enum loses
   `Lmmse` in this task
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` only to remove
+- `crates/fornax-raw/src/demosaic/directional.rs` only to remove
   the LMMSE profile after the new implementation passes
 - `crates/compare-demosaic/src/snapshots/*-LMMSE-darktable.snap`
 - `crates/compare-demosaic/README.md` LMMSE note outside generated markers
@@ -462,12 +462,12 @@ helpers:
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/aahd.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/ahd.rs` only if shared LUT helpers
+- `crates/fornax-raw/src/demosaic/aahd.rs`
+- `crates/fornax-raw/src/demosaic/ahd.rs` only if shared LUT helpers
   are extracted
-- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the AAHD profile
+- `crates/fornax-raw/src/demosaic.rs` to remove the AAHD profile
   variant
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove AAHD-only
+- `crates/fornax-raw/src/demosaic/directional.rs` to remove AAHD-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-AAHD-libraw.snap`
 - `crates/compare-demosaic/README.md` AAHD note outside generated markers
@@ -600,10 +600,10 @@ Port LibRaw 0.22.3 `LibRaw::dht_interpolate()` and the private `DHT` helpers:
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the DHT profile
+- `crates/fornax-raw/src/demosaic/dht.rs`
+- `crates/fornax-raw/src/demosaic.rs` to remove the DHT profile
   variant
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove DHT-only
+- `crates/fornax-raw/src/demosaic/directional.rs` to remove DHT-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-DHT-libraw.snap`
 - `crates/compare-demosaic/README.md` DHT note outside generated markers
@@ -729,10 +729,10 @@ Port LibRaw 0.22.3 `LibRaw::dcb(0, 1)` and its called helpers:
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs` to remove the DCB profile
+- `crates/fornax-raw/src/demosaic/dcb.rs`
+- `crates/fornax-raw/src/demosaic.rs` to remove the DCB profile
   variant
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` to remove DCB-only
+- `crates/fornax-raw/src/demosaic/directional.rs` to remove DCB-only
   code after migration
 - `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - `crates/compare-demosaic/README.md` DCB note outside generated markers
@@ -865,9 +865,9 @@ Port darktable 5.6.2 `amaze_demosaic()`:
 
 ### Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/amaze.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` (delete when all
+- `crates/fornax-raw/src/demosaic/amaze.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/directional.rs` (delete when all
   five profiles have migrated)
 - `crates/compare-demosaic/src/snapshots/*-AMaZE-darktable.snap`
 - `crates/compare-demosaic/README.md` AMaZE note outside generated markers

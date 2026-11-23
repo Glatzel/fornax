@@ -72,7 +72,7 @@ shrink, half-size, four-color RGB, X-Trans, or non-Bayer input.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
@@ -117,7 +117,7 @@ Expected: the new focused tests pass.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**
@@ -161,7 +161,7 @@ Expected: all focused tests pass.
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dht.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dht.rs`
 - Test: same file
 
 **Interfaces:**

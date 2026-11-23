@@ -77,8 +77,8 @@
 
 **Files:**
 - Inspect: `crates/fornax-raw-decoder/Cargo.toml`
-- Inspect: `crates/fornax-raw-decoder/benches/decoder.rs`
-- Inspect: `crates/fornax-raw-decoder/benches/flashraw_wrapper.rs`
+- Inspect: `crates/fornax-raw/benches/decoder.rs`
+- Inspect: `crates/fornax-raw/benches/flashraw_wrapper.rs`
 - Create: transient raw measurements under `target/flashraw-031/`
 
 **Interfaces:**

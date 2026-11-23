@@ -55,11 +55,11 @@ Out of scope:
 **Files:**
 
 - Create: `crates/fornax-raw-pipeline/Cargo.toml`
-- Create: `crates/fornax-raw-pipeline/src/lib.rs`
-- Create: `crates/fornax-raw-pipeline/src/preprocessor.rs`
-- Create: `crates/fornax-raw-pipeline/src/postprocessor.rs`
-- Create: `crates/fornax-raw-pipeline/src/demosaic.rs`
-- Move the demosaic module tree into `crates/fornax-raw-pipeline/src/demosaic/*`.
+- Create: `crates/fornax-raw/src/lib.rs`
+- Create: `crates/fornax-raw/src/preprocessor.rs`
+- Create: `crates/fornax-raw/src/postprocessor.rs`
+- Create: `crates/fornax-raw/src/demosaic.rs`
+- Move the demosaic module tree into `crates/fornax-raw/src/demosaic/*`.
 - Move the preprocessing benchmark into `crates/fornax-raw-pipeline/benches/preprocessor.rs`.
 - Move the demosaic benchmark into `crates/fornax-raw-pipeline/benches/demosaic.rs`.
 - Move: `crates/fornax-raw-pipeline/tests/protocol.rs` coverage into the new crate or retain it in the compatibility package
@@ -147,7 +147,7 @@ Expected: PASS with both `preprocessor` and `demosaic` benchmark executables bui
 - Modify: `crates/compare-demosaic/src/cases.rs`
 - Modify: `crates/compare-demosaic/src/reference.rs`
 - Modify: `crates/fornax-raw-pipeline/Cargo.toml`
-- Replace implementation in: `crates/fornax-raw-pipeline/src/lib.rs`
+- Replace implementation in: `crates/fornax-raw/src/lib.rs`
 - Modify: `crates/fornax-raw-pipeline/README.md`
 
 **Interfaces:**

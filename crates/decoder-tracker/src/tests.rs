@@ -1,15 +1,15 @@
 use std::fs;
 use std::path::Path;
 
-use fornax_dng::Directory;
-use fornax_dng::metadata::IDecoderDng;
-use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::{
+use fornax_raw::dng::Directory;
+use fornax_raw::dng::metadata::IDecoderDng;
+use fornax_raw::error::DecodeError;
+use fornax_raw::metadata::{
     ColorCalibration, EncodingMetadata, EncodingSampleFormat, Levels, MetadataSource,
     ProcessMetadata, RawColorMeta,
 };
-use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage, RawFloat, RawMosaic};
+use fornax_raw::protocol::{IDecoder, IDecoderEncoding};
+use fornax_raw::{BayerPattern, CroppedMosaic, MonoImage, RawFloat, RawMosaic};
 use fornax_tiff::Value;
 use image::math::Rect;
 use rstest::rstest;
@@ -340,13 +340,13 @@ fn panic_is_mapped_to_a_runner_row() {
 #[test]
 fn decode_errors_use_stable_error_kinds() {
     assert_eq!(
-        classify_decode_error(&fornax_raw_core::error::DecodeError::Unsupported(
+        classify_decode_error(&fornax_raw::error::DecodeError::Unsupported(
             "layout".into()
         )),
         "unsupported"
     );
     assert_eq!(
-        classify_decode_error(&fornax_raw_core::error::DecodeError::InvalidInput(
+        classify_decode_error(&fornax_raw::error::DecodeError::InvalidInput(
             "bytes".into()
         )),
         "invalid_input"

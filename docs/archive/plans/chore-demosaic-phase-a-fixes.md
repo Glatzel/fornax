@@ -49,7 +49,7 @@ Out of scope:
 ## Files expected to change
 
 - `crates/fornax-raw-pipeline/tests/demosaic_invariants.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/{amaze,lmmse,aahd,dcb,dht,rcd}.rs`
+- `crates/fornax-raw/src/demosaic/{amaze,lmmse,aahd,dcb,dht,rcd}.rs`
 - `crates/compare-demosaic/baseline/canonical.json` and generated README only if
   accepted comparison numbers or verdicts change.
 - This plan.

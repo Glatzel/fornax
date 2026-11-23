@@ -51,7 +51,7 @@ fixtures where real inputs are not needed.
 - `crates/fornax-codec/src/ljpeg.rs` only if fault attribution justifies a
   scratch change
 - `crates/fornax-codec/tests/encode_contract.rs` or a focused codec test file
-- `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
+- `crates/fornax-raw/benches/dng_gap_probe.rs`
 - `docs/reference/decoders/perf/dng-remaining-gap.md`
 - `docs/reference/decoders/perf/dng-gap-profiles/*`
 - This plan

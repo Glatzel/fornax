@@ -59,9 +59,9 @@ project validation scripts.
 - Modify: `book/src/bibliography.md`
 - Modify: `book/src/notation.md`
 - Modify: `book/template.md`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/amaze.rs`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
+- Modify: `crates/fornax-raw/src/demosaic/amaze.rs`
+- Modify: `crates/fornax-raw/src/demosaic/lmmse.rs`
+- Modify: `crates/fornax-raw/src/demosaic/vng.rs`
 - Modify: `docs/README.md`
 - Modify: `docs/CONVENTIONS.md`
 - Modify: `docs/architecture/overview.md`
@@ -174,7 +174,7 @@ project validation scripts.
 - `book/src/bibliography.md`
 - `book/src/notation.md`
 - `book/template.md`
-- `crates/fornax-raw-pipeline/src/demosaic/{amaze,lmmse,vng}.rs`
+- `crates/fornax-raw/src/demosaic/{amaze,lmmse,vng}.rs`
   (module-doc link lines only)
 - `docs/README.md`
 - `docs/CONVENTIONS.md`

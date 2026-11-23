@@ -7,10 +7,10 @@ sample assembly, TIFF-compatible predictors, lossless and lossy JPEG, JPEG XL,
 LZW, PackBits, Deflate, and optional Zstandard handling. It also provides
 reusable canonical Huffman and MSB-first bit-reading primitives. It returns
 `SampleBuffer` values and has no dependency on TIFF, DNG, or raw workflow
-types. Vendor stream implementations live in their vendor decoder crates and
+types. Vendor stream implementations live in `fornax-raw` vendor submodules and
 implement `ICodecDecode` there. TIFF compression identifiers belong to
 [`fornax-tiff`](../fornax-tiff/README.md), while
-[`fornax-dng`](../fornax-dng/README.md) translates container metadata into
+[`fornax-raw`](../fornax-raw/README.md) translates container metadata into
 codec requests.
 
 ## Interfaces
@@ -29,9 +29,9 @@ order, predictor, and source bytes. Encoding returns row-major
 Lossy JPEG and JPEG XL are absent from `EncodeCompression`, so
 they cannot be selected for encoding.
 
-`fornax_dng` translates TIFF/DNG tags into these requests. Container parsing,
-format tags, raw transforms, crop metadata, and DNG writer policy remain in the
-format crates.
+`fornax_raw` translates TIFF/DNG tags into these requests. Container parsing,
+format tags, raw transforms, crop metadata, and DNG writer policy remain in
+`fornax-raw`.
 
 ## Compression Support
 

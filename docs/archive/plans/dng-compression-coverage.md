@@ -67,8 +67,8 @@ Out of scope:
 - `crates/fornax-codec/tests/encode_contract.rs`
 - `crates/fornax-dng/Cargo.toml`
 - `crates/fornax-dng/benches/writer.rs`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/writer.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
 - `crates/fornax-tiff/README.md`
 - `crates/fornax-tiff/src/constants.rs`
 - `crates/fornax-tiff/tests/constants.rs`
@@ -109,8 +109,8 @@ Validation record:
 - `scripts/agent-validation.sh` passed tracker tests, workspace tests,
   doctests, formatting, and rustdoc, then failed in clippy on pre-existing
   `unseparated_literal_suffix` warnings at
-  `crates/fornax-raw-core/src/metadata.rs:750-751` and a pre-existing
-  `suboptimal_flops` warning at `crates/fornax-raw-pipeline/src/lib.rs:415`.
+  `crates/fornax-raw/src/metadata.rs:750-751` and a pre-existing
+  `suboptimal_flops` warning at `crates/fornax-raw/src/lib.rs:415`.
   This branch does not modify those crates.
 - Pull request: <https://github.com/Glatzel/fornax/pull/675>.
 

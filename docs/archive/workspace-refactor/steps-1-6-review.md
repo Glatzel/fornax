@@ -37,7 +37,7 @@ This archived workspace-refactor record documents Steps 1-6 workspace refactor r
 
 | Field | Result |
 | --- | --- |
-| Scope and symbols | `[DONE]` PR #683 touched both former compatibility processor crates, the new `fornax-raw-pipeline`, the facade, `fornax-cli`, and `compare-demosaic`. It moved `Preprocessor` and `{Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` to `fornax_raw_pipeline::*` (`crates/fornax-raw-pipeline/src/lib.rs:10`). |
+| Scope and symbols | `[DONE]` PR #683 touched both former compatibility processor crates, the new `fornax-raw-pipeline`, the facade, `fornax-cli`, and `compare-demosaic`. It moved `Preprocessor` and `{Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` to `fornax_raw_pipeline::*` (`crates/fornax-raw/src/lib.rs:10`). |
 | Metrics | 8,496 non-blank LOC moved (238 preprocessor + 8,258 postprocessor); 8 consumer/facade files changed; test attributes `+15/-12` because suites moved. |
 | Deviation | `[DONE]` None at #683; its pre/post compatibility crates were retained. They were deleted later by #690. |
 
@@ -61,7 +61,7 @@ This archived workspace-refactor record documents Steps 1-6 workspace refactor r
 
 | Field | Result |
 | --- | --- |
-| Scope and symbols | `[DONE]` PR #687 touched `fornax-tiff` and `fornax-dng`, plus ARW tests. DNG-local planning became `RasterLayout`/`RasterRequest`; TIFF defaults became `resolve_tiff_compression` (`crates/fornax-dng/src/dng_decoder/mod.rs:155`). |
+| Scope and symbols | `[DONE]` PR #687 touched `fornax-tiff` and `fornax-dng`, plus ARW tests. DNG-local planning became `RasterLayout`/`RasterRequest`; TIFF defaults became `resolve_tiff_compression` (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:155`). |
 | Metrics | No file rename; 694 non-blank lines in the new raster module; 1 production caller changed; test attributes `+15/-0`; recorded TIFF 50 and workspace 325 passing. |
 | Deviation | `[DEVIATION]` The target design made raster optional, but current TIFF has no feature section and always depends on codec (`crates/fornax-tiff/Cargo.toml:6`). |
 
@@ -69,9 +69,9 @@ This archived workspace-refactor record documents Steps 1-6 workspace refactor r
 
 | Field | Result |
 | --- | --- |
-| Scope and symbols | `[DONE]` PR #688 touched `fornax-tiff`, `fornax-dng`, and `fornax-arw`. Five existing values moved to `DngCompressionMethod::*` and `DngPhotometricInterpretation::LinearRaw`; `Depth` and `PhotometricMask` are new (`crates/fornax-dng/src/constants.rs:9`). |
+| Scope and symbols | `[DONE]` PR #688 touched `fornax-tiff`, `fornax-dng`, and `fornax-arw`. Five existing values moved to `DngCompressionMethod::*` and `DngPhotometricInterpretation::LinearRaw`; `Depth` and `PhotometricMask` are new (`crates/fornax-raw/src/dng/constants.rs:9`). |
 | Metrics | 5 enum-variant lines moved; 5 source callers changed; test attributes `+9/-0`; recorded workspace 334 and unchanged 9-row hashes. |
-| Deviation | `[DEVIATION]` The PR wording calls three photometric values moved, but only `LinearRaw` existed in baseline TIFF; two are additions (`crates/fornax-dng/src/constants.rs:26`). |
+| Deviation | `[DEVIATION]` The PR wording calls three photometric values moved, but only `LinearRaw` existed in baseline TIFF; two are additions (`crates/fornax-raw/src/dng/constants.rs:26`). |
 
 ## 3. Verified architecture facts
 
@@ -195,23 +195,23 @@ pub fn from_raw_mosaic(mosaic: &RawMosaic) -> SampleBuffer
 pub fn into_raw_mosaic(buffer: SampleBuffer) -> Result<RawMosaic, DecodeError>
 ```
 
-Evidence: `crates/fornax-dng/src/sample_buffer.rs:5`, `crates/fornax-dng/src/lib.rs:6`.
+Evidence: `crates/fornax-raw/src/dng/sample_buffer.rs:5`, `crates/fornax-raw/src/dng/lib.rs:6`.
 
-`[DONE]` Decode into `RawMosaic` is zero-copy at the adapter boundary: codec decode returns an owned `SampleBuffer`, `into_raw_mosaic` moves each `ImageBuffer` into the matching variant, and extraction uses `image.into_raw()` without copying (`crates/fornax-dng/src/sample_buffer.rs:14`, `crates/fornax-codec/src/sample_buffer.rs:166`, `crates/fornax-dng/src/dng_decoder/mod.rs:233`).
+`[DONE]` Decode into `RawMosaic` is zero-copy at the adapter boundary: codec decode returns an owned `SampleBuffer`, `into_raw_mosaic` moves each `ImageBuffer` into the matching variant, and extraction uses `image.into_raw()` without copying (`crates/fornax-raw/src/dng/sample_buffer.rs:14`, `crates/fornax-codec/src/sample_buffer.rs:166`, `crates/fornax-raw/src/dng/dng_decoder/mod.rs:233`).
 
-`[DONE]` Encode is not zero-copy: `DngWriter::write_dng_with` passes a borrowed `RawMosaic` to `from_raw_mosaic`, which clones the `ImageBuffer`; encoding then copies samples into byte-oriented chunks (`crates/fornax-dng/src/writer.rs:147`, `crates/fornax-dng/src/sample_buffer.rs:5`, `crates/fornax-codec/src/encode.rs:40`).
+`[DONE]` Encode is not zero-copy: `DngWriter::write_dng_with` passes a borrowed `RawMosaic` to `from_raw_mosaic`, which clones the `ImageBuffer`; encoding then copies samples into byte-oriented chunks (`crates/fornax-raw/src/dng/writer.rs:147`, `crates/fornax-raw/src/dng/sample_buffer.rs:5`, `crates/fornax-codec/src/encode.rs:40`).
 
 ## 5. DNG-owned constants
 
 | `[DONE]` Name/value | Current location | Origin evidence |
 | --- | --- | --- |
-| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-dng/src/constants.rs:14` | DNG specification; `docs/reference/decoders/reference/dng-compression.md:63` |
-| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-dng/src/constants.rs:16` | LibTIFF self-assignment; `docs/reference/decoders/reference/dng-compression.md:64` |
-| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-dng/src/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/reference/decoders/reference/dng-compression.md:65` |
-| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-dng/src/constants.rs:20` | DNG 1.7 specification; `docs/reference/decoders/reference/dng-compression.md:66` |
-| `[UNVERIFIED]` `DngPhotometricInterpretation::LinearRaw = 34892` | `crates/fornax-dng/src/constants.rs:31` | Origin is asserted only in code (`crates/fornax-dng/src/constants.rs:26`); no value-specific citation is retained. |
-| `[UNVERIFIED]` `DngPhotometricInterpretation::Depth = 51177` | `crates/fornax-dng/src/constants.rs:33` | Origin unknown in current repository evidence. |
-| `[UNVERIFIED]` `DngPhotometricInterpretation::PhotometricMask = 52527` | `crates/fornax-dng/src/constants.rs:35` | Origin unknown in current repository evidence. |
+| `[DONE]` `DngCompressionMethod::LossyJpeg = 34892` | `crates/fornax-raw/src/dng/constants.rs:14` | DNG specification; `docs/reference/decoders/reference/dng-compression.md:63` |
+| `[DONE]` `DngCompressionMethod::Zstd = 50000` | `crates/fornax-raw/src/dng/constants.rs:16` | LibTIFF self-assignment; `docs/reference/decoders/reference/dng-compression.md:64` |
+| `[DONE]` `DngCompressionMethod::JpegXlLegacy = 50002` | `crates/fornax-raw/src/dng/constants.rs:18` | GDAL self-assignment, not DNG or LibTIFF; `docs/reference/decoders/reference/dng-compression.md:65` |
+| `[DONE]` `DngCompressionMethod::JpegXl = 52546` | `crates/fornax-raw/src/dng/constants.rs:20` | DNG 1.7 specification; `docs/reference/decoders/reference/dng-compression.md:66` |
+| `[UNVERIFIED]` `DngPhotometricInterpretation::LinearRaw = 34892` | `crates/fornax-raw/src/dng/constants.rs:31` | Origin is asserted only in code (`crates/fornax-raw/src/dng/constants.rs:26`); no value-specific citation is retained. |
+| `[UNVERIFIED]` `DngPhotometricInterpretation::Depth = 51177` | `crates/fornax-raw/src/dng/constants.rs:33` | Origin unknown in current repository evidence. |
+| `[UNVERIFIED]` `DngPhotometricInterpretation::PhotometricMask = 52527` | `crates/fornax-raw/src/dng/constants.rs:35` | Origin unknown in current repository evidence. |
 
 `[DONE]` Only the first five values were present in baseline `fornax-tiff`; `Depth` and `PhotometricMask` are additions.
 
@@ -248,7 +248,7 @@ pub enum DngCompressionMethod {
 }
 ```
 
-Evidence: `crates/fornax-tiff/src/value.rs:3`, `crates/fornax-tiff/src/constants.rs:85`, `crates/fornax-dng/src/constants.rs:9`. Photometric enums use the same `Unknown(u16)` pattern (`crates/fornax-tiff/src/constants.rs:103`, `crates/fornax-dng/src/constants.rs:26`).
+Evidence: `crates/fornax-tiff/src/value.rs:3`, `crates/fornax-tiff/src/constants.rs:85`, `crates/fornax-raw/src/dng/constants.rs:9`. Photometric enums use the same `Unknown(u16)` pattern (`crates/fornax-tiff/src/constants.rs:103`, `crates/fornax-raw/src/dng/constants.rs:26`).
 
 ## 6. TIFF raster
 
@@ -291,7 +291,7 @@ pub const fn resolve_tiff_compression(id: u16) -> Option<DecodeCompression>;
 
 Evidence: `crates/fornax-tiff/src/raster.rs:20`, `:54`, `:92`, `:186`, `:324`, `:368`, `:588`, `:694`; re-exports at `crates/fornax-tiff/src/lib.rs:13`.
 
-`[DONE]` TIFF resolves only IDs `1`, `7`, and `8` (`crates/fornax-tiff/src/raster.rs:694`). DNG first maps `34892`, `50000`, `50002`, and `52546`, then falls back to TIFF (`crates/fornax-dng/src/dng_decoder/mod.rs:220`). The request carries already-resolved codec compression (`crates/fornax-dng/src/dng_decoder/mod.rs:155`).
+`[DONE]` TIFF resolves only IDs `1`, `7`, and `8` (`crates/fornax-tiff/src/raster.rs:694`). DNG first maps `34892`, `50000`, `50002`, and `52546`, then falls back to TIFF (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:220`). The request carries already-resolved codec compression (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:155`).
 
 `[DEVIATION]` Current `fornax-tiff` has no features, so raster is always compiled and `fornax-codec` is not feature-gated; the dependency also forces Deflate and lossless JPEG (`crates/fornax-tiff/Cargo.toml:6`).
 
@@ -301,7 +301,7 @@ Counts below mean current Rust files outside the defining crate that mention the
 
 | `[DONE]` API change | Current users |
 | --- | ---: |
-| Pipeline types moved to `fornax_raw_pipeline::{Preprocessor, Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` (`crates/fornax-raw-pipeline/src/lib.rs:10`) | 5, 8, 0, 4, 4, 3, 3 |
+| Pipeline types moved to `fornax_raw_pipeline::{Preprocessor, Demosaic, LmmseMode, IDemosaic, LazyDemosaic, OutputColorSpace, PostProcessor}` (`crates/fornax-raw/src/lib.rs:10`) | 5, 8, 0, 4, 4, 3, 3 |
 | `fornax_codec::decode`: `Result<RawMosaic, _>` -> `Result<SampleBuffer, _>` (`crates/fornax-codec/src/lib.rs:99`) | 2 |
 | `EncodeRequest.image`: `&RawMosaic` -> `&SampleBuffer` (`crates/fornax-codec/src/request.rs:180`) | 1 |
 | New `SampleBuffer`; new `SampleBufferError` | 3; 0 |
@@ -349,14 +349,14 @@ subtable.
 
 | # | Status | Current evidence |
 | ---: | --- | --- |
-| 1 | `[DEVIATION]` Partly resolved | The crate is now explicitly named `fornax-raw-core`, and codec no longer depends on it, but it still mixes Bayer/raw storage, process metadata, and all stage traits: `crates/fornax-raw-core/src/lib.rs:9`, `crates/fornax-raw-core/src/primitive.rs:23`, `crates/fornax-raw-core/src/protocol.rs:8`. |
+| 1 | `[DEVIATION]` Partly resolved | The crate is now explicitly named `fornax-raw-core`, and codec no longer depends on it, but it still mixes Bayer/raw storage, process metadata, and all stage traits: `crates/fornax-raw/src/lib.rs:9`, `crates/fornax-raw/src/primitive.rs:23`, `crates/fornax-raw/src/protocol.rs:8`. |
 | 2 | `[DONE]` Resolved | Codec has no `fornax-raw-core` dependency (`crates/fornax-codec/Cargo.toml:6`) and returns `SampleBuffer` (`crates/fornax-codec/src/lib.rs:99`). |
-| 3 | `[DEVIATION]` Partly resolved | Current `RawMosaic` count is 166 occurrences in 19 Rust files, down from the analyst's 234/27 but still broad; the type remains at `crates/fornax-raw-core/src/primitive.rs:24`. |
+| 3 | `[DEVIATION]` Partly resolved | Current `RawMosaic` count is 166 occurrences in 19 Rust files, down from the analyst's 234/27 but still broad; the type remains at `crates/fornax-raw/src/primitive.rs:24`. |
 | 4 | `[DEVIATION]` Unchanged | ARW still depends on DNG (`crates/fornax-arw/Cargo.toml:8`) and maps through DNG tags (`crates/fornax-arw/src/metadata.rs:1`, `:13`). |
 | 5 | `[DEVIATION]` Unchanged | Decoder dispatch is still a closed DNG/ARW enum (`crates/fornax-decoder/src/lib.rs:15`) and the facade explicitly re-exports selected types (`crates/fornax-raw/src/lib.rs:3`). |
-| 6 | `[DONE]` Resolved | Shared unsigned scalar/list access is in TIFF (`crates/fornax-tiff/src/value.rs:155`); DNG/ARW retain only thin adapters (`crates/fornax-dng/src/dng_decoder/mod.rs:277`, `crates/fornax-arw/src/container.rs:239`). |
-| 7 | `[DEVIATION]` Unchanged | DNG and ARW still own separate active-area/default-crop interpretation (`crates/fornax-dng/src/dng_decoder/process_metadata.rs:157`, `crates/fornax-arw/src/metadata.rs:188`). |
-| 8 | `[DONE]` Resolved | DNG decode now returns `RasterRequest`; strip/tile layout and TIFF defaults live in `fornax-tiff` (`crates/fornax-dng/src/dng_decoder/mod.rs:155`, `crates/fornax-tiff/src/raster.rs:63`, `:694`). |
+| 6 | `[DONE]` Resolved | Shared unsigned scalar/list access is in TIFF (`crates/fornax-tiff/src/value.rs:155`); DNG/ARW retain only thin adapters (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:277`, `crates/fornax-arw/src/container.rs:239`). |
+| 7 | `[DEVIATION]` Unchanged | DNG and ARW still own separate active-area/default-crop interpretation (`crates/fornax-raw/src/dng/dng_decoder/process_metadata.rs:157`, `crates/fornax-arw/src/metadata.rs:188`). |
+| 8 | `[DONE]` Resolved | DNG decode now returns `RasterRequest`; strip/tile layout and TIFF defaults live in `fornax-tiff` (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:155`, `crates/fornax-tiff/src/raster.rs:63`, `:694`). |
 | 9 | `[DONE]` Resolved | TIFF compression/photometric enums no longer claim DNG IDs; tests assert this (`crates/fornax-tiff/src/constants.rs:85`, `crates/fornax-tiff/tests/constants.rs:43`). |
 | 10 | `[DONE]` Resolved by Phase A | The comparison change filter now targets `crates/fornax-raw-core/**` (`.github/workflows/ci.yml:51`). |
 
@@ -366,7 +366,7 @@ subtable.
 
 `[DEVIATION]` Codec's DNG matches are documentation only (`crates/fornax-codec/src/ljpeg.rs:3`); TIFF's are resolver-policy comments (`crates/fornax-tiff/src/raster.rs:288`), with no DNG dependency.
 
-`[DEVIATION]` `crop_and_cast` remains duplicated except for the error constructor (`crates/fornax-dng/src/dng_decoder/mod.rs:126`, `crates/fornax-arw/src/lib.rs:158`).
+`[DEVIATION]` `crop_and_cast` remains duplicated except for the error constructor (`crates/fornax-raw/src/dng/dng_decoder/mod.rs:126`, `crates/fornax-arw/src/lib.rs:158`).
 
 `[DEVIATION]` New coupling risk: `fornax-tiff` unconditionally pulls `fornax-codec`, Rayon, `image`, and forced Deflate/lossless-JPEG features (`crates/fornax-tiff/Cargo.toml:7`), so a TIFF-only consumer cannot opt out.
 

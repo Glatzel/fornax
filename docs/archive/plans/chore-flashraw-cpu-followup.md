@@ -172,7 +172,7 @@ requires it.
 - `crates/fornax-codec/src/large_alloc.rs` only if allocator invariants change
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs` for synthetic refill/table
   evidence
-- `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only for
+- `crates/fornax-raw/benches/dng_gap_probe/linux.rs` only for
   measurement output
 - `docs/reference/decoders/perf/flashraw-cpu-comparison.md`
 - `docs/reference/decoders/perf/dng-gap-profiles/README.md`

@@ -67,7 +67,7 @@ Out of scope:
 - `crates/fornax-arw/src/metadata.rs`
 - `crates/fornax-arw/src/sony.rs`
 - `crates/fornax-arw/src/tests.rs`
-- `crates/fornax-raw-core/src/format.rs`
+- `crates/fornax-raw/src/format.rs`
 - `crates/fornax-decoder/Cargo.toml`
 - `crates/fornax-decoder/src/lib.rs`
 - `crates/fornax-tiff/README.md`

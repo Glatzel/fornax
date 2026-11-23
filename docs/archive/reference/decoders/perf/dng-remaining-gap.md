@@ -258,7 +258,7 @@ Crop and sample-type conversion are excluded.
 
 FlashRaw is configured with `Backend::Cpu`, strict corruption handling,
 `apply_opcodes = false`, `crop = false`, and `threads = Some(1)` in the
-[benchmark adapter](../../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
+[benchmark adapter](../../../../../crates/fornax-raw/benches/flashraw_wrapper.rs).
 The three-way equality gate checks exact dimensions, storage type, sample bits,
 and pixel values before the ratios are trusted.
 
@@ -734,9 +734,9 @@ the complete baseline and counter tables are in
   [current predictor instruction profile](dng-gap-profiles/ljpeg-instruction-followup.txt),
   [current large-page allocation](dng-gap-profiles/large-page-allocation.txt).
 - Benchmark adapter:
-  [`flashraw_wrapper.rs`](../../../../../crates/fornax-raw-decoder/benches/flashraw_wrapper.rs).
+  [`flashraw_wrapper.rs`](../../../../../crates/fornax-raw/benches/flashraw_wrapper.rs).
 - Exact-input profile probe:
-  [`dng_gap_probe.rs`](../../../../../crates/fornax-raw-decoder/benches/dng_gap_probe.rs).
+  [`dng_gap_probe.rs`](../../../../../crates/fornax-raw/benches/dng_gap_probe.rs).
 - Synthetic LJPEG probe:
   [`ljpeg_gap_probe.rs`](../../../../../crates/fornax-codec/benches/ljpeg_gap_probe.rs).
 - Uncompressed encode probe:

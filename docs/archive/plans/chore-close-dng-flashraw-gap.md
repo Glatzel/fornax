@@ -80,7 +80,7 @@ Out of scope:
 
 ## Files Expected To Change
 
-- Create: `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
+- Create: `crates/fornax-raw/benches/dng_gap_probe.rs`
 - Modify: `crates/fornax-raw-decoder/Cargo.toml`
 - Create: `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
 - Modify: `crates/fornax-codec/Cargo.toml`
@@ -109,7 +109,7 @@ Out of scope:
 
 **Files:**
 
-- Create: `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
+- Create: `crates/fornax-raw/benches/dng_gap_probe.rs`
 - Modify: `crates/fornax-raw-decoder/Cargo.toml`
 
 **Interfaces:**

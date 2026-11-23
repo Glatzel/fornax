@@ -51,7 +51,7 @@ This reference note records pinned sources, decoder behavior, and implementation
   container. Re-encoding samples loses tile boundaries, Huffman construction,
   metadata ordering, and non-raw preview directories.
 - DNG opcode parsing and pixel transformation are independently implemented in
-  `fornax-dng`. `OpcodeList1` operates in stored sample coordinates; Fornax
+  `fornax-raw`. `OpcodeList1` operates in stored sample coordinates; Fornax
   keeps container selection, stage ordering, and typed errors. See
   [DNG opcode reference notes](dng-opcodes.md).
 
@@ -83,6 +83,6 @@ This reference note records pinned sources, decoder behavior, and implementation
 ## License constraints
 
 rawler is licensed LGPL-2.1. It was used as a behavioral reference only. The
-implementation in `fornax-raw-core` is independently written against the DNG,
+implementation in `fornax-raw` is independently written against the DNG,
 TIFF, and JPEG specifications and does not add rawler to production
 dependencies.

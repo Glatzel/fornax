@@ -73,9 +73,9 @@ Out of scope:
 - `crates/fornax-codec/README.md`
 - `crates/fornax-dng/Cargo.toml`
 - `crates/fornax-dng/README.md`
-- `crates/fornax-dng/src/constants.rs`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/writer.rs`
+- `crates/fornax-raw/src/dng/constants.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
 - `crates/fornax-dng/tests/constants.rs`
 - `crates/fornax-dng/tests/writer_boundary.rs`
 - `docs/architecture/overview.md`

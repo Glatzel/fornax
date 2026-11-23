@@ -43,9 +43,9 @@ Out of scope:
 - `crates/compare-demosaic/src/snapshots/*-LMMSE-darktable.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/directional.rs`
+- `crates/fornax-raw/src/demosaic/lmmse.rs`
 - `docs/reference/algorithms/lmmse.md`
 - `TODO.md`
 

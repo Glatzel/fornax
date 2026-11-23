@@ -5,10 +5,10 @@ use decoder_tracker::golden::{
 };
 use decoder_tracker::manifest::derive_identity;
 use decoder_tracker::model::{BaselineRow, ManifestRow, status_for_stages};
-use fornax_raw_core::metadata::{
+use fornax_raw::metadata::{
     ColorCalibration, Levels, MetadataSource, ProcessMetadata, RawColorMeta,
 };
-use fornax_raw_core::{BayerPattern, MonoImage, RawMosaic};
+use fornax_raw::{BayerPattern, MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Directory, Value};
 use image::math::Rect;

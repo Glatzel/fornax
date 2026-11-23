@@ -244,7 +244,7 @@ git commit -m "refactor: add TIFF raster layout model"
 
 **Files:**
 
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
 - Modify: `crates/fornax-dng/README.md`
 - Modify: `docs/reference/decoders/reference/dng-compression.md`
 - Modify: `docs/architecture/overview.md`
@@ -260,7 +260,7 @@ git commit -m "refactor: add TIFF raster layout model"
 - [x] **Step 1: Write failing DNG boundary tests**
 
 Replace or extend the existing decode-plan tests in
-`crates/fornax-dng/src/dng_decoder/mod.rs` with:
+`crates/fornax-raw/src/dng/dng_decoder/mod.rs` with:
 
 - `dng_compression_resolution_prefers_dng_ids_and_falls_back_to_tiff`:
   assert `1`, `7`, `8`, `34892`, `50000`, `50002`, and `52546` map to the
@@ -319,7 +319,7 @@ documented as the override/fallback owner. Do not move constants.
 Run `cargo test -p fornax-tiff` and `cargo test -p fornax-dng`, then commit:
 
 ```bash
-git add crates/fornax-dng/src/dng_decoder/mod.rs \
+git add crates/fornax-raw/src/dng/dng_decoder/mod.rs \
   crates/fornax-dng/README.md docs/reference/decoders/reference/dng-compression.md \
   docs/architecture/overview.md
 git commit -m "refactor: migrate DNG raster planning"

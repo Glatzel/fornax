@@ -78,7 +78,7 @@ repository constraints in `AGENTS.md`, `docs/architecture/overview.md`, and
 - `crates/fornax-decoder/src/dng_decoder/ljpeg.rs`
 - Focused decoder modules for compression, transforms, and decode planning
 - `crates/fornax-decoder/src/dng_decoder/process_metadata.rs`
-- `crates/fornax-raw-core/src/writer.rs`
+- `crates/fornax-raw/src/writer.rs`
 - Focused writer JPEG-92/Deflate modules
 - `crates/bench-decoder/benches/decoder.rs` if additional benchmark coverage
   is required
@@ -241,7 +241,7 @@ Run the decoder benchmark with the colorchart fixture and compare
 
 **Files:**
 
-- Modify: `crates/fornax-raw-core/src/writer.rs`
+- Modify: `crates/fornax-raw/src/writer.rs`
 - Modify: `crates/fornax-raw-core/Cargo.toml`, root manifest/lockfile
 - Create: focused writer JPEG-92/Deflate module
 

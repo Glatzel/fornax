@@ -48,7 +48,7 @@ Out of scope:
 
 ## Files expected to change
 
-- `crates/fornax-raw-decoder/benches/flashraw_031_probe.rs`
+- `crates/fornax-raw/benches/flashraw_031_probe.rs`
 - `docs/reference/decoders/perf/data/<dated-results>.csv`
 - `docs/reference/decoders/perf/<dated-report>.md`
 - `docs/plans/chore-fornax-vs-flashraw-raw-decode.md`

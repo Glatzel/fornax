@@ -63,7 +63,7 @@ Out of scope:
 - `crates/fornax-codec/src/arw/{mod.rs,arw2.rs,arw6.rs,ljpeg.rs}`
 - `crates/fornax-arw/Cargo.toml`, `crates/fornax-arw/src/{decode.rs,metadata.rs}`
 - `crates/fornax-dng/Cargo.toml`,
-  `crates/fornax-dng/src/dng_decoder/{mod.rs,transforms.rs,opcodes.rs}`
+  `crates/fornax-raw/src/dng/dng_decoder/{mod.rs,transforms.rs,opcodes.rs}`
 - `crates/decoder-tracker/{baseline.csv,scripts/aggregate.sh,sql/*.sql,src/*}`
 - `docs/architecture/overview.md`, `docs/reference/decoders/{sony-arw.md,dng-lossless-jpeg.md}`
 - `docs/reference/decoders/reference/dng-opcodes.md`

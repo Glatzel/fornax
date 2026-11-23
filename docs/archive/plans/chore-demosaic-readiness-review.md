@@ -66,7 +66,7 @@ planning because of patent and source-license risk.
 
 **Files:**
 - Modify: `docs/reference/demosaic/ppg.md`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/ppg.rs` (test module only)
+- Modify: `crates/fornax-raw/src/demosaic/ppg.rs` (test module only)
 
 - [ ] Update the modern equations to name diagonal directions accurately.
 - [ ] State that modern PPG is the supported formulation and remove original
@@ -121,11 +121,11 @@ planning because of patent and source-license risk.
 - `Cargo.toml`
 - `crates/fornax-raw-pipeline/Cargo.toml`
 - `crates/fornax-raw-pipeline/README.md`
-- `crates/fornax-raw-pipeline/src/demosaic/test_support.rs` (test-only
+- `crates/fornax-raw/src/demosaic/test_support.rs` (test-only
   three-decimal snapshot formatter)
-- `crates/fornax-raw-pipeline/src/demosaic/ppg.rs` (snapshot test only)
-- `crates/fornax-raw-pipeline/src/demosaic/linear.rs` (snapshot tests only)
-- `crates/fornax-raw-pipeline/src/demosaic/snapshots/*.snap`
+- `crates/fornax-raw/src/demosaic/ppg.rs` (snapshot test only)
+- `crates/fornax-raw/src/demosaic/linear.rs` (snapshot tests only)
+- `crates/fornax-raw/src/demosaic/snapshots/*.snap`
 - `docs/plans/chore-demosaic-readiness-review.md`
 - `docs/README.md`
 - `docs/reference/demosaic/README.md`

@@ -75,7 +75,7 @@ identifier.
 - `crates/fornax-tiff/README.md`
 - `crates/fornax-tiff/src/raster.rs`
 - `crates/fornax-tiff/tests/raster.rs`
-- `crates/fornax-dng/src/sample_buffer.rs` for the F64 boundary
+- `crates/fornax-raw/src/dng/sample_buffer.rs` for the F64 boundary
 - `docs/_archive/plans/lzw-packbits-codecs.md`
 - `docs/reference/codecs/compression-ids.md` if availability wording must change
 

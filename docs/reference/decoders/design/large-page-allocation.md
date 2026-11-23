@@ -58,6 +58,6 @@ an excuse to add a `decode_into` contract without a separate API decision.
 ## Evidence
 
 The reproducible probe is
-`crates/fornax-raw-decoder/benches/dng_gap_probe`; the implementation is
+`crates/fornax-raw/benches/dng_gap_probe`; the implementation is
 `crates/fornax-large-alloc`. Detailed historical measurements are under
 [the archived decoder performance evidence](../../../archive/reference/decoders/perf/).

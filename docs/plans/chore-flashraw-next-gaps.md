@@ -72,9 +72,9 @@ the committed census therefore covers 30 materialized successful DNG files.
 
 ## Files expected to change
 
-- `crates/fornax-dng/src/dng_decoder/transforms.rs`
-- `crates/fornax-dng/src/dng_decoder/opcodes.rs`
-- `crates/fornax-raw-decoder/src/decoders/canon/codec/mod.rs` only if safe
+- `crates/fornax-raw/src/dng/dng_decoder/transforms.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/opcodes.rs`
+- `crates/fornax-raw/src/decoders/canon/codec/mod.rs` only if safe
   reconstruction work has measured value.
 - `docs/plans/chore-flashraw-next-gaps.md`
 - `docs/plans/chore-crx-intra-plane-start.md`
