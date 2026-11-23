@@ -11,11 +11,12 @@
 
 use generic_num::num;
 
+use super::LazyDemosaic;
 use super::buffer::{DenseLazy, channel, dense_from_vec};
 use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
 use crate::error::DemosaicError;
-use crate::{BayerPattern, LazyDemosaic, MonoImage, RawFloat};
+use crate::{BayerPattern, MonoImage, RawFloat};
 
 const RED: usize = 0;
 const GREEN: usize = 1;

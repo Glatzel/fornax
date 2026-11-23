@@ -4,9 +4,10 @@ use std::{fmt, fs};
 
 use fornax_raw::dng::Directory;
 use fornax_raw::dng::metadata::{IDecoderDng, directory_to_json_value};
+use fornax_raw::dng::writer::DngWriter;
+use fornax_raw::postprocessor::{OutputColorSpace, PostProcessor};
+use fornax_raw::preprocessor::Preprocessor;
 use fornax_raw::protocol::{IDecoder, IPostProcessor, IPreprocessor};
-use fornax_raw::raw_pipeline::{OutputColorSpace, PostProcessor, Preprocessor};
-use fornax_raw::writer::DngWriter;
 use fornax_raw::{Decoder, RawError, RawFormat, RgbImage};
 use image::codecs::jpeg::JpegEncoder;
 use image::{ExtendedColorType, ImageEncoder};

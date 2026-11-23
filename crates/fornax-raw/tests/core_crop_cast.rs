@@ -16,12 +16,12 @@ fn crop_and_cast_uses_half_open_bounds_and_converts_samples() {
 fn every_decoder_adapter_uses_the_shared_crop_and_cast() {
     let adapters = [
         include_str!("../src/dng/dng_decoder/mod.rs"),
-        include_str!("../src/decoders/canon/mod.rs"),
-        include_str!("../src/decoders/sony/mod.rs"),
-        include_str!("../src/decoders/hasselblad/mod.rs"),
-        include_str!("../src/decoders/nikon/mod.rs"),
-        include_str!("../src/decoders/panasonic/mod.rs"),
-        include_str!("../src/decoders/fujifilm/mod.rs"),
+        include_str!("../src/decoder/canon/mod.rs"),
+        include_str!("../src/decoder/sony/mod.rs"),
+        include_str!("../src/decoder/hasselblad/mod.rs"),
+        include_str!("../src/decoder/nikon/mod.rs"),
+        include_str!("../src/decoder/panasonic/mod.rs"),
+        include_str!("../src/decoder/fujifilm/mod.rs"),
     ];
 
     for source in adapters {

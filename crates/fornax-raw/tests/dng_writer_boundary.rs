@@ -3,7 +3,7 @@ use std::io::Cursor;
 use fornax_core::MonoImage;
 use fornax_raw::RawMosaic;
 use fornax_raw::dng::Directory;
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Value, parse};
 

@@ -16,9 +16,10 @@ use criterion::{BenchmarkGroup, Criterion, black_box, criterion_group, criterion
 use decoder_inputs::{GoldenInput, benchmark_inputs};
 use decoder_selection::{DecoderKind, select_decoders};
 use flashraw_wrapper::FlashRawDecoder;
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, RawMosaic};
 use mosaic_compare::{assert_mosaic_eq, canonical_mosaic};
 use rawler_wrapper::RawlerDecoder;
 use reference_preflight::{ReferencePreflight, preflight_reference};

@@ -2,8 +2,8 @@ use std::fs;
 use std::io::Cursor;
 
 use fornax_raw::RawMosaic;
-use fornax_raw::canon::Cr3Image;
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
+use fornax_raw::decoder::canon::Cr3Image;
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use sha2::{Digest, Sha256};
 
 #[test]

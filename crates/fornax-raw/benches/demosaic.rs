@@ -2,7 +2,8 @@ mod support;
 
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_devtool::{BenchParams, BenchSampleBits};
-use fornax_raw::{BayerPattern, Demosaic, IDemosaic, LazyDemosaic, MonoImage, RawFloat};
+use fornax_raw::demosaic::{Demosaic, IDemosaic, LazyDemosaic};
+use fornax_raw::{BayerPattern, MonoImage, RawFloat};
 use support::synthetic_mono_image;
 fn selected_algorithm() -> Vec<(String, Demosaic)> {
     const ALL: &[&str] = &["amaze", "linear", "lmmse", "ppg", "rcd", "vng", "vng4"];

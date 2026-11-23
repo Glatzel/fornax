@@ -5,8 +5,9 @@ mod rawler_wrapper;
 
 use std::path::Path;
 
+use fornax_raw::decoder::Decoder;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{BayerPattern, Decoder, RawMosaic};
+use fornax_raw::{BayerPattern, RawMosaic};
 use mosaic_compare::{assert_mosaic_eq, canonical_mosaic};
 use rawler_wrapper::RawlerDecoder;
 

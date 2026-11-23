@@ -1,10 +1,10 @@
 use std::io::Cursor;
 
 use fornax_raw::RawMosaic;
+use fornax_raw::decoder::phase_one::IiqImage;
 use fornax_raw::dng::dng_decoder::DngImage;
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw::error::DecodeError;
-use fornax_raw::phase_one::IiqImage;
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
 
 #[test]
 fn parses_private_offsets_and_maps_process_metadata() {

@@ -45,115 +45,48 @@ jobs:
             main:
               - ./**
               - '!**/*.md'
-            benchmark_all:
-              - ./crates/fornax-core/**
-              - ./crates/fornax-codec/**
-              - ./crates/fornax-tiff/**
-              - ./crates/fornax-raw/Cargo.toml
-              - ./crates/fornax-raw/src/bayer.rs
-              - ./crates/fornax-raw/src/crop_cast.rs
-              - ./crates/fornax-raw/src/decoder.rs
-              - ./crates/fornax-raw/src/decoders/mod.rs
-              - ./crates/fornax-raw/src/dnc.rs
-              - ./crates/fornax-raw/src/dng/**
-              - ./crates/fornax-raw/src/error.rs
-              - ./crates/fornax-raw/src/format.rs
-              - ./crates/fornax-raw/src/lib.rs
-              - ./crates/fornax-raw/src/metadata.rs
-              - ./crates/fornax-raw/src/primitive.rs
-              - ./crates/fornax-raw/src/protocol.rs
-              - ./crates/fornax-raw/src/utils.rs
-              - ./crates/fornax-raw/benches/decoder.rs
-              - ./crates/fornax-raw/benches/decoder_inputs.rs
-              - ./crates/fornax-raw/benches/decoder_selection.rs
-              - ./crates/fornax-raw/benches/dng_gap_probe.rs
-              - ./crates/fornax-raw/benches/dng_gap_probe/**
-              - ./crates/fornax-raw/benches/flashraw_probe.rs
-              - ./crates/fornax-raw/benches/flashraw_probe/**
-              - ./crates/fornax-raw/benches/flashraw_wrapper.rs
-              - ./crates/fornax-raw/benches/rawler_wrapper.rs
-              - ./crates/fornax-raw/benches/reference_preflight.rs
-              - '!**/*.md'
             benchmark_sony:
-              - ./crates/fornax-raw/src/decoders/sony/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/sony/**
               - '!**/*.md'
             benchmark_canon:
-              - ./crates/fornax-raw/src/decoders/canon/**
+              - ./crates/fornax-raw/src/decoder/canon/**
               - ./crates/fornax-bmff/**
               - '!**/*.md'
             benchmark_nikon:
-              - ./crates/fornax-raw/src/decoders/nikon/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/nikon/**
               - '!**/*.md'
             benchmark_fujifilm:
-              - ./crates/fornax-raw/src/decoders/fujifilm/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/fujifilm/**
               - '!**/*.md'
             benchmark_hasselblad:
-              - ./crates/fornax-raw/src/decoders/hasselblad/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/hasselblad/**
               - '!**/*.md'
             benchmark_panasonic:
-              - ./crates/fornax-raw/src/decoders/panasonic/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/panasonic/**
               - '!**/*.md'
             benchmark_phase_one:
-              - ./crates/fornax-raw/src/decoders/phase_one/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/phase_one/**
               - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-codec/**
-              - ./crates/fornax-tiff/**
-              - ./crates/fornax-raw/Cargo.toml
               - ./crates/fornax-raw/src/dng/**
-              - ./crates/fornax-raw/src/error.rs
-              - ./crates/fornax-raw/src/metadata.rs
-              - ./crates/fornax-raw/src/primitive.rs
               - ./crates/fornax-raw/benches/writer.rs
-              - ./crates/fornax-raw/benches/support/**
               - '!**/*.md'
-            benchmark_raw_pipeline:
-              - ./crates/fornax-devtool/**
-              - ./crates/fornax-raw/Cargo.toml
-              - ./crates/fornax-raw/src/bayer.rs
+            benchmark_demosaic:
               - ./crates/fornax-raw/src/demosaic.rs
               - ./crates/fornax-raw/src/demosaic/**
-              - ./crates/fornax-raw/src/error.rs
-              - ./crates/fornax-raw/src/metadata.rs
-              - ./crates/fornax-raw/src/postprocessor.rs
-              - ./crates/fornax-raw/src/preprocessor.rs
-              - ./crates/fornax-raw/src/primitive.rs
-              - ./crates/fornax-raw/src/protocol.rs
-              - ./crates/fornax-raw/benches/demosaic.rs
-              - ./crates/fornax-raw/benches/preprocessor.rs
-              - ./crates/fornax-raw/benches/support/**
               - '!**/*.md'
             book_assets:
               - ./book/**
             golden:
               - ./**
               - '!**/*.md'
-      - id: benchmark-formats
-        name: Select impacted decoder benchmark formats
-        shell: bash
-        env:
-          ALL_CHANGED: ${{ steps.changed-files.outputs.benchmark_all_any_changed }}
-          SONY_CHANGED: ${{ steps.changed-files.outputs.benchmark_sony_any_changed }}
-          CANON_CHANGED: ${{ steps.changed-files.outputs.benchmark_canon_any_changed }}
-          NIKON_CHANGED: ${{ steps.changed-files.outputs.benchmark_nikon_any_changed }}
-          FUJIFILM_CHANGED: ${{ steps.changed-files.outputs.benchmark_fujifilm_any_changed }}
-          HASSELBLAD_CHANGED: ${{ steps.changed-files.outputs.benchmark_hasselblad_any_changed }}
-          PANASONIC_CHANGED: ${{ steps.changed-files.outputs.benchmark_panasonic_any_changed }}
-          PHASE_ONE_CHANGED: ${{ steps.changed-files.outputs.benchmark_phase_one_any_changed }}
-        run: |
-          formats=
-          if [[ "$ALL_CHANGED" == "true" ]]; then
-            formats=all
-          else
-            [[ "$SONY_CHANGED" == "true" ]] && formats+="${formats:+,}ARW"
-            [[ "$CANON_CHANGED" == "true" ]] && formats+="${formats:+,}CR3"
-            [[ "$NIKON_CHANGED" == "true" ]] && formats+="${formats:+,}NEF"
-            [[ "$FUJIFILM_CHANGED" == "true" ]] && formats+="${formats:+,}RAF"
-            [[ "$HASSELBLAD_CHANGED" == "true" ]] && formats+="${formats:+,}3FR"
-            [[ "$PANASONIC_CHANGED" == "true" ]] && formats+="${formats:+,}RW2"
-            [[ "$PHASE_ONE_CHANGED" == "true" ]] && formats+="${formats:+,}IIQ"
-          fi
-          echo "formats=$formats" >>"$GITHUB_OUTPUT"
 
   decoder-benchmark-plan:
     name: plan decoder benchmark matrix

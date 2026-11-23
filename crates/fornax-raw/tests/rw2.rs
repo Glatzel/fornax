@@ -1,8 +1,9 @@
 use std::path::Path;
 
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, RawMosaic};
 
 #[test]
 fn rw2_routes_to_the_native_panasonic_decoder() {

@@ -1,5 +1,5 @@
-use crate::{BayerChannel, BayerPattern, LazyDemosaic, RawFloat, RgbImage};
-
+use super::LazyDemosaic;
+use crate::{BayerChannel, BayerPattern, RawFloat, RgbImage};
 pub struct DenseLazy<T: RawFloat> {
     image: RgbImage<T>,
 }

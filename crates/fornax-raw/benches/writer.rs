@@ -6,10 +6,10 @@ mod support;
 
 use criterion::{Criterion, Throughput, black_box, criterion_group, criterion_main};
 use fornax_devtool::{BenchParams, BenchSampleBits};
-use fornax_raw::dng::Directory;
 use fornax_raw::dng::dng_decoder::DngImage;
 use fornax_raw::dng::metadata::{DngTag, Tag, Value};
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
+use fornax_raw::dng::{Directory};
 use fornax_raw::{MonoImage, RawFormat, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use support::{

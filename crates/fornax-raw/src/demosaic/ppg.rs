@@ -7,8 +7,9 @@
 
 use generic_num::num;
 
+use super::LazyDemosaic;
 use crate::error::DemosaicError;
-use crate::{BayerChannel, BayerPattern, LazyDemosaic, MonoImage, RawFloat};
+use crate::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 
 const RED: usize = 0;
 const GREEN: usize = 1;

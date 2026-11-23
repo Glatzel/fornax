@@ -6,12 +6,12 @@
 
 use generic_num::num;
 
-use super::LmmseMode;
 use super::buffer::{DenseLazy, channel, dense_from_vec};
 use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
+use super::{LazyDemosaic, LmmseMode};
 use crate::error::DemosaicError;
-use crate::{BayerPattern, LazyDemosaic, MonoImage, RawFloat};
+use crate::{BayerPattern, MonoImage, RawFloat};
 
 const TILE_SIZE: usize = 136;
 const BORDER: usize = 4;
@@ -826,7 +826,6 @@ mod tests {
     use std::num::NonZeroU8;
 
     use super::*;
-    use crate::{LazyDemosaic, MonoImage};
 
     #[test]
     fn images_smaller_than_the_lmmse_border_still_return_ppg_output() -> mischief::Result<()> {

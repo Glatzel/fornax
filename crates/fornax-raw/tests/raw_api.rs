@@ -1,4 +1,4 @@
-use fornax_raw::writer::{DngWriteError, DngWriter, DngWriterCompression};
+use fornax_raw::dng::writer::{DngWriteError, DngWriter, DngWriterCompression};
 use fornax_raw::{
     DecodeError, DemosaicError, PostProcessError, PreprocessError, RawError, RawValidationError,
 };

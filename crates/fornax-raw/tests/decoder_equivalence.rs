@@ -9,7 +9,7 @@ mod rawler_wrapper;
 
 use decoder_inputs::{benchmark_inputs, test_inputs};
 use flashraw_wrapper::FlashRawDecoder;
-use fornax_raw::Decoder;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::protocol::IDecoder;
 use mosaic_compare::{assert_mosaic_eq, canonical_mosaic};
 use rawler_wrapper::RawlerDecoder;

@@ -22,7 +22,7 @@ use codec::CanonCodec;
 pub use codec::CanonCrxCfa;
 use color_data::ColorDataStatus;
 use fornax_codec::ICodecDecode;
-pub(crate) use fornax_codec::{DecodeRequest, SampleBuffer};
+use fornax_codec::{DecodeRequest, SampleBuffer};
 pub use request::CanonCrxHeader;
 
 #[cfg(test)]

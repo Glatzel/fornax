@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use fornax_raw::Decoder;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::error::DecodeError;
 use fornax_raw::protocol::IDecoder;
 

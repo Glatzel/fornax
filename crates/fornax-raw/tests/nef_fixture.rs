@@ -2,10 +2,11 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::metadata::MetadataSource;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, RawMosaic};
 use rawler::decoders::RawImageData;
 
 #[test]

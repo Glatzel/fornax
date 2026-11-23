@@ -1,10 +1,11 @@
 use std::fs;
 
-use fornax_raw::canon::CanonCrxCfa;
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
+use fornax_raw::decoder::canon::CanonCrxCfa;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::error::DecodeError;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, RawMosaic};
 
 #[test]
 fn non_2x2_layouts_are_rejected_before_pipeline_handoff() {

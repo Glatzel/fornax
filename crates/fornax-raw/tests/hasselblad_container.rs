@@ -1,7 +1,7 @@
 use fornax_raw::RawMosaic;
+use fornax_raw::decoder::hasselblad::HasselbladImage;
 use fornax_raw::dng::metadata::DngTag;
 use fornax_raw::error::DecodeError;
-use fornax_raw::hasselblad::HasselbladImage;
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value, unsigned_vec};
 

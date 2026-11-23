@@ -3,7 +3,7 @@ use std::fs;
 use assert_cmd::Command;
 use clap::Parser;
 use fornax_raw::dng::metadata::{Directory, DngTag, Tag, TiffTag, Value};
-use fornax_raw::writer::{DngWriter, DngWriterCompression};
+use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use fornax_raw::{MonoImage, RawMosaic};
 use fornax_raw_cli::{CliArgs, ConversionOutcome, run};
 use image::GenericImageView;

@@ -1,7 +1,9 @@
 use generic_num::num;
 
+use super::LazyDemosaic;
 use crate::error::DemosaicError;
-use crate::{BayerChannel, BayerPattern, LazyDemosaic, MonoImage, RawFloat};
+use crate::{BayerChannel, BayerPattern, MonoImage, RawFloat};
+
 const CH_R: u8 = BayerChannel::R as u8;
 const CH_G: u8 = BayerChannel::GRedRow as u8;
 const CH_B: u8 = BayerChannel::B as u8;

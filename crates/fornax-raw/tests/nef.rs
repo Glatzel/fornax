@@ -1,7 +1,7 @@
 use std::io::Cursor;
 use std::path::PathBuf;
 
-use fornax_raw::Decoder;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::error::DecodeError;
 use fornax_raw::protocol::IDecoder;
 use fornax_tiff::TiffWriter;

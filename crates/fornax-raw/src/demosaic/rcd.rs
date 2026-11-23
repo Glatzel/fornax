@@ -8,11 +8,12 @@ use std::sync::Mutex;
 
 use generic_num::num;
 
+use super::LazyDemosaic;
 use super::numerics::normalization_scale;
 use super::ppg::DemosaicPpg;
 use super::protocol::apply_post_in_place;
 use crate::error::DemosaicError;
-use crate::{BayerPattern, LazyDemosaic, MonoImage, RawFloat, RgbImage};
+use crate::{BayerPattern, MonoImage, RawFloat, RgbImage};
 
 const TILE_SIZE: usize = 112;
 const TILE_CORE: usize = 92;
