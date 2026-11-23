@@ -61,6 +61,7 @@ memmap2.workspace = true
 mischief.workspace = true
 rand.workspace = true
 rawler = "0.8.0"
+rstest.workspace = true
 sha2.workspace = true
 tempfile.workspace = true
 

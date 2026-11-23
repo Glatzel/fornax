@@ -1,3 +1,4 @@
+use std::io::Read;
 use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
 use std::{fs, thread};
@@ -80,7 +81,23 @@ pub fn materialize(corpus: &std::path::Path, rows: &[ManifestRow]) -> Result<()>
     if rows.is_empty() {
         return Ok(());
     }
-    clerk::info!("materializing {} selected LFS objects", rows.len());
+    let pending = rows
+        .iter()
+        .filter_map(|row| {
+            payload_needs_materialization(corpus, row)
+                .map(|needs| needs.then_some(row))
+                .transpose()
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if pending.is_empty() {
+        clerk::info!(
+            "all {} selected LFS objects are already materialized",
+            rows.len()
+        );
+        return Ok(());
+    }
+
+    clerk::info!("materializing {} selected LFS objects", pending.len());
     let install = Command::new("git")
         .arg("-C")
         .arg(corpus)
@@ -98,30 +115,43 @@ pub fn materialize(corpus: &std::path::Path, rows: &[ManifestRow]) -> Result<()>
             String::from_utf8_lossy(&install.stderr).trim()
         )));
     }
-    let paths = rows.iter().map(|row| row.path.as_str()).collect::<Vec<_>>();
+    let paths = pending
+        .iter()
+        .map(|row| row.path.as_str())
+        .collect::<Vec<_>>();
     run_lfs(corpus, "fetch", &paths)?;
     run_lfs(corpus, "checkout", &paths)?;
-    for row in rows {
+    for row in &pending {
         let path = corpus_path(corpus, &row.path);
-        if !path.is_file() {
+        if payload_needs_materialization(corpus, row)? {
             return Err(TrackerError::new(format!(
                 "LFS materialization did not create {}",
                 path.display()
             )));
         }
-        let prefix = fs::read(&path)?
-            .into_iter()
-            .take(crate::manifest::VERSION.len())
-            .collect::<Vec<_>>();
-        if prefix == crate::manifest::VERSION.as_bytes() {
-            return Err(TrackerError::new(format!(
-                "LFS materialization left pointer metadata at {}",
-                path.display()
-            )));
-        }
     }
-    clerk::info!("materialized {} selected LFS objects", rows.len());
+    clerk::info!("materialized {} selected LFS objects", pending.len());
     Ok(())
+}
+
+pub(crate) fn payload_needs_materialization(
+    corpus: &std::path::Path,
+    row: &ManifestRow,
+) -> Result<bool> {
+    let path = corpus_path(corpus, &row.path);
+    let metadata = match fs::metadata(&path) {
+        Ok(metadata) if metadata.is_file() && metadata.len() == row.size => metadata,
+        Ok(_) => return Ok(true),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(true),
+        Err(error) => return Err(error.into()),
+    };
+    if metadata.len() != row.size {
+        return Ok(true);
+    }
+    let mut prefix = vec![0; crate::manifest::VERSION.len()];
+    let count = fs::File::open(path)?.read(&mut prefix)?;
+    prefix.truncate(count);
+    Ok(prefix == crate::manifest::VERSION.as_bytes())
 }
 
 fn run_lfs(corpus: &std::path::Path, action: &str, paths: &[&str]) -> Result<()> {

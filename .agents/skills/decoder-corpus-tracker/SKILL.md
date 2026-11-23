@@ -32,7 +32,7 @@ Preserve the committed submodule revision:
 ```bash
 GIT_LFS_SKIP_SMUDGE=1 git -c filter.lfs.required=false \
   submodule update --init external/raw.pixls.us
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
+pixi run -e tracker decoder-tracker manifest --check
 ```
 
 Use `--remote` only for an intentional snapshot update. Stop if
@@ -44,7 +44,7 @@ Use `--remote` only for an intentional snapshot update. Stop if
 `--allow-full` or `CI=true` is present:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- run \
+pixi run -e tracker decoder-tracker run \
   --camera 'Canon EOS' --filename IMG_0001 \
   --out target/decoder-tracker/investigate.csv
 ```
@@ -59,17 +59,17 @@ Create one selected manifest, run every shard, and merge against that same
 manifest:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- select \
+pixi run -e tracker decoder-tracker select \
   --glob '*/**/*' \
   --out target/decoder-tracker/selected-manifest.csv
 
 # Repeat for 0/COUNT .. (COUNT-1)/COUNT.
-pixi run -e dev cargo run -q -p decoder-tracker -- run \
+pixi run -e tracker decoder-tracker run \
   --manifest target/decoder-tracker/selected-manifest.csv \
   --shard 0/COUNT --allow-full \
   --out target/decoder-tracker/shards/shard-0.csv
 
-pixi run -e dev cargo run -q -p decoder-tracker -- merge \
+pixi run -e tracker tracker-data merge \
   --manifest target/decoder-tracker/selected-manifest.csv \
   --out target/decoder-tracker/candidate.csv \
   target/decoder-tracker/shards/*.csv
@@ -84,7 +84,7 @@ Use the baseline encoding columns to select a representative file for a codec
 path or audit golden coverage:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+pixi run -e tracker decoder-tracker golden-coverage \
   --baseline crates/decoder-tracker/data/baseline.csv \
   --corpus-manifest crates/decoder-tracker/data/manifest.csv \
   --golden crates/decoder-tracker/golden/selected-manifest.csv \
@@ -167,7 +167,7 @@ Only this route advances the submodule:
 GIT_LFS_SKIP_SMUDGE=1 git -c filter.lfs.required=false \
   -c submodule.external/raw.pixls.us.branch=master \
   submodule update --init --remote external/raw.pixls.us
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest
+pixi run -e tracker decoder-tracker manifest
 ```
 
 Review every `manifest.csv` change, run the full DNG workflow, apply its

@@ -6,6 +6,22 @@ platforms = ["win-64", "linux-64", "linux-aarch64", "osx-arm64"]
 [feature.duckdb.dependencies]
 duckdb-cli = "*"
 
+[feature.tracker.dependencies]
+pathspec = "*"
+python = "3.13.*"
+python-duckdb = "*"
+pytest = "==9.2.0"
+ruff = "*"
+typer = "*"
+
+[feature.tracker.tasks]
+decoder-tracker = "cargo run -q -p decoder-tracker --"
+decoder-tracker-release = "cargo run --release -q -p decoder-tracker --"
+tracker-badge = "bash crates/decoder-tracker/scripts/update-badge.sh"
+tracker-data = "python crates/decoder-tracker/scripts/tracker_data.py"
+tracker-lint = "ruff check crates/decoder-tracker/scripts && ruff format --check crates/decoder-tracker/scripts"
+tracker-test = "ruff check crates/decoder-tracker/scripts && ruff format --check crates/decoder-tracker/scripts && cargo test -p decoder-tracker && python -m pytest crates/decoder-tracker/scripts/test_tracker_data.py"
+
 [feature.python.dependencies]
 maturin = "==1.16.0"
 pip = "==26.2.2"
@@ -33,6 +49,7 @@ book-figures = "python -m book.figures"
 
 [environments]
 default = []
-dev = { features = ["duckdb"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
+dev = { features = ["duckdb", "tracker"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
 python = ["python"]
 book = ["book"]
+tracker = ["duckdb", "tracker"]

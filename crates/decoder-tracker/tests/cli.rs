@@ -252,12 +252,10 @@ fn select_emits_clerk_info_logs() {
 }
 
 #[test]
-fn duckdb_select_script_filters_without_the_rust_binary() {
-    if !std::process::Command::new("duckdb")
-        .arg("--version")
-        .output()
-        .is_ok_and(|output| output.status.success())
-    {
+fn python_select_filters_without_the_rust_binary() {
+    let crate_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let python = crate_root.join("../../.pixi/envs/dev/bin/python");
+    if !python.is_file() {
         return;
     }
     let temp = tempdir().unwrap();
@@ -269,14 +267,15 @@ fn duckdb_select_script_filters_without_the_rust_binary() {
     let manifest = temp.path().join("manifest.csv");
     let selected = temp.path().join("selected.csv");
     fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
-    let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/select.sh");
+    let script = crate_root.join("scripts/tracker_data.py");
 
-    let output = std::process::Command::new("bash")
+    let output = std::process::Command::new(python)
         .arg(&script)
         .args([
+            "select",
             "--manifest",
             manifest.to_str().unwrap(),
-            "--filter",
+            "--glob",
             "Canon/**/*.DNG",
             "--out",
             selected.to_str().unwrap(),

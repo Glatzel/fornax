@@ -1,10 +1,11 @@
+use std::ffi::OsString;
 use std::fmt;
+use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 use std::str::FromStr;
 
-use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
-
-use crate::manifest::validate_manifest_keys;
-use crate::model::{ManifestRow, Result, TrackerError};
+use crate::csvio::{read_manifest_csv, write_manifest_csv};
+use crate::model::{Result, TrackerError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Shard {
@@ -48,76 +49,95 @@ pub struct Selection {
     pub shard: Option<Shard>,
 }
 
-pub fn select_manifest(rows: &[ManifestRow], selection: &Selection) -> Result<Vec<ManifestRow>> {
-    validate_manifest_keys(rows)?;
-    let cameras = selection
-        .cameras
-        .iter()
-        .map(|value| value.to_lowercase())
-        .collect::<Vec<_>>();
-    let globs = build_globs(&selection.globs)?;
-    let mut selected = rows
-        .iter()
-        .filter(|row| {
-            cameras.is_empty()
-                || cameras
-                    .iter()
-                    .any(|camera| row.camera.to_lowercase().contains(camera))
-        })
-        .filter(|row| {
-            selection.filenames.is_empty()
-                || selection
-                    .filenames
-                    .iter()
-                    .any(|filename| row.filename.eq_ignore_ascii_case(filename))
-        })
-        .filter(|row| globs.as_ref().is_none_or(|globs| globs.is_match(&row.path)))
-        .cloned()
-        .collect::<Vec<_>>();
-    selected.sort_by(|left, right| {
+pub fn select_file(manifest: &Path, output: &Path, selection: &Selection) -> Result<usize> {
+    if selection.cameras.is_empty() && selection.filenames.is_empty() && selection.globs.is_empty()
+    {
+        return shard_manifest_file(manifest, output, selection.shard);
+    }
+    let mut command = Command::new(python_executable());
+    command
+        .arg(tracker_data_script()?)
+        .args(["select", "--manifest"])
+        .arg(manifest)
+        .arg("--out")
+        .arg(output);
+    for camera in &selection.cameras {
+        command.args(["--camera", camera]);
+    }
+    for filename in &selection.filenames {
+        command.args(["--filename", filename]);
+    }
+    for glob in &selection.globs {
+        command.args(["--glob", glob]);
+    }
+    if let Some(shard) = selection.shard {
+        command.args(["--shard", &shard.to_string()]);
+    }
+    let result = command
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .output()
+        .map_err(|error| {
+            TrackerError::new(format!(
+                "launching Python tracker-data failed: {error}; run through `pixi run -e dev`"
+            ))
+        })?;
+    if !result.status.success() {
+        return Err(TrackerError::new(format!(
+            "tracker-data select failed: {}",
+            String::from_utf8_lossy(&result.stderr).trim()
+        )));
+    }
+    Ok(read_manifest_csv(std::fs::read(output)?)?.len())
+}
+
+fn shard_manifest_file(manifest: &Path, output: &Path, shard: Option<Shard>) -> Result<usize> {
+    let mut rows = read_manifest_csv(std::fs::read(manifest)?)?;
+    rows.sort_by(|left, right| {
         left.sha256
             .cmp(&right.sha256)
             .then_with(|| left.path.cmp(&right.path))
     });
-    if let Some(shard) = selection.shard {
-        selected = selected
+    if let Some(shard) = shard {
+        rows = rows
             .into_iter()
             .enumerate()
             .filter(|(position, _)| position % shard.count == shard.index)
             .map(|(_, row)| row)
             .collect();
     }
-    Ok(selected)
+    if let Some(parent) = output.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(output, write_manifest_csv(&rows)?)?;
+    Ok(rows.len())
 }
 
-pub const fn runner_count_for(file_count: usize) -> usize {
-    let count = file_count.div_ceil(10);
-    if count < 1 {
-        1
-    } else if count > 20 {
-        20
+fn python_executable() -> OsString {
+    if let Some(python) = std::env::var_os("DECODER_TRACKER_PYTHON") {
+        return python;
+    }
+    for environment in ["tracker", "dev"] {
+        let pixi_python = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join(format!("../../.pixi/envs/{environment}/bin/python"));
+        if pixi_python.is_file() {
+            return pixi_python.into_os_string();
+        }
+    }
+    "python3".into()
+}
+
+fn tracker_data_script() -> Result<PathBuf> {
+    if let Some(script) = std::env::var_os("DECODER_TRACKER_DATA") {
+        return Ok(script.into());
+    }
+    let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("scripts/tracker_data.py");
+    if script.is_file() {
+        Ok(script)
     } else {
-        count
+        Err(TrackerError::new(format!(
+            "tracker-data script is missing at {}",
+            script.display()
+        )))
     }
-}
-
-fn build_globs(patterns: &[String]) -> Result<Option<GlobSet>> {
-    if patterns.is_empty() {
-        return Ok(None);
-    }
-    let mut builder = GlobSetBuilder::new();
-    for pattern in patterns {
-        let glob = GlobBuilder::new(pattern)
-            .literal_separator(true)
-            .backslash_escape(true)
-            .build()
-            .map_err(|error| {
-                TrackerError::new(format!("invalid path glob {pattern:?}: {error}"))
-            })?;
-        builder.add(glob);
-    }
-    builder
-        .build()
-        .map(Some)
-        .map_err(|error| TrackerError::new(format!("building path globs failed: {error}")))
 }

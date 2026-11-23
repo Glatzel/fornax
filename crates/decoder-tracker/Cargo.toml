@@ -15,7 +15,6 @@ clerk = { workspace = true, features = ["tracing"] }
 csv.workspace = true
 fornax-raw.workspace = true
 fornax-tiff.workspace = true
-globset.workspace = true
 hex.workspace = true
 image.workspace = true
 serde.workspace = true

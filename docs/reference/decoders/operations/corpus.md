@@ -30,18 +30,18 @@ Run from the repository root with globally installed `git-lfs` and through the
 Pixi environments for DuckDB and decoder tooling:
 
 ```text
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest [--check]
-pixi run -e dev cargo run -q -p decoder-tracker -- select [--glob G]... [--out FILE]
-pixi run -e dev cargo run -q -p decoder-tracker -- run [--manifest F]
+pixi run -e tracker decoder-tracker manifest [--check]
+pixi run -e tracker decoder-tracker select [--glob G]... [--out FILE]
+pixi run -e tracker decoder-tracker run [--manifest F]
     [--camera TEXT]... [--filename TEXT]... [--glob G]... [--shard INDEX/COUNT]
     [--out FILE] [--max-files N] [--allow-full]
-pixi run -e dev cargo run -q -p decoder-tracker -- merge --manifest F --out FILE SHARD...
-pixi run -e dev cargo run -q -p decoder-tracker -- diff --selected F --out FILE BASELINE CANDIDATE
-pixi run -e dev cargo run -q -p decoder-tracker -- update --baseline F --candidate F --out FILE
-pixi run -e dev cargo run -q -p decoder-tracker -- hash [--manifest F] [--out FILE | --check FILE]
-pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+pixi run -e tracker tracker-data merge --manifest F --out FILE SHARD...
+pixi run -e tracker tracker-data diff --selected F --out FILE BASELINE CANDIDATE
+pixi run -e tracker tracker-data update --baseline F --candidate F --out FILE
+pixi run -e tracker decoder-tracker hash [--manifest F] [--out FILE | --check FILE]
+pixi run -e tracker decoder-tracker golden-coverage \
   --baseline F --corpus-manifest F --golden F --out FILE
-pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e tracker tracker-badge
 ```
 
 `run` does not apply an implicit format filter. With the default manifest and
@@ -50,7 +50,7 @@ refuses selections larger than two files unless `CI=true` or `--allow-full` is
 present. Use camera and filename filters for local investigation:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- run \
+pixi run -e tracker decoder-tracker run \
   --camera 'Canon EOS' --filename IMG_0001 \
   --out target/decoder-tracker/investigate.csv
 ```
@@ -201,10 +201,10 @@ dimensions, and four SHA-256 digests:
 Write or verify the golden set with:
 
 ```bash
-pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
+pixi run -e tracker decoder-tracker-release hash \
   --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --out crates/decoder-tracker/golden/decode-hashes.csv
-pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
+pixi run -e tracker decoder-tracker-release hash \
   --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
@@ -220,7 +220,7 @@ not fetch every golden payload.
 Audit golden coverage without changing the golden set:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+pixi run -e tracker decoder-tracker golden-coverage \
   --baseline crates/decoder-tracker/data/baseline.csv \
   --corpus-manifest crates/decoder-tracker/data/manifest.csv \
   --golden crates/decoder-tracker/golden/test-manifest.csv \
@@ -243,7 +243,7 @@ those counts in CI but fails if a golden path is absent or is not fully passing.
 Generate a draft selection with one representative per decoder path:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage \
+pixi run -e tracker decoder-tracker golden-coverage \
   --selected-out crates/decoder-tracker/golden/selected-manifest.csv
 ```
 
@@ -305,7 +305,8 @@ errors. Decoder failures that were successfully recorded do not fail `run`.
 
 ## DuckDB aggregation
 
-DuckDB CLI owns relational CSV aggregation. Rust validates input schemas and
+DuckDB executes relational CSV aggregation through the Python binding. The
+Python command validates canonical CSV headers and applies path filters. Rust validates input schemas and
 typed rows, invokes checked-in SQL from `crates/decoder-tracker/sql/`, and then
 revalidates the canonical output.
 
@@ -328,8 +329,8 @@ It accepts one `filter` path glob and an optional `run_duckdb_tests` boolean
 (default `false`). The default `*/**/*` filter selects the complete corpus; a
 narrower filter selects a DNG, ARW, or mixed subset. The selected manifest
 determines the formats processed by each shard. The plan job uses
-`crates/decoder-tracker/scripts/select.sh` to filter `manifest.csv` directly with
-DuckDB, writes and uploads `selected-manifest.csv`, then computes:
+`tracker-data select` to filter `manifest.csv` with the Python `pathspec`
+matcher, writes and uploads `selected-manifest.csv`, then computes:
 
 ```text
 runner_count = min(20, max(1, ceil(selected_count / 10)))
@@ -409,7 +410,7 @@ candidate from a partial selection must never replace the committed baseline:
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
   crates/decoder-tracker/data/baseline.csv
-pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e tracker tracker-badge
 ```
 
 `update-badge.sh` owns the regions between the decoder-tracker badge markers.

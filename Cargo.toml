@@ -32,7 +32,6 @@ clap-verbosity-flag = { version = "3.0.4", features = ["tracing"] }
 criterion = { package = "codspeed-criterion-compat", version = "6.1.0" }
 csv = "1.4.0"
 flate2 = "1.1.11"
-globset = "0.4.21"
 hex = "0.4.3"
 insta = "1.49.0"
 jxl-oxide = "0.12.6"

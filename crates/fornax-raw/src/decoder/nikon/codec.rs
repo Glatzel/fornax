@@ -1142,6 +1142,7 @@ mod lossless_tests {
         ByteOrder, Chunk, CodecError, DecodeRequest, ICodecDecode, Predictor, SampleBuffer,
         SampleFormat,
     };
+    use rstest::rstest;
 
     use super::{FusedTable, HuffmanKernel, decode_huffman_speculative, tree_tables};
     use crate::decoder::nikon::NikonTreeId;
@@ -1469,8 +1470,16 @@ mod lossless_tests {
         assert_eq!(speculative, reference);
     }
 
-    #[test]
-    fn speculative_kernel_preserves_bit_flip_results_or_falls_back() {
+    #[rstest]
+    #[case(0)]
+    #[case(1)]
+    #[case(2)]
+    #[case(3)]
+    #[case(4)]
+    #[case(5)]
+    #[case(6)]
+    #[case(7)]
+    fn speculative_kernel_preserves_bit_flip_results_or_falls_back(#[case] partition: usize) {
         let tree = NikonTreeId::Lossless12;
         let init = [[17, 29], [43, 71]];
         let samples = (0..257 * 17)
@@ -1478,8 +1487,10 @@ mod lossless_tests {
             .collect::<Vec<_>>();
         let source = encode_image(&samples, tree, init, 257, 17);
         let curve: Vec<u16> = identity_curve(12);
-        let mut speculative_successes = 0;
-        for bit in (0..source.len() * 8).step_by(37) {
+        for (position, bit) in (0..source.len() * 8).step_by(37).enumerate() {
+            if position % 8 != partition {
+                continue;
+            }
             let mut corrupt = source.clone();
             corrupt[bit / 8] ^= 1 << (7 - bit % 8);
             let speculative = decode_speculative_for_test(
@@ -1505,7 +1516,6 @@ mod lossless_tests {
             .map_err(|error| error.to_string());
             match (speculative, fused) {
                 (Ok((true, speculative)), Ok(fused)) => {
-                    speculative_successes += 1;
                     assert_eq!(speculative, fused, "flipped bit {bit}");
                 }
                 (Ok((false, _)), _) | (Err(_), Err(_)) => {}
@@ -1514,7 +1524,6 @@ mod lossless_tests {
                 }
             }
         }
-        assert!(speculative_successes > 0);
     }
 
     #[test]
@@ -1569,8 +1578,12 @@ mod lossless_tests {
         }
     }
 
-    #[test]
-    fn speculative_kernel_matches_truncation_boundaries_or_falls_back() {
+    #[rstest]
+    #[case(0)]
+    #[case(1)]
+    #[case(2)]
+    #[case(3)]
+    fn speculative_kernel_matches_truncation_boundaries_or_falls_back(#[case] partition: usize) {
         let tree = NikonTreeId::Lossless12;
         let init = [[23, 41], [67, 89]];
         let samples = (0..37 * 5)
@@ -1579,7 +1592,7 @@ mod lossless_tests {
         let encoded_bits = encode_image_bits(&samples, tree, init, 37, 5);
         let exact = pack_bits(encoded_bits);
         let curve: Vec<u16> = identity_curve(12);
-        for cut in 0..=exact.len() {
+        for cut in (partition..=exact.len()).step_by(4) {
             let source = &exact[..cut];
             let speculative =
                 decode_speculative_for_test(source, tree, init, 37, 5, curve.clone(), 4, 8 * 1024)

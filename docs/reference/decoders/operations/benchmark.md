@@ -59,7 +59,7 @@ timing starts. The old arbitrary single-fixture default is removed.
 Materialize and verify the test correctness set before a local run:
 
 ```bash
-pixi run -e dev cargo run --release -q -p decoder-tracker -- hash \
+pixi run -e tracker decoder-tracker-release hash \
   --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
 ```
