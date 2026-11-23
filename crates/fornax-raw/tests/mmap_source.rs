@@ -1,4 +1,4 @@
-#![cfg(all(feature = "mmap", unix))]
+#![cfg(unix)]
 
 use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::DngTag;

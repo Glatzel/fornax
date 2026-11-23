@@ -36,6 +36,9 @@ chain. An offset correction maps out-of-line values stored relative to a larger
 container into an extracted or decrypted sub-buffer; Sony private metadata uses
 that path.
 
+`TiffSource::from_path` uses a read-only memory map by default and falls back to
+reading the file into owned storage when mapping is unavailable.
+
 ## Raster Feature
 
 The default feature set includes `lzw` and `packbits`, standard TIFF

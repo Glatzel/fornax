@@ -27,8 +27,8 @@ Criterion, DNG/TIFF/codecs, and the existing pure-Rust vendor decoders.
   from the `fornax_raw` root.
 - Use one public `RawError`; keep `DecodeError`, `PreprocessError`,
   `DemosaicError`, `PostProcessError`, and `DngWriteError` as aliases.
-- Preserve existing feature behavior: default `mmap` and `large-page-hint`,
-  plus `metadata-json` and `zstd`.
+- Keep mmap and Linux large-page allocation enabled by default infrastructure,
+  with `metadata-json` and `zstd` as optional features.
 - Never commit binary files or hard-linked fixture payloads.
 
 ## Review Focus
@@ -366,9 +366,9 @@ Do not change decoder logic.
 
 - [x] **Step 3: Merge decoder features and benchmark declarations**
 
-Keep `mmap` and `zstd`. Add decoder and DNG dev dependencies needed by moved
-tests and benches. Add all decoder bench targets and nested support files to the
-raw crate.
+Keep `zstd`. Add decoder and DNG dev dependencies needed by moved tests and
+benches. Add all decoder bench targets and nested support files to the raw
+crate.
 
 - [x] **Step 4: Verify GREEN**
 

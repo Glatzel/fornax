@@ -7,7 +7,7 @@ obtain first-touch and transparent-huge-page benefits through the
 `fornax-large-alloc` crate. The decode API does not expose caller-owned output
 buffers.
 
-Linux builds with the default-on `large-page-hint` feature use:
+Linux builds enable the `fornax-large-alloc` large-page hint internally and use:
 
 - a natural-alignment `alloc_zeroed(Layout::array::<T>(len))` allocation;
 - this path only for final outputs of at least 8 MiB;
@@ -15,8 +15,8 @@ Linux builds with the default-on `large-page-hint` feature use:
 - adoption of the allocation into the returned `Vec<T>` with
   `capacity == len`.
 
-Windows, macOS, Miri, feature-off builds, and smaller outputs use a plain
-zeroed `Vec`.
+Windows, macOS, Miri, Miri-compatible internal builds, and smaller outputs use
+a plain zeroed `Vec`.
 
 ## Why
 
