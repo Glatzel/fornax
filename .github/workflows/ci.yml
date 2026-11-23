@@ -250,33 +250,27 @@ jobs:
       matrix:
         include:
           - label: dng-writer
-            package: fornax-raw
             changed: ${{ needs.changed.outputs.benchmark_dng }}
             extra-options: --bench writer
             raw-fixtures: true
 
           # - label: demosaic-aahd
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: aahd
           # - label: demosaic-ahd
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: ahd
           # - label: demosaic-amaze
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: amaze
           # - label: demosaic-dcb
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: dcb
           # - label: demosaic-dht
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: dht
@@ -286,7 +280,6 @@ jobs:
             extra-options: --bench demosaic
             algorithm: linear
           # - label: demosaic-lmmse
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: lmmse
@@ -296,17 +289,14 @@ jobs:
             extra-options: --bench demosaic
             algorithm: ppg
           # - label: demosaic-rcd
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: rcd
           # - label: demosaic-vng
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: vng
           # - label: demosaic-vng4
-          #   package: fornax-raw
           #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
           #   extra-options: --bench demosaic
           #   algorithm: vng4
@@ -327,7 +317,7 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
-          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
+          options: -p fornax-raw ${{ matrix['extra-options'] }} --all-features
         env:
           GH_TOKEN: ${{ github.token }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
