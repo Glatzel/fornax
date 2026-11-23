@@ -1,9 +1,10 @@
+use fornax_core::MonoImage;
 use generic_num::num;
 use image::math::Rect;
 use rayon::prelude::*;
 
 use crate::error::DecodeError;
-use crate::{CroppedMosaic, MonoImage, Primitive};
+use crate::{CroppedMosaic, RawFloat};
 
 /// Crops an image to `area` and converts every retained sample to `T`.
 ///
@@ -17,7 +18,7 @@ use crate::{CroppedMosaic, MonoImage, Primitive};
 pub fn crop_and_cast<S, T>(image: MonoImage<S>, area: Rect) -> Result<CroppedMosaic<T>, DecodeError>
 where
     S: image::Primitive + Send + Sync,
-    T: Primitive,
+    T: RawFloat,
 {
     let (src_w, src_h) = image.dimensions();
     let (x, y) = (area.x as usize, area.y as usize);

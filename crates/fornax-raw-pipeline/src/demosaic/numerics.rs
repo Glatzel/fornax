@@ -5,7 +5,7 @@
 
 use std::cmp::Ordering;
 
-use fornax_raw_core::Primitive;
+use fornax_raw_core::RawFloat;
 use num_traits::{Float, cast};
 
 const SCALE_PERCENTILE_NUMERATOR: usize = 995;
@@ -21,7 +21,7 @@ const SRGB_DECODE_GAMMA: f64 = 2.4;
 
 pub(super) fn normalization_scale<T>(samples: &[T]) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut magnitudes = samples
         .iter()
@@ -42,7 +42,7 @@ where
     scale
 }
 
-pub(super) struct SrgbTransfer<T: Primitive> {
+pub(super) struct SrgbTransfer<T: RawFloat> {
     slope: T,
     display_gamma: T,
     alpha: T,
@@ -52,7 +52,7 @@ pub(super) struct SrgbTransfer<T: Primitive> {
     decode_gamma: T,
 }
 
-impl<T: Primitive> SrgbTransfer<T> {
+impl<T: RawFloat> SrgbTransfer<T> {
     pub(super) fn new() -> Self {
         let from_f64 = |value| cast::<f64, T>(value).expect("the transfer constants fit in T");
         Self {

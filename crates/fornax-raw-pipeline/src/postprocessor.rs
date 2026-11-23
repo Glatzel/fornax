@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use fornax_raw_core::Primitive;
+use fornax_raw_core::RawFloat;
 use fornax_raw_core::error::PostProcessError;
 use fornax_raw_core::metadata::{Array3, Matrix3x3};
 use fornax_raw_core::protocol::{IPostProcessMetadata, IPostProcessor};
@@ -45,7 +45,7 @@ pub enum OutputColorSpace {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PostProcessor<T, D>
 where
-    T: Primitive,
+    T: RawFloat,
     D: IDemosaic<T>,
 {
     pub demosaic: D,
@@ -55,7 +55,7 @@ where
 
 impl<T, D, M> IPostProcessor<T, M> for PostProcessor<T, D>
 where
-    T: Primitive,
+    T: RawFloat,
     M: IPostProcessMetadata,
     D: IDemosaic<T>,
 {
@@ -105,7 +105,7 @@ where
 
 impl<T> Default for PostProcessor<T, Demosaic>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     fn default() -> Self {
         Self {
@@ -202,7 +202,7 @@ fn gains_are_identity(gains: &Array3) -> bool {
 
 fn cast_value<T>(value: f64) -> Result<T, PostProcessError>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     num_traits::cast(value).ok_or_else(|| {
         PostProcessError::InvalidColorTransform("color transform exceeds output precision".into())
@@ -211,7 +211,7 @@ where
 
 fn cast_vec3<T>(vector: Array3) -> Result<[T; 3], PostProcessError>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     Ok([
         cast_value(vector[0])?,
@@ -222,7 +222,7 @@ where
 
 fn cast_matrix<T>(matrix: Matrix3x3) -> Result<[[T; 3]; 3], PostProcessError>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     Ok([
         cast_vec3(matrix[0])?,

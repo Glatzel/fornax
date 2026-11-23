@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use image::{ImageBuffer, Luma, Rgb};
+use fornax_core::{MonoImage, RgbImage};
 use num_traits::Float;
 
 use crate::error::{PostProcessError, PreprocessError};
@@ -12,19 +12,15 @@ use crate::protocol::{IPostProcessMetadata, IPostProcessor, IPreprocessor};
 /// The trait intentionally includes [`num_traits::Float`], so integer image
 /// types cannot enter processing stages that require arithmetic, comparisons,
 /// and mathematical functions.
-pub trait Primitive:
+pub trait RawFloat:
     image::Primitive + image::Enlargeable + Float + bytemuck::Zeroable + Send + Sync + Debug + 'static
 {
 }
 
 // impl Primitive for f16 {}
-impl Primitive for f32 {}
-impl Primitive for f64 {}
+impl RawFloat for f32 {}
+impl RawFloat for f64 {}
 // impl Primitive for f128 {}
-//
-pub type MonoImage<T> = ImageBuffer<Luma<T>, Vec<T>>;
-
-pub type RgbImage<T> = ImageBuffer<Rgb<T>, Vec<T>>;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum RawMosaic {
@@ -49,9 +45,9 @@ impl RawMosaic {
 }
 
 #[derive(Clone, Debug)]
-pub struct CroppedMosaic<T: Primitive>(MonoImage<T>);
+pub struct CroppedMosaic<T: RawFloat>(MonoImage<T>);
 
-impl<T: Primitive> CroppedMosaic<T> {
+impl<T: RawFloat> CroppedMosaic<T> {
     pub const fn new(image: MonoImage<T>) -> Self { Self(image) }
 
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }
@@ -73,11 +69,11 @@ impl<T: Primitive> CroppedMosaic<T> {
 #[derive(Clone, Debug, PartialEq)]
 pub struct NormalizedMosaic<T>(MonoImage<T>)
 where
-    T: Primitive;
+    T: RawFloat;
 
 impl<T> NormalizedMosaic<T>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     pub const fn new(plane: MonoImage<T>) -> Self { Self(plane) }
     pub const fn image(&self) -> &MonoImage<T> { &self.0 }

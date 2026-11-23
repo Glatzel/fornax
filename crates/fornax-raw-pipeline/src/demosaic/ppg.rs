@@ -6,7 +6,7 @@
 //! from diagonal color differences.
 
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 use generic_num::num;
 
 use crate::LazyDemosaic;
@@ -22,7 +22,7 @@ pub struct PpgLazy<'a, T> {
     pattern: BayerPattern,
 }
 
-impl<T: Primitive + Send + Sync> LazyDemosaic<T> for PpgLazy<'_, T> {
+impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for PpgLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
@@ -33,7 +33,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for PpgLazy<'_, T> {
     }
 }
 
-impl<T: Primitive + Send + Sync> PpgLazy<'_, T> {
+impl<T: RawFloat + Send + Sync> PpgLazy<'_, T> {
     fn fill_row(&self, y: usize, out: &mut [T]) {
         for (x, pixel) in out.as_chunks_mut::<3>().0.iter_mut().enumerate() {
             pixel.copy_from_slice(&self.pixel(x as u32, y as u32));
@@ -223,7 +223,7 @@ impl DemosaicPpg {
         pattern: BayerPattern,
     ) -> Result<PpgLazy<'a, T>, DemosaicError>
     where
-        T: Primitive + Send + Sync,
+        T: RawFloat + Send + Sync,
     {
         if bayer.width() < 3 || bayer.height() < 3 {
             return Err(DemosaicError::InvalidInput(

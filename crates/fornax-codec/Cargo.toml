@@ -26,6 +26,7 @@ name = "encode_probe"
 [dependencies]
 bytemuck.workspace = true
 flate2 = { workspace = true, optional = true }
+fornax-core.workspace = true
 fornax-large-alloc = { workspace = true, default-features = false }
 image.workspace = true
 jxl-oxide = { workspace = true, optional = true }

@@ -7,7 +7,7 @@ use flashraw::{
 use fornax_raw_core::error::{DecodeError, RawValidationError};
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic};
 use generic_num::num;
 use image::math::Rect as ImageRect;
 
@@ -113,7 +113,7 @@ impl IDecoder for FlashRawDecoder {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let (width, height) = self.raw.dimensions();
         let samples = match &self.raw {

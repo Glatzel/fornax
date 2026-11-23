@@ -8,7 +8,7 @@ use fornax_codec::{ByteOrder, DecodeCompression, ICodecDecode, Predictor, Sample
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::IDecoderEncoding;
-use fornax_raw_core::{CroppedMosaic, Primitive, RawMosaic, crop_and_cast};
+use fornax_raw_core::{CroppedMosaic, RawFloat, RawMosaic, crop_and_cast};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
 use fornax_tiff::{
     Directory, DirectoryLookup, ParsedTiff, RasterRequest, Tag, TiffCompressionError, TiffSource,
@@ -71,7 +71,7 @@ impl DngImage {
     }
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let metadata = self.dng_directory()?;
@@ -421,7 +421,8 @@ fn corrupt(detail: impl Into<Box<str>>) -> DecodeError { DecodeError::InvalidInp
 mod tests {
     use std::io::Cursor;
 
-    use fornax_raw_core::{MonoImage, RawMosaic};
+    use fornax_core::MonoImage;
+    use fornax_raw_core::RawMosaic;
     use fornax_tiff::constants::{CompressionMethod, TiffTag};
     use fornax_tiff::{Tag, TiffWriter, Value};
 
@@ -815,6 +816,8 @@ mod tests {
     #[cfg(feature = "zstd")]
     #[test]
     fn zstd_writer_round_trips_u8_u32_and_f32_samples() {
+        use fornax_core::MonoImage;
+
         let u8_samples = vec![0, 1, 2, 255];
         let u32_samples = vec![0, 70_000, 4_000_000_000, 12];
         let f32_samples = vec![-1.5_f32, 0.25, 100.0, f32::from_bits(0x7fc0_1234)];

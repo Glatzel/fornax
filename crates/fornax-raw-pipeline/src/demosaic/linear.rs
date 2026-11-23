@@ -1,5 +1,5 @@
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 use generic_num::num;
 
 use crate::LazyDemosaic;
@@ -14,7 +14,7 @@ pub struct LinearLazy<'a, T> {
     pattern: BayerPattern,
 }
 
-impl<T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'_, T> {
+impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for LinearLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
@@ -24,7 +24,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for LinearLazy<'_, T> {
         }
     }
 }
-impl<T: Primitive + Send + Sync> LinearLazy<'_, T> {
+impl<T: RawFloat + Send + Sync> LinearLazy<'_, T> {
     fn fill_row(&self, y: usize, out: &mut [T]) {
         let (width, height) = (self.width, self.height);
         let (w, h) = (width as usize, height as usize);
@@ -73,7 +73,7 @@ const fn idx(width: u32, x: u32, y: u32) -> usize { y as usize * width as usize 
 
 fn diagonal_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut count = 0_u32;
     let mut sum = T::zero();
@@ -98,7 +98,7 @@ where
 
 fn neighbour_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut count = 0_u32;
     let mut sum = T::zero();
@@ -123,7 +123,7 @@ where
 
 fn left_right_checked<T>(raw: &[T], width: u32, x: u32, y: u32) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut count = 0_u32;
     let mut sum = T::zero();
@@ -140,7 +140,7 @@ where
 
 fn top_down_checked<T>(raw: &[T], width: u32, height: u32, x: u32, y: u32) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut count = 0_u32;
     let mut sum = T::zero();
@@ -165,7 +165,7 @@ fn write_pixel_checked<T>(
     channel: BayerChannel,
     out_row: &mut [T],
 ) where
-    T: Primitive,
+    T: RawFloat,
 {
     let o = x as usize * 3;
     let centre = raw_mosaic[idx(width, x, y)];
@@ -201,7 +201,7 @@ fn write_pixel_checked<T>(
 #[inline(always)]
 fn interior_px<T, const CH: u8>(p: &[T], c: &[T], n: &[T], x: usize, out: &mut [T])
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let two = num!(2);
     let four = num!(4);
@@ -229,7 +229,7 @@ where
 #[inline(always)]
 fn interior_row<T, const CE: u8, const CO: u8>(prev: &[T], cur: &[T], next: &[T], out: &mut [T])
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let w = cur.len();
     assert!(prev.len() == w && next.len() == w && out.len() == 3 * w);
@@ -253,7 +253,7 @@ impl DemosaicLinear {
         pattern: BayerPattern,
     ) -> Result<LinearLazy<'a, T>, DemosaicError>
     where
-        T: Primitive + Send + Sync,
+        T: RawFloat + Send + Sync,
     {
         Ok(LinearLazy {
             raw: bayer.as_raw(),

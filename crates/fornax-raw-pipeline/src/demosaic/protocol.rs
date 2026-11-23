@@ -1,5 +1,5 @@
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::{BayerPattern, MonoImage, RawFloat, RgbImage};
 use rayon::prelude::*;
 
 /// Exposes demosaiced RGB rows without requiring a full output allocation.
@@ -16,7 +16,7 @@ use rayon::prelude::*;
 ///     .unwrap();
 /// assert_eq!(lazy.dimensions(), (2, 2));
 /// ```
-pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
+pub trait LazyDemosaic<T: RawFloat + Send + Sync>: Sync {
     /// Returns the RGB output dimensions in pixels.
     fn dimensions(&self) -> (u32, u32);
 
@@ -61,7 +61,7 @@ pub trait LazyDemosaic<T: Primitive + Send + Sync>: Sync {
 
 pub(super) fn apply_post_in_place<T>(image: &mut RgbImage<T>, post: impl Fn(usize, &mut [T]) + Sync)
 where
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     let width = image.width() as usize;
     let height = image.height() as usize;
@@ -100,7 +100,7 @@ where
 ///     .unwrap();
 /// assert_eq!(lazy.dimensions(), (2, 2));
 /// ```
-pub trait IDemosaic<T: Primitive + Send + Sync> {
+pub trait IDemosaic<T: RawFloat + Send + Sync> {
     /// Demosaics `bayer` using the channel layout described by `pattern`.
     fn demosaic<'a>(
         &self,

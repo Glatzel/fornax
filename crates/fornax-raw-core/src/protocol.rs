@@ -1,11 +1,13 @@
 use std::path::Path;
 
+use fornax_core::{MonoImage, RgbImage};
+
 use crate::error::{DecodeError, PostProcessError, PreprocessError};
 use crate::metadata::{
     ColorCalibration, ColorTransform, EncodingMetadata, Levels, ProcessMetadata,
 };
 use crate::{
-    BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage,
+    BayerPattern, CroppedMosaic, NormalizedMosaic, RawFloat, RawMosaic,
 };
 pub trait IDecoder: Send + Sync {
     fn decode(input: &Path) -> Result<Self, DecodeError>
@@ -14,7 +16,7 @@ pub trait IDecoder: Send + Sync {
     fn raw_mosaic(&self) -> Result<RawMosaic, DecodeError>;
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive;
+        T: RawFloat;
     fn process_metadata(&self) -> Result<ProcessMetadata, DecodeError>;
 }
 
@@ -25,7 +27,7 @@ pub trait IDecoderEncoding {
 
 pub trait IPreprocessor<T>: Sized
 where
-    T: Primitive,
+    T: RawFloat,
 {
     fn process(
         &self,
@@ -49,7 +51,7 @@ pub trait IPostProcessMetadata: Sync {
 }
 pub trait IPostProcessor<T, M>
 where
-    T: Primitive,
+    T: RawFloat,
     M: IPostProcessMetadata,
 {
     fn process(

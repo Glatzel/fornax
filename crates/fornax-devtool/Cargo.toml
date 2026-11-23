@@ -7,6 +7,7 @@ edition.workspace = true
 clerk = { workspace = true, features = ["tracing"] }
 csv.workspace = true
 fornax-bmff.workspace = true
+fornax-core.workspace = true
 fornax-raw-core.workspace = true
 fornax-tiff.workspace = true
 generic-num.workspace = true

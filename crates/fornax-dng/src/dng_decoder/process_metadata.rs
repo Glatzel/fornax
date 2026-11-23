@@ -1,9 +1,10 @@
+use fornax_core::MonoImage;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{
     ColorCalibration, Levels, LightSource, Matrix3x3, MetadataSource, ProcessMetadata,
     RawColorMeta, RawProfile,
 };
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerChannel, BayerPattern, RawFloat};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{DirectoryLookup, Tag, Value};
 use generic_num::num;
@@ -272,7 +273,7 @@ where
 fn black_levels<D, T>(metadata: &D) -> Result<MonoImage<T>, DecodeError>
 where
     D: DirectoryLookup + ?Sized,
-    T: Primitive,
+    T: RawFloat,
 {
     let repeat = unsigned_values(metadata.get(&Tag::from(DngTag::BlackLevelRepeatDim)))?
         .unwrap_or_else(|| vec![1, 1]);
@@ -383,7 +384,7 @@ where
 
 fn scalar_number<T>(value: Option<&Value>) -> Result<Option<T>, DecodeError>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     match value {
         None => Ok(None),
@@ -419,7 +420,7 @@ where
 
 fn scalar_values<T>(value: Option<&Value>) -> Result<Vec<T>, DecodeError>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let Some(value) = value else {
         return Ok(Vec::new());
@@ -457,7 +458,7 @@ fn unsigned_values(value: Option<&Value>) -> Result<Option<Vec<u32>>, DecodeErro
 
 fn cast_number<T>(value: f64) -> Option<T>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     num_traits::cast(value)
 }

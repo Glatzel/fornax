@@ -10,6 +10,7 @@ edition = "2024"
 [workspace.dependencies]
 fornax-bmff = { path = "./crates/fornax-bmff" }
 fornax-codec = { path = "./crates/fornax-codec" }
+fornax-core = { path = "./crates/fornax-core" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
 fornax-dng = { path = "./crates/fornax-dng" }
 fornax-large-alloc = { path = "./crates/fornax-large-alloc" }

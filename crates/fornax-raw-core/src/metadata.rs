@@ -1,8 +1,8 @@
+use fornax_core::MonoImage;
 use image::math::Rect;
 use num_enum::{FromPrimitive, IntoPrimitive};
 
 use crate::BayerPattern;
-use crate::primitive::MonoImage;
 use crate::protocol::IPostProcessMetadata;
 
 /// A row-major 3x3 color matrix.

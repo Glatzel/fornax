@@ -13,6 +13,7 @@ num-traits.workspace = true
 rayon.workspace = true
 strum.workspace = true
 thiserror.workspace = true
+fornax-core.workspace = true
 
 [target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
 raw-cpuid.workspace = true

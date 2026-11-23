@@ -18,7 +18,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, Primitive, RawFormat, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, RawFloat, RawFormat, RawMosaic};
 use fornax_tiff::TiffSource;
 
 #[derive(Clone, Debug)]
@@ -135,7 +135,7 @@ impl IDecoder for Decoder {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         match self {
             Self::Dng(parsed) => parsed.cropped_mosaic(),

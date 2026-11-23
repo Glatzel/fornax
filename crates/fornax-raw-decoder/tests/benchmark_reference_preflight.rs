@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
-use fornax_raw_core::{CroppedMosaic, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, RawFloat, RawMosaic};
 use reference_preflight::{ReferencePreflight, preflight_reference};
 
 struct FakeDecoder {
@@ -36,7 +36,7 @@ impl IDecoder for FakeDecoder {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         panic!("reference preflight must not run cropped_mosaic")
     }

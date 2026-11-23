@@ -1,18 +1,18 @@
-use fornax_raw_core::{BayerChannel, BayerPattern, Primitive, RgbImage};
+use fornax_raw_core::{BayerChannel, BayerPattern, RawFloat, RgbImage};
 
 use crate::LazyDemosaic;
 
-pub struct DenseLazy<T: Primitive> {
+pub struct DenseLazy<T: RawFloat> {
     image: RgbImage<T>,
 }
 
-impl<T: Primitive> DenseLazy<T> {
+impl<T: RawFloat> DenseLazy<T> {
     pub(super) const fn new(image: RgbImage<T>) -> Self { Self { image } }
 }
 
 impl<T> LazyDemosaic<T> for DenseLazy<T>
 where
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     fn dimensions(&self) -> (u32, u32) { self.image.dimensions() }
 
@@ -28,7 +28,7 @@ where
 
 pub(super) fn dense_from_vec<T>(width: u32, height: u32, values: Vec<T>) -> RgbImage<T>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     RgbImage::from_raw(width, height, values)
         .expect("demosaic output dimensions match the source image")

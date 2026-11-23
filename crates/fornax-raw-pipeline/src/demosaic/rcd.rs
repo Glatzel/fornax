@@ -7,7 +7,7 @@
 use std::sync::Mutex;
 
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage};
+use fornax_raw_core::{BayerPattern, MonoImage, RawFloat, RgbImage};
 use generic_num::num;
 
 use super::numerics::normalization_scale;
@@ -21,7 +21,7 @@ const BORDER: usize = 10;
 const MARGIN: usize = 9;
 const HALF_RANGE: usize = TILE_SIZE / 2;
 
-pub struct RcdLazy<'a, T: Primitive> {
+pub struct RcdLazy<'a, T: RawFloat> {
     bayer: &'a MonoImage<T>,
     pattern: BayerPattern,
     image: Mutex<Option<RgbImage<T>>>,
@@ -29,7 +29,7 @@ pub struct RcdLazy<'a, T: Primitive> {
 
 impl<T> LazyDemosaic<T> for RcdLazy<'_, T>
 where
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     fn dimensions(&self) -> (u32, u32) { self.bayer.dimensions() }
 
@@ -63,7 +63,7 @@ where
     }
 }
 
-impl<T: Primitive> RcdLazy<'_, T> {
+impl<T: RawFloat> RcdLazy<'_, T> {
     #[cfg(test)]
     fn cached_image_is_absent(&self) -> bool {
         self.image
@@ -83,7 +83,7 @@ impl DemosaicRcd {
         pattern: BayerPattern,
     ) -> Result<RcdLazy<'a, T>, DemosaicError>
     where
-        T: Primitive + Send + Sync,
+        T: RawFloat + Send + Sync,
     {
         let image = render(bayer, pattern)?;
         Ok(RcdLazy {
@@ -96,7 +96,7 @@ impl DemosaicRcd {
 
 fn render<T>(bayer: &MonoImage<T>, pattern: BayerPattern) -> Result<RgbImage<T>, DemosaicError>
 where
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     let mut image = DemosaicPpg.lazy(bayer, pattern)?.collect();
     if image.width() >= (2 * BORDER) as u32 && image.height() >= (2 * BORDER) as u32 {
@@ -113,7 +113,7 @@ where
 
 fn process_image<T>(raw: &[T], output: &mut [T], width: u32, height: u32, pattern: BayerPattern)
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let width = width as usize;
     let height = height as usize;
@@ -511,7 +511,7 @@ where
 #[inline(always)]
 fn square<T>(value: T) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     value * value
 }
@@ -527,7 +527,7 @@ const fn color_index(channel: fornax_raw_core::BayerChannel) -> usize {
 #[inline(always)]
 fn interpolate<T>(weight: T, first: T, second: T) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     weight * (first - second) + second
 }

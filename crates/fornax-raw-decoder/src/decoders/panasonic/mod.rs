@@ -20,7 +20,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 pub use request::{PanasonicV8Params, PanasonicV8Strip};
 
 #[cfg(test)]
@@ -130,7 +130,7 @@ impl Rw2Image {
     /// Returns an error when decoding fails or the active area is invalid.
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let active = self.process_metadata()?.active_area;
@@ -173,7 +173,7 @@ impl IDecoder for Rw2Image {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Self::cropped_mosaic(self)
     }

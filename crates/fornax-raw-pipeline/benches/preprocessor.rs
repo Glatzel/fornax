@@ -3,12 +3,12 @@ use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
 use fornax_raw_core::error::PreprocessError;
 use fornax_raw_core::metadata::Levels;
 use fornax_raw_core::protocol::IPreprocessor;
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat};
 use fornax_raw_pipeline::Preprocessor;
 
 fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let levels = Levels {
         black: MonoImage::from_raw(2, 2, vec![0.0; 4]).expect("2x2 black-level pattern"),

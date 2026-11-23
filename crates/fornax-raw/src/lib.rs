@@ -1,7 +1,7 @@
 pub mod preprocessor;
 pub mod raw_pipeline;
 pub use fornax_raw_core::{
-    BayerChannel, BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawFormat,
+    BayerChannel, BayerPattern, CroppedMosaic, MonoImage, NormalizedMosaic, RawFloat, RawFormat,
     RawMosaic, RgbImage, error, metadata, protocol,
 };
 
