@@ -330,7 +330,6 @@ jobs:
           options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
         env:
           GH_TOKEN: ${{ github.token }}
-          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
           FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
           FORNAX_BENCH_BITS: 32
@@ -392,9 +391,8 @@ jobs:
           options: -p fornax-raw --bench decoder ${{ matrix['cargo-options'] }}
         env:
           GH_TOKEN: ${{ github.token }}
-          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
-          FORNAX_BENCH_DECODER: fornax,rawler,flashraw
+          FORNAX_BENCH_DECODER: fornax
           FORNAX_BENCH_RAW: ${{ github.workspace }}/external/raw.pixls.us/${{ matrix.path }}
           OMP_NUM_THREADS: 1
           RAYON_NUM_THREADS: 1
