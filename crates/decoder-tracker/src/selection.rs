@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::str::FromStr;
 
-use crate::csvio::read_manifest_csv;
+use crate::csvio::{read_manifest_csv, write_manifest_csv};
 use crate::model::{Result, TrackerError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,6 +50,10 @@ pub struct Selection {
 }
 
 pub fn select_file(manifest: &Path, output: &Path, selection: &Selection) -> Result<usize> {
+    if selection.cameras.is_empty() && selection.filenames.is_empty() && selection.globs.is_empty()
+    {
+        return shard_manifest_file(manifest, output, selection.shard);
+    }
     let mut command = Command::new(python_executable());
     command
         .arg(tracker_data_script()?)
@@ -85,6 +89,28 @@ pub fn select_file(manifest: &Path, output: &Path, selection: &Selection) -> Res
         )));
     }
     Ok(read_manifest_csv(std::fs::read(output)?)?.len())
+}
+
+fn shard_manifest_file(manifest: &Path, output: &Path, shard: Option<Shard>) -> Result<usize> {
+    let mut rows = read_manifest_csv(std::fs::read(manifest)?)?;
+    rows.sort_by(|left, right| {
+        left.sha256
+            .cmp(&right.sha256)
+            .then_with(|| left.path.cmp(&right.path))
+    });
+    if let Some(shard) = shard {
+        rows = rows
+            .into_iter()
+            .enumerate()
+            .filter(|(position, _)| position % shard.count == shard.index)
+            .map(|(_, row)| row)
+            .collect();
+    }
+    if let Some(parent) = output.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    std::fs::write(output, write_manifest_csv(&rows)?)?;
+    Ok(rows.len())
 }
 
 fn python_executable() -> OsString {

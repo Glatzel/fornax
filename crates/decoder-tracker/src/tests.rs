@@ -15,12 +15,14 @@ use image::math::Rect;
 use rstest::rstest;
 use tempfile::tempdir;
 
-use crate::csvio::{BaselineCsv, read_baseline_csv, write_baseline_csv, write_manifest_csv};
+use crate::csvio::{
+    BaselineCsv, read_baseline_csv, read_manifest_csv, write_baseline_csv, write_manifest_csv,
+};
 use crate::manifest::{
     ManifestCheck, generate_manifest, normalize_repo_path, validate_pointer, write_pointer,
 };
 use crate::model::{BaselineKey, BaselineRow, ManifestRow};
-use crate::selection::Shard;
+use crate::selection::{Selection, Shard, select_file};
 use crate::stages::{
     StageRow, classify_decode_error, evaluate_decoder, run_guarded, sanity_check_metadata,
     transition_row,
@@ -158,6 +160,40 @@ fn derives_vendor_camera_model_and_filename_from_path() {
 #[case("1/x")]
 fn shard_rejects_out_of_bounds_or_malformed_values(#[case] value: &str) {
     assert!(value.parse::<Shard>().is_err());
+}
+
+#[test]
+fn selected_manifest_sharding_does_not_require_python() {
+    let temp = tempdir().unwrap();
+    let manifest = temp.path().join("selected.csv");
+    let output = temp.path().join("shard.csv");
+    let rows = [
+        manifest_row("dd", "Canon/Cam/d.DNG", "DNG"),
+        manifest_row("bb", "Canon/Cam/b.DNG", "DNG"),
+        manifest_row("aa", "Canon/Cam/a.DNG", "DNG"),
+        manifest_row("cc", "Canon/Cam/c.DNG", "DNG"),
+    ];
+    fs::write(&manifest, write_manifest_csv(&rows).unwrap()).unwrap();
+
+    let count = select_file(
+        &manifest,
+        &output,
+        &Selection {
+            shard: Some(Shard { index: 0, count: 2 }),
+            ..Selection::default()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(count, 2);
+    assert_eq!(
+        read_manifest_csv(fs::read(output).unwrap())
+            .unwrap()
+            .iter()
+            .map(|row| row.sha256.as_str())
+            .collect::<Vec<_>>(),
+        ["aa", "cc"]
+    );
 }
 
 #[test]
