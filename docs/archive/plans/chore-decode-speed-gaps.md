@@ -111,8 +111,8 @@ under the emitted Rayon closure.
 
 ## Files Expected to Change
 
-- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs`
-- `crates/fornax-raw-decoder/src/decoders/canon/codec/mod.rs`
+- `crates/fornax-raw/src/decoders/nikon/codec.rs`
+- `crates/fornax-raw/src/decoders/canon/codec/mod.rs`
 - `crates/fornax-codec/src/samples.rs` only if the Sony uncompressed evidence
   supports a shared row-copy scheduling change.
 - `crates/fornax-codec/src/ljpeg.rs` for the Sony/DNG shared LJPEG kernel, if

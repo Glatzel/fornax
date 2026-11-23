@@ -149,24 +149,24 @@ homogeneous production path, but its zero floors make it non-shift-invariant.
 
 | Location | Violation |
 | --- | --- |
-| `crates/fornax-raw-pipeline/src/demosaic/buffer.rs:38` | `codes` clamps every input to `[0,1]` and quantizes to `u16`. Used by AAHD, DCB, DHT, LMMSE, VNG, and VNG4. |
-| `crates/fornax-raw-pipeline/src/demosaic/buffer.rs:44-55` | Converts `u16` output back to `[0,1]`; all integer-backed algorithms are bounded by construction. |
-| `crates/fornax-raw-pipeline/src/demosaic/protocol.rs:99` | `normalized_f32` clamps converted non-borrowed inputs to `[0,1]`. Borrowed `Vec<f32>` bypasses this input clamp. |
-| `crates/fornax-raw-pipeline/src/demosaic/protocol.rs:128-134` | `dense_from_f32_owned` clamps all AHD and AMaZE output, including the AMaZE small-image PPG fallback, to `[0,1]`. |
-| `crates/fornax-raw-pipeline/src/demosaic/amaze.rs:1560-1564` | Replaces NaN with `0.5` and clamps every AMaZE sample to `[0,1]`. |
-| `crates/fornax-raw-pipeline/src/demosaic/ppg.rs:111`, `142`, `171`, `196` | PPG forces reconstructed channels and border averages nonnegative. |
-| `crates/fornax-raw-pipeline/src/demosaic/rcd.rs:164`, `503` | RCD forces input and output samples nonnegative; `305`/`411` also bound its interpolation selector to `[0,1]`. |
-| `crates/fornax-raw-pipeline/src/demosaic/ahd.rs:142`, `152`, `181`, `189`, `208`, `323-325`, `351-354` | AHD actively limits candidates and output to neighbor/code ranges before the final shared `[0,1]` clamp. |
-| `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs:68`, `300`, `311`, `327`, `334`, `656`, `687-694` | LMMSE bounds seed, directional differences, gamma lookup, and final output to unit-scale ranges. |
+| `crates/fornax-raw/src/demosaic/buffer.rs:38` | `codes` clamps every input to `[0,1]` and quantizes to `u16`. Used by AAHD, DCB, DHT, LMMSE, VNG, and VNG4. |
+| `crates/fornax-raw/src/demosaic/buffer.rs:44-55` | Converts `u16` output back to `[0,1]`; all integer-backed algorithms are bounded by construction. |
+| `crates/fornax-raw/src/demosaic/protocol.rs:99` | `normalized_f32` clamps converted non-borrowed inputs to `[0,1]`. Borrowed `Vec<f32>` bypasses this input clamp. |
+| `crates/fornax-raw/src/demosaic/protocol.rs:128-134` | `dense_from_f32_owned` clamps all AHD and AMaZE output, including the AMaZE small-image PPG fallback, to `[0,1]`. |
+| `crates/fornax-raw/src/demosaic/amaze.rs:1560-1564` | Replaces NaN with `0.5` and clamps every AMaZE sample to `[0,1]`. |
+| `crates/fornax-raw/src/demosaic/ppg.rs:111`, `142`, `171`, `196` | PPG forces reconstructed channels and border averages nonnegative. |
+| `crates/fornax-raw/src/demosaic/rcd.rs:164`, `503` | RCD forces input and output samples nonnegative; `305`/`411` also bound its interpolation selector to `[0,1]`. |
+| `crates/fornax-raw/src/demosaic/ahd.rs:142`, `152`, `181`, `189`, `208`, `323-325`, `351-354` | AHD actively limits candidates and output to neighbor/code ranges before the final shared `[0,1]` clamp. |
+| `crates/fornax-raw/src/demosaic/lmmse.rs:68`, `300`, `311`, `327`, `334`, `656`, `687-694` | LMMSE bounds seed, directional differences, gamma lookup, and final output to unit-scale ranges. |
 | `crates/compare-demosaic/src/cases.rs:449-457` | The reference harness also clamps Fornax output to `[0,1]` before converting to 16-bit codes. This does not alter the production algorithm, but it currently makes reference comparison blind to HDR violations. |
-| `crates/fornax-raw-pipeline/src/preprocessor.rs:91-92`, `107-108` | Outside the demosaic module, black/white normalization floors negative values at zero. Direct synthetic demosaic tests can exercise negative inputs, but the standard preprocessed pipeline currently cannot deliver them. |
+| `crates/fornax-raw/src/preprocessor.rs:91-92`, `107-108` | Outside the demosaic module, black/white normalization floors negative values at zero. Direct synthetic demosaic tests can exercise negative inputs, but the standard preprocessed pipeline currently cannot deliver them. |
 
 ### CFA assumptions
 
 All production variants take `BayerPattern` and dispatch through
 `BayerPattern::channel_at`; none has a production-path hard-code for RGGB or
 GBRG. They support only the four conventional 2x2 RGB Bayer patterns declared in
-`crates/fornax-raw-core/src/bayer.rs:31-39`.
+`crates/fornax-raw/src/bayer.rs:31-39`.
 
 The algorithms still assume a conventional three-color Bayer topology:
 

@@ -11,33 +11,6 @@ EXTENDED_HEADER = ["path", "size", "sha256", "decoder_path", "reason", "overhead
 GROUP_HEADER = [*EXTENDED_HEADER, "group"]
 GROUPS = frozenset({"core", "full", "overhead", "hdr"})
 ALL_FORMATS = frozenset({"3FR", "ARW", "CR3", "CRM", "DNG", "IIQ", "NEF", "RAF", "RW2"})
-SHARED_PREFIXES = (
-    ".github/workflows/ci.yml",
-    "Cargo.lock",
-    "Cargo.toml",
-    "crates/fornax-raw-decoder/README.md",
-    "crates/fornax-raw-decoder/benches/",
-    "crates/fornax-raw-decoder/src/decoders/mod.rs",
-    "crates/fornax-raw-decoder/src/dnc.rs",
-    "crates/fornax-raw-decoder/src/lib.rs",
-    "crates/fornax-raw-decoder/tests/",
-    "crates/fornax-codec/",
-    "crates/fornax-dng/",
-    "crates/fornax-raw-core/",
-    "crates/fornax-tiff/",
-    "crates/decoder-tracker/golden/",
-    "crates/decoder-tracker/scripts/benchmark_",
-)
-VENDOR_FORMATS = (
-    ("crates/fornax-raw-decoder/src/decoders/canon/", frozenset({"CR3", "CRM"})),
-    ("crates/fornax-raw-decoder/src/decoders/fujifilm/", frozenset({"RAF"})),
-    ("crates/fornax-raw-decoder/src/decoders/hasselblad/", frozenset({"3FR"})),
-    ("crates/fornax-raw-decoder/src/decoders/nikon/", frozenset({"NEF"})),
-    ("crates/fornax-raw-decoder/src/decoders/panasonic/", frozenset({"RW2"})),
-    ("crates/fornax-raw-decoder/src/decoders/phase_one/", frozenset({"IIQ"})),
-    ("crates/fornax-raw-decoder/src/decoders/sony/", frozenset({"ARW"})),
-    ("crates/fornax-bmff/", frozenset({"CR3", "CRM"})),
-)
 
 
 class GoldenManifestError(ValueError):
@@ -113,20 +86,6 @@ def parse_groups(value):
     return groups
 
 
-def impacted_formats(paths):
-    changed = [path.removeprefix("./").replace("\\", "/") for path in paths if path]
-    if not changed:
-        return frozenset()
-    if any(path == prefix or path.startswith(prefix) for path in changed for prefix in SHARED_PREFIXES):
-        return ALL_FORMATS
-    selected = set()
-    for path in changed:
-        for prefix, formats in VENDOR_FORMATS:
-            if path.startswith(prefix):
-                selected.update(formats)
-    return frozenset(selected)
-
-
 def build_matrix(rows, formats=None, groups=None):
     selected = ALL_FORMATS if formats is None else frozenset(formats)
     include = []
@@ -165,18 +124,7 @@ def main():
     parser.add_argument("--formats", help="comma-separated formats or 'all'")
     parser.add_argument("--group", default="core", help="comma-separated groups or 'all'")
     parser.add_argument("--github-output", type=Path)
-    parser.add_argument("--impact", nargs="*", default=None)
     args = parser.parse_args()
-
-    if args.impact is not None:
-        formats = impacted_formats(args.impact)
-        rendered = ",".join(sorted(formats))
-        if args.github_output:
-            with args.github_output.open("a", encoding="utf-8") as output:
-                output.write(f"formats={rendered}\n")
-        else:
-            print(rendered)
-        return
 
     if args.manifest is None:
         parser.error("--manifest is required when building the benchmark matrix")

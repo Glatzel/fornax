@@ -33,7 +33,19 @@ jobs:
       main: ${{ steps.changed-files.outputs.main_any_changed }}
       benchmark_formats: ${{ steps.benchmark-formats.outputs.formats }}
       benchmark_dng: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
-      benchmark_raw_pipeline: ${{ steps.changed-files.outputs.benchmark_raw_pipeline_any_changed }}
+      benchmark_aahd: ${{ steps.changed-files.outputs.benchmark_aahd_any_changed }}
+      benchmark_ahd: ${{ steps.changed-files.outputs.benchmark_ahd_any_changed }}
+      benchmark_amaze: ${{ steps.changed-files.outputs.benchmark_amaze_any_changed }}
+      benchmark_dcb: ${{ steps.changed-files.outputs.benchmark_dcb_any_changed }}
+      benchmark_dht: ${{ steps.changed-files.outputs.benchmark_dht_any_changed }}
+      benchmark_linear: ${{ steps.changed-files.outputs.benchmark_linear_any_changed }}
+      benchmark_lmmse: ${{ steps.changed-files.outputs.benchmark_lmmse_any_changed }}
+      benchmark_ppg: ${{ steps.changed-files.outputs.benchmark_ppg_any_changed }}
+      benchmark_preprocessor: ${{ steps.changed-files.outputs.benchmark_preprocessor_any_changed }}
+      benchmark_rcd: ${{ steps.changed-files.outputs.benchmark_rcd_any_changed }}
+      benchmark_requested: ${{ steps.benchmark-requested.outputs.requested }}
+      benchmark_vng: ${{ steps.changed-files.outputs.benchmark_vng_any_changed }}
+      benchmark_vng4: ${{ steps.changed-files.outputs.benchmark_vng4_any_changed }}
       book_assets: ${{ steps.changed-files.outputs.book_assets_any_changed }}
       golden: ${{ steps.changed-files.outputs.golden_any_changed }}
     steps:
@@ -45,53 +57,131 @@ jobs:
             main:
               - ./**
               - '!**/*.md'
-            benchmark_all:
-              - ./crates/fornax-raw-core/**
+
+            benchmark_decoder_common:
               - ./crates/fornax-codec/**
-              - ./crates/fornax-dng/**
               - ./crates/fornax-tiff/**
-              - ./crates/fornax-raw-decoder/benches/**
+              - ./crates/fornax-raw/Cargo.toml
+              - ./crates/fornax-raw/src/bayer.rs
+              - ./crates/fornax-raw/src/crop_cast.rs
+              - ./crates/fornax-raw/src/decoder/mod.rs
+              - ./crates/fornax-raw/src/decoder/dnc.rs
+              - ./crates/fornax-raw/src/dng/**
+              - ./crates/fornax-raw/src/error.rs
+              - ./crates/fornax-raw/src/format.rs
+              - ./crates/fornax-raw/src/lib.rs
+              - ./crates/fornax-raw/src/metadata.rs
+              - ./crates/fornax-raw/src/primitive.rs
+              - ./crates/fornax-raw/src/protocol.rs
+              - ./crates/fornax-raw/src/utils.rs
+              - ./crates/fornax-raw/benches/decoder.rs
+              - ./crates/fornax-raw/benches/decoder_inputs.rs
+              - ./crates/fornax-raw/benches/decoder_selection.rs
+              - ./crates/fornax-raw/benches/dng_gap_probe.rs
+              - ./crates/fornax-raw/benches/dng_gap_probe/**
+              - ./crates/fornax-raw/benches/flashraw_probe.rs
+              - ./crates/fornax-raw/benches/flashraw_probe/**
+              - ./crates/fornax-raw/benches/flashraw_wrapper.rs
+              - ./crates/fornax-raw/benches/rawler_wrapper.rs
+              - ./crates/fornax-raw/benches/reference_preflight.rs
               - '!**/*.md'
+
             benchmark_sony:
-              - ./crates/fornax-raw-decoder/src/decoders/sony/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/sony/**
               - '!**/*.md'
             benchmark_canon:
-              - ./crates/fornax-raw-decoder/src/decoders/canon/**
+              - ./crates/fornax-raw/src/decoder/canon/**
               - ./crates/fornax-bmff/**
               - '!**/*.md'
             benchmark_nikon:
-              - ./crates/fornax-raw-decoder/src/decoders/nikon/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/nikon/**
               - '!**/*.md'
             benchmark_fujifilm:
-              - ./crates/fornax-raw-decoder/src/decoders/fujifilm/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/fujifilm/**
               - '!**/*.md'
             benchmark_hasselblad:
-              - ./crates/fornax-raw-decoder/src/decoders/hasselblad/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/hasselblad/**
               - '!**/*.md'
             benchmark_panasonic:
-              - ./crates/fornax-raw-decoder/src/decoders/panasonic/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/panasonic/**
               - '!**/*.md'
             benchmark_phase_one:
-              - ./crates/fornax-raw-decoder/src/decoders/phase_one/**
+              - ./crates/fornax-codec/**
+              - ./crates/fornax-raw/src/decoder/phase_one/**
               - '!**/*.md'
             benchmark_dng:
               - ./crates/fornax-codec/**
-              - ./crates/fornax-dng/**
-              - ./crates/fornax-tiff/**
+              - ./crates/fornax-raw/src/dng/**
+              - ./crates/fornax-raw/benches/writer.rs
               - '!**/*.md'
-            benchmark_raw_pipeline:
-              - ./crates/fornax-raw-pipeline/**
+
+            benchmark_aahd:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
               - '!**/*.md'
+            benchmark_ahd:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_amaze:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_dcb:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_dht:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_linear:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_lmmse:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_ppg:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_rcd:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_vng:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_vng4:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+
+            benchmark_preprocessor:
+              - ./crates/fornax-raw/src/preprocessor.rs
+              - ./crates/fornax-raw/benches/preprocessor.rs
+              - ./crates/fornax-raw/benches/support/**
+              - '!**/*.md'
+
             book_assets:
               - ./book/**
             golden:
               - ./**
               - '!**/*.md'
+
       - id: benchmark-formats
         name: Select impacted decoder benchmark formats
         shell: bash
         env:
-          ALL_CHANGED: ${{ steps.changed-files.outputs.benchmark_all_any_changed }}
+          ALL_CHANGED: ${{ steps.changed-files.outputs.benchmark_decoder_common_any_changed }}
           SONY_CHANGED: ${{ steps.changed-files.outputs.benchmark_sony_any_changed }}
           CANON_CHANGED: ${{ steps.changed-files.outputs.benchmark_canon_any_changed }}
           NIKON_CHANGED: ${{ steps.changed-files.outputs.benchmark_nikon_any_changed }}
@@ -113,6 +203,37 @@ jobs:
             [[ "$PHASE_ONE_CHANGED" == "true" ]] && formats+="${formats:+,}IIQ"
           fi
           echo "formats=$formats" >>"$GITHUB_OUTPUT"
+
+      - id: benchmark-requested
+        name: Check whether any non-decoder benchmark changed
+        shell: bash
+        env:
+          DNG_CHANGED: ${{ steps.changed-files.outputs.benchmark_dng_any_changed }}
+          AAHD_CHANGED: ${{ steps.changed-files.outputs.benchmark_aahd_any_changed }}
+          AHD_CHANGED: ${{ steps.changed-files.outputs.benchmark_ahd_any_changed }}
+          AMAZE_CHANGED: ${{ steps.changed-files.outputs.benchmark_amaze_any_changed }}
+          DCB_CHANGED: ${{ steps.changed-files.outputs.benchmark_dcb_any_changed }}
+          DHT_CHANGED: ${{ steps.changed-files.outputs.benchmark_dht_any_changed }}
+          LINEAR_CHANGED: ${{ steps.changed-files.outputs.benchmark_linear_any_changed }}
+          LMMSE_CHANGED: ${{ steps.changed-files.outputs.benchmark_lmmse_any_changed }}
+          PPG_CHANGED: ${{ steps.changed-files.outputs.benchmark_ppg_any_changed }}
+          PREPROCESSOR_CHANGED: ${{ steps.changed-files.outputs.benchmark_preprocessor_any_changed }}
+          RCD_CHANGED: ${{ steps.changed-files.outputs.benchmark_rcd_any_changed }}
+          VNG_CHANGED: ${{ steps.changed-files.outputs.benchmark_vng_any_changed }}
+          VNG4_CHANGED: ${{ steps.changed-files.outputs.benchmark_vng4_any_changed }}
+        run: |
+          requested=false
+          for changed in \
+            "$DNG_CHANGED" "$AAHD_CHANGED" "$AHD_CHANGED" "$AMAZE_CHANGED" \
+            "$DCB_CHANGED" "$DHT_CHANGED" "$LINEAR_CHANGED" "$LMMSE_CHANGED" \
+            "$PPG_CHANGED" "$PREPROCESSOR_CHANGED" "$RCD_CHANGED" \
+            "$VNG_CHANGED" "$VNG4_CHANGED"; do
+            if [[ "$changed" == "true" ]]; then
+              requested=true
+              break
+            fi
+          done
+          echo "requested=$requested" >>"$GITHUB_OUTPUT"
 
   decoder-benchmark-plan:
     name: plan decoder benchmark matrix
@@ -260,7 +381,7 @@ jobs:
         if: ${{ !cancelled() }}
 
   benchmark:
-    name: benchmark (${{ matrix.package }})
+    name: benchmark (${{ matrix.label }})
     needs: changed
     if: >-
       ${{
@@ -268,63 +389,64 @@ jobs:
         !cancelled() &&
         (github.event_name == 'workflow_dispatch' ||
          ((github.event_name == 'push' || github.event_name == 'pull_request') &&
-          (needs.changed.outputs.benchmark_dng == 'true' ||
-           needs.changed.outputs.benchmark_raw_pipeline == 'true')))
+          needs.changed.outputs.benchmark_requested == 'true'))
       }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - package: fornax-dng
+          - label: dng-writer
             changed: ${{ needs.changed.outputs.benchmark_dng }}
+            extra-options: --bench writer
+            raw-fixtures: true
 
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-aahd
+          #   changed: ${{ needs.changed.outputs.benchmark_aahd }}
           #   extra-options: --bench demosaic
           #   algorithm: aahd
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-ahd
+          #   changed: ${{ needs.changed.outputs.benchmark_ahd }}
           #   extra-options: --bench demosaic
           #   algorithm: ahd
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-amaze
+          #   changed: ${{ needs.changed.outputs.benchmark_amaze }}
           #   extra-options: --bench demosaic
           #   algorithm: amaze
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-dcb
+          #   changed: ${{ needs.changed.outputs.benchmark_dcb }}
           #   extra-options: --bench demosaic
           #   algorithm: dcb
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-dht
+          #   changed: ${{ needs.changed.outputs.benchmark_dht }}
           #   extra-options: --bench demosaic
           #   algorithm: dht
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          - label: demosaic-linear
+            changed: ${{ needs.changed.outputs.benchmark_linear }}
             extra-options: --bench demosaic
             algorithm: linear
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-lmmse
+          #   changed: ${{ needs.changed.outputs.benchmark_lmmse }}
           #   extra-options: --bench demosaic
           #   algorithm: lmmse
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          - label: demosaic-ppg
+            changed: ${{ needs.changed.outputs.benchmark_ppg }}
             extra-options: --bench demosaic
             algorithm: ppg
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-rcd
+          #   changed: ${{ needs.changed.outputs.benchmark_rcd }}
           #   extra-options: --bench demosaic
           #   algorithm: rcd
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-vng
+          #   changed: ${{ needs.changed.outputs.benchmark_vng }}
           #   extra-options: --bench demosaic
           #   algorithm: vng
-          # - package: fornax-raw-pipeline
-          #   changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          # - label: demosaic-vng4
+          #   changed: ${{ needs.changed.outputs.benchmark_vng4 }}
           #   extra-options: --bench demosaic
           #   algorithm: vng4
 
-          - package: fornax-raw-pipeline
-            changed: ${{ needs.changed.outputs.benchmark_raw_pipeline }}
+          - label: preprocessor
+            changed: ${{ needs.changed.outputs.benchmark_preprocessor }}
             extra-options: --bench preprocessor
     runs-on: ubuntu-latest
     steps:
@@ -333,15 +455,14 @@ jobs:
       - uses: Glatzel/template/.github/actions/rust/setup-rust@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
       - name: Initialize RAW fixtures
-        if: ${{ matrix.package == 'fornax-dng' && (github.event_name == 'workflow_dispatch' || matrix.changed == 'true') }}
+        if: ${{ matrix['raw-fixtures'] && (github.event_name == 'workflow_dispatch' || matrix.changed == 'true') }}
         run: bash scripts/setup.sh
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         if: ${{ github.event_name == 'workflow_dispatch' || matrix.changed == 'true' }}
         with:
-          options: -p ${{ matrix.package }} ${{ matrix['extra-options'] }} --all-features
+          options: -p fornax-raw ${{ matrix['extra-options'] }} --all-features
         env:
           GH_TOKEN: ${{ github.token }}
-          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
           FORNAX_BENCH_ALGORITHM: ${{ matrix.algorithm }}
           FORNAX_BENCH_BITS: 32
@@ -400,12 +521,11 @@ jobs:
           test "$(sha256sum "$FORNAX_BENCH_RAW" | cut -d' ' -f1)" = "$FORNAX_BENCH_SHA256"
       - uses: Glatzel/template/.github/actions/rust/cargo-bench@14506165092ec40010124f448a55e6ba708ae829 # v2026.11.3
         with:
-          options: -p fornax-raw-decoder --bench decoder ${{ matrix['cargo-options'] }}
+          options: -p fornax-raw --bench decoder ${{ matrix['cargo-options'] }}
         env:
           GH_TOKEN: ${{ github.token }}
-          LD_LIBRARY_PATH: ${{ github.workspace }}/.pixi/envs/dev/lib:${{ env.LD_LIBRARY_PATH }}
           CARGO_WORKSPACE_DIR: ${{ github.workspace }}
-          FORNAX_BENCH_DECODER: fornax,rawler,flashraw
+          FORNAX_BENCH_DECODER: fornax
           FORNAX_BENCH_RAW: ${{ github.workspace }}/external/raw.pixls.us/${{ matrix.path }}
           OMP_NUM_THREADS: 1
           RAYON_NUM_THREADS: 1

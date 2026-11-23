@@ -260,12 +260,12 @@ git commit -m "feat: expose raw codec encoders"
 **Files:**
 
 - Modify: `crates/fornax-dng/Cargo.toml`
-- Modify: `crates/fornax-dng/src/lib.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
-- Modify: `crates/fornax-dng/src/writer.rs`
-- Delete: superseded `crates/fornax-dng/src/dng_decoder/*_codec.rs`
-- Delete: `crates/fornax-dng/src/dng_decoder/ljpeg.rs`
-- Delete: `crates/fornax-dng/src/ljpeg_writer.rs`
+- Modify: `crates/fornax-raw/src/dng/lib.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/dng/writer.rs`
+- Delete: superseded `crates/fornax-raw/src/dng/dng_decoder/*_codec.rs`
+- Delete: `crates/fornax-raw/src/dng/dng_decoder/ljpeg.rs`
+- Delete: `crates/fornax-raw/src/dng/ljpeg_writer.rs`
 - Modify: `Cargo.toml`, `Cargo.lock`
 
 **Interfaces:**
@@ -348,7 +348,7 @@ git commit -m "docs: document fornax-codec ownership"
 - `Cargo.toml`, `Cargo.lock`, `AGENTS.md`
 - `crates/fornax-codec/**`
 - `crates/fornax-dng/Cargo.toml`
-- `crates/fornax-dng/src/**`
+- `crates/fornax-raw/src/dng/**`
 - `crates/fornax-dng/README.md`
 - `crates/fornax-raw-core/README.md`
 - `crates/fornax-decoder/README.md`

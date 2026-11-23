@@ -159,7 +159,7 @@ lossless value.
 **Files:**
 - Modify: `crates/fornax-decoder/Cargo.toml`
 - Modify: `crates/fornax-decoder/src/lib.rs`
-- Modify: `crates/fornax-raw-core/src/format.rs`
+- Modify: `crates/fornax-raw/src/format.rs`
 - Create: `crates/fornax-decoder/tests/cr3.rs`
 
 **Interfaces:**

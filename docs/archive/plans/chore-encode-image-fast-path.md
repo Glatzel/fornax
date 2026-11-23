@@ -53,7 +53,7 @@ Out of scope:
 - `crates/fornax-codec/tests/support/synthetic.rs`
 - `crates/fornax-codec/benches/encode_probe.rs`
 - `crates/fornax-codec/Cargo.toml`
-- `crates/fornax-raw-decoder/benches/decoder.rs`
+- `crates/fornax-raw/benches/decoder.rs`
 - `docs/reference/decoders/perf/dng-remaining-gap.md`
 - `docs/plans/chore-encode-image-fast-path.md`
 

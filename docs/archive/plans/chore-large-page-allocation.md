@@ -56,7 +56,7 @@ Out of scope:
   allocation, and `65cbb3815ecce6061bca768a58b43b0890a51aaa` (PR #734)
   completed the portable scalar pass.
 - The surviving Linux comparison helper in
-  `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` confirms the
+  `crates/fornax-raw/benches/dng_gap_probe/linux.rs` confirms the
   natural-alignment allocation, page-aligned interior advisory, and
   `AnonHugePages` measurement approach.
 
@@ -106,7 +106,7 @@ a useful interior while avoiding the policy on small outputs.
 - Modify: `crates/fornax-codec/src/ljpeg.rs`
 - Modify: `crates/fornax-codec/src/jpeg.rs`
 - Modify: `crates/fornax-codec/src/jpegxl.rs`
-- Modify: `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if
+- Modify: `crates/fornax-raw/benches/dng_gap_probe/linux.rs` only if
   the existing `--smaps` output needs a helper adjustment
 - Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 - Modify: `docs/reference/decoders/perf/dng-gap-profiles/README.md`

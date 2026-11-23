@@ -197,7 +197,7 @@ implementing that bound.
 
 ## Current Fornax behavior
 
-[`PpgLazy`](../../../crates/fornax-raw-pipeline/src/demosaic/ppg.rs)
+[`PpgLazy`](../../../crates/fornax-raw/src/demosaic/ppg.rs)
 implements the modern LibRaw/darktable equations:
 
 - three-pixel border averaging by available same-color samples;

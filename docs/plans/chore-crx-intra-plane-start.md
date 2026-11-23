@@ -19,7 +19,7 @@ has one subband, and accepted lossless files have zero transform levels.
 | R7 | 28,640,024 | 7,094,789 / 7,374,054 / 7,369,344 / 6,801,719 | 7128x4732 |
 
 The offsets and sizes are populated by
-`crates/fornax-raw-decoder/src/decoders/canon/codec/mod.rs:180-268`; one
+`crates/fornax-raw/src/decoders/canon/codec/mod.rs:180-268`; one
 subband per plane is enforced at lines 227-253. Four plane tasks are created at
 lines 135-169.
 

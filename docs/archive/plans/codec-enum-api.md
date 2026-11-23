@@ -60,8 +60,8 @@ Out of scope:
 - `crates/fornax-codec/tests/encode_contract.rs`
 - `crates/fornax-codec/README.md`
 - `crates/fornax-dng/README.md`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/writer.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
 - `docs/architecture/overview.md`
 - `docs/_archive/plans/codec-enum-api.md`
 
@@ -148,8 +148,8 @@ git commit -m "refactor: expose codecs through one enum"
 
 **Files:**
 
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
-- Modify: `crates/fornax-dng/src/writer.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/dng/writer.rs`
 
 **Interfaces:**
 

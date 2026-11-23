@@ -104,13 +104,13 @@ Expected: compilation fails because `fornax_raw_pipeline::protocol` does not exi
 
 **Files:**
 
-- Create: `crates/fornax-raw-pipeline/src/protocol.rs`
+- Create: `crates/fornax-raw/src/protocol.rs`
 - Modify: `crates/fornax-raw-core/Cargo.toml`
-- Modify: `crates/fornax-raw-core/src/protocol.rs`
+- Modify: `crates/fornax-raw/src/protocol.rs`
 - Modify: `crates/fornax-raw-pipeline/Cargo.toml`
-- Modify: `crates/fornax-raw-pipeline/src/lib.rs`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic.rs`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/{ahd,buffer,linear,ppg,rcd}.rs`
+- Modify: `crates/fornax-raw/src/lib.rs`
+- Modify: `crates/fornax-raw/src/demosaic.rs`
+- Modify: `crates/fornax-raw/src/demosaic/{ahd,buffer,linear,ppg,rcd}.rs`
 - Modify: `crates/bench-demosaic/benches/demosaic.rs`
 - Modify: `crates/compare-demosaic/src/cases.rs`
 - Modify: `crates/fornax-raw/src/postprocessor.rs`
@@ -126,13 +126,13 @@ Expected: compilation fails because `fornax_raw_pipeline::protocol` does not exi
   - `fornax_raw_pipeline::protocol::IDemosaic<T>`
   - `fornax_raw::postprocessor::protocol::{IDemosaic, LazyDemosaic}`
 
-- [x] **Step 1: Move the trait definitions and implementation unchanged into `crates/fornax-raw-pipeline/src/protocol.rs`**
+- [x] **Step 1: Move the trait definitions and implementation unchanged into `crates/fornax-raw/src/protocol.rs`**
 
 Use `rayon`, `fornax_raw_core::error::DemosaicError`, and `fornax_raw_core::{BayerPattern, MonoImage, Primitive, RgbImage}`. Preserve `dimensions`, `fill_rows`, `collect_with`, `collect`, and `demosaic` signatures and bodies.
 
-- [x] **Step 2: Remove only the moved traits from `crates/fornax-raw-core/src/protocol.rs`**
+- [x] **Step 2: Remove only the moved traits from `crates/fornax-raw/src/protocol.rs`**
 
-Keep `IDecoder`, `IPreprocessor`, `IPostProcessMetadata`, and `IPostProcessor` in core. Remove imports that become unused, but leave `DemosaicError` in `crates/fornax-raw-core/src/error.rs`.
+Keep `IDecoder`, `IPreprocessor`, `IPostProcessMetadata`, and `IPostProcessor` in core. Remove imports that become unused, but leave `DemosaicError` in `crates/fornax-raw/src/error.rs`.
 
 - [x] **Step 3: Update postprocessor imports to `crate::protocol`**
 

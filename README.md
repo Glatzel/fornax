@@ -23,17 +23,15 @@ Fornax uses built-in or custom decoders and post-processors to produce `ImageBuf
 
 ## Components
 
-- **fornax-raw-core**: Shared pipeline types, errors, and decoder/processor
-  contracts.
+- **fornax-core**: Shared image aliases used by the codec and RAW crates.
 - **fornax-bmff**: Bounded generic ISO-BMFF box and sample-table parsing.
 - **fornax-codec**: Format-neutral request, sample-buffer, predictor, Huffman,
   and generic codec interfaces.
-- **fornax-raw-decoder**: Native decoder with DNG plus unconditional Sony,
-  Canon, Nikon, Fujifilm, Hasselblad, Panasonic, and Phase One modules.
-- **fornax-raw-pipeline**: Black/white-level normalization, demosaic
-  algorithms, RGB reconstruction, and color processing.
-- **fornax-raw**: High-level facade tying the stages together.
-- **fornax-devtool**: Pinned fixtures and development helpers.
+- **fornax-tiff**: Generic TIFF parsing, raster planning, and writing.
+- **fornax-raw**: Shared RAW contracts, native DNG and vendor decoding,
+  black/white normalization, demosaic algorithms, color processing, and DNG
+  writing.
+- **fornax-devtool**: Generic benchmark configuration and development helpers.
 - **fornax-py**: Python binding source, currently excluded from the Rust
   workspace while its public API is stabilized.
 

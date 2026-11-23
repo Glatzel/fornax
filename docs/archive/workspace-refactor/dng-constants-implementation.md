@@ -229,11 +229,11 @@ by TIFF/EP. It is a generic TIFF extension, not a DNG-owned tag.
 - `crates/fornax-tiff/tests/constants.rs`
 - `crates/fornax-tiff/tests/directory_writer.rs`
 - `crates/fornax-tiff/README.md`
-- `crates/fornax-dng/src/constants.rs`
-- `crates/fornax-dng/src/lib.rs`
-- `crates/fornax-dng/src/metadata.rs`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/writer.rs`
+- `crates/fornax-raw/src/dng/constants.rs`
+- `crates/fornax-raw/src/dng/lib.rs`
+- `crates/fornax-raw/src/dng/metadata.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
 - `crates/fornax-dng/tests/directory_metadata.rs`
 - `crates/fornax-dng/README.md`
 - `crates/fornax-arw/src/container.rs`

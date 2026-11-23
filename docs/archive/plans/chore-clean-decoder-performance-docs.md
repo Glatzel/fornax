@@ -47,7 +47,7 @@ Out of scope:
 - `docs/archive/README.md`
 - `docs/README.md`
 - `docs/reference/decoders/operations/benchmark.md`
-- `crates/fornax-raw-decoder/benches/flashraw_031_probe.rs`
+- `crates/fornax-raw/benches/flashraw_031_probe.rs`
 
 ## Validation
 

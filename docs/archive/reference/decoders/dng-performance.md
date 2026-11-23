@@ -23,7 +23,7 @@ baseline and must not be treated as portable performance guarantees.
   License: MIT OR Apache-2.0. See
   [FlashRaw reference notes](../../../reference/decoders/reference/flashraw.md).
 - The checked-in decoder benchmark:
-  [crates/fornax-raw-decoder/benches/decoder.rs](../../../../crates/fornax-raw-decoder/benches/decoder.rs).
+  [crates/fornax-raw/benches/decoder.rs](../../../../crates/fornax-raw/benches/decoder.rs).
 - The pinned raw.pixls.us corpus and golden manifests under
   `crates/decoder-tracker/golden/`.
 - Adobe DNG 1.7.1.0 and ITU-T T.81 for lossless JPEG behavior. See

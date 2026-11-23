@@ -88,9 +88,9 @@ waivers.
 
 ## Files Expected to Change
 
-- `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
+- `crates/fornax-raw/src/demosaic/dcb.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/directional.rs`
 - `crates/compare-demosaic/src/snapshots/*-DCB-libraw.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`
@@ -159,7 +159,7 @@ git -c core.whitespace=cr-at-eol diff --check
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -280,7 +280,7 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs
+git add crates/fornax-raw/src/demosaic/dcb.rs
 git commit -m "feat: add DCB directional candidates"
 ```
 
@@ -290,7 +290,7 @@ git commit -m "feat: add DCB directional candidates"
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dcb.rs`
 
 **Interfaces:**
 
@@ -416,7 +416,7 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs
+git add crates/fornax-raw/src/demosaic/dcb.rs
 git commit -m "feat: add DCB correction passes"
 ```
 
@@ -426,8 +426,8 @@ git commit -m "feat: add DCB correction passes"
 
 **Files:**
 
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/dcb.rs`
-- Modify: `crates/fornax-raw-pipeline/src/demosaic/directional.rs`
+- Modify: `crates/fornax-raw/src/demosaic/dcb.rs`
+- Modify: `crates/fornax-raw/src/demosaic/directional.rs`
 
 **Interfaces:**
 
@@ -614,8 +614,8 @@ Run:
 
 ```bash
 cargo fmt
-git add crates/fornax-raw-pipeline/src/demosaic/dcb.rs \
-  crates/fornax-raw-pipeline/src/demosaic/directional.rs
+git add crates/fornax-raw/src/demosaic/dcb.rs \
+  crates/fornax-raw/src/demosaic/directional.rs
 git commit -m "feat: port LibRaw DCB demosaicing"
 ```
 

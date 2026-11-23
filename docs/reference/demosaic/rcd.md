@@ -303,7 +303,7 @@ converting back to 16-bit codes. Fornax does not retain that output clamp.
 ## Current Fornax behavior
 
 The kernel in
-[`rcd.rs`](../../../crates/fornax-raw-pipeline/src/demosaic/rcd.rs) follows
+[`rcd.rs`](../../../crates/fornax-raw/src/demosaic/rcd.rs) follows
 the release-2.3 directional and color-difference structure with these
 implementation parameters:
 

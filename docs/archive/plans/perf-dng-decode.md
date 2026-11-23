@@ -206,7 +206,7 @@ with more than 64 elements; small CFA/pattern fields remain
 - Create: `crates/fornax-raw-decoder/tests/decoder_equivalence.rs`
 - Create: `crates/fornax-raw-decoder/tests/support/mosaic_compare.rs`
 - Modify: `crates/fornax-raw-decoder/Cargo.toml`
-- Modify: `crates/fornax-raw-decoder/benches/decoder.rs`
+- Modify: `crates/fornax-raw/benches/decoder.rs`
 - Modify: `.github/workflows/ci.yml`
 - Modify: `docs/decoder/benchmark.md`
 
@@ -653,7 +653,7 @@ or public API migration blocks rollback.
 - Modify: `crates/fornax-tiff/src/parser.rs`
 - Modify: `crates/fornax-tiff/tests/parser.rs`
 - Modify: `crates/fornax-raw-decoder/Cargo.toml`
-- Modify: `crates/fornax-raw-decoder/src/lib.rs`
+- Modify: `crates/fornax-raw/src/lib.rs`
 - Modify: all `ParsedTiff.root` callers in DNG and vendor crates
 - Modify: DNG/vendor tests that assert `parsed.root`
 
@@ -772,10 +772,10 @@ inside the PR for easier review.
 - Modify: `crates/fornax-tiff/src/lib.rs`
 - Modify: `crates/fornax-tiff/src/raster.rs`
 - Modify: `crates/fornax-tiff/tests/raster.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/process_metadata.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/transforms.rs`
-- Modify: `crates/fornax-dng/src/dng_decoder/opcodes.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/process_metadata.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/transforms.rs`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/opcodes.rs`
 
 **Interfaces:**
 
@@ -893,7 +893,7 @@ Revert this PR independently; the owned `dng_metadata()` API remains unchanged.
 - Modify: `crates/fornax-tiff/src/parser.rs`
 - Modify: `crates/fornax-tiff/src/writer.rs`
 - Modify: `crates/fornax-tiff/tests/unknown_fields.rs`
-- Modify: `crates/fornax-dng/src/metadata.rs`
+- Modify: `crates/fornax-raw/src/dng/metadata.rs`
 - Modify: value consumers that need byte-list compatibility
 
 **Interfaces:**

@@ -2,13 +2,13 @@ use std::fmt::Display;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
 
-use fornax_dng::Directory;
-use fornax_dng::metadata::IDecoderDng;
-use fornax_raw_core::RawMosaic;
-use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::metadata::{EncodingMetadata, ProcessMetadata};
-use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_decoder::Decoder;
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
+use fornax_raw::dng::Directory;
+use fornax_raw::dng::metadata::IDecoderDng;
+use fornax_raw::error::DecodeError;
+use fornax_raw::metadata::{EncodingMetadata, ProcessMetadata};
+use fornax_raw::protocol::{IDecoder, IDecoderEncoding};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
 
@@ -111,12 +111,22 @@ where
 
 pub const fn classify_decode_error(error: &DecodeError) -> &'static str {
     match error {
-        DecodeError::InvalidInput(_) => "invalid_input",
-        DecodeError::Unsupported(_) => "unsupported",
+        DecodeError::InvalidInput(_)
+        | DecodeError::EmptyImage
+        | DecodeError::ImageTooLarge { .. }
+        | DecodeError::InvalidSampleCount { .. }
+        | DecodeError::InvalidBlackPattern
+        | DecodeError::BlackDeltaWidthMismatch { .. }
+        | DecodeError::BlackDeltaHeightMismatch { .. } => "invalid_input",
+        DecodeError::Unsupported(_) | DecodeError::UnsupportedPattern(_) => "unsupported",
         DecodeError::Backend(_) => "backend",
         DecodeError::InvalidMetadata(_) => "invalid_metadata",
         DecodeError::InvalidOutput(_) => "invalid_output",
-        DecodeError::Other(_) => "other",
+        DecodeError::Other(_)
+        | DecodeError::InvalidColorTransform(_)
+        | DecodeError::WriteUnsupported { .. }
+        | DecodeError::WriteIo { .. }
+        | DecodeError::WriteInvalidMetadata { .. } => "other",
     }
 }
 

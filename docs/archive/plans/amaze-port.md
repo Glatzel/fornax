@@ -54,9 +54,9 @@ Out of scope:
 
 ## Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/amaze.rs`
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/directional.rs` (delete)
+- `crates/fornax-raw/src/demosaic/amaze.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/directional.rs` (delete)
 - `crates/compare-demosaic/src/snapshots/*-AMaZE-{darktable,rawtherapee}.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`

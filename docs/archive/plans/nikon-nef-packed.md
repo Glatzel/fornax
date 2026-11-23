@@ -84,7 +84,7 @@ Out of scope:
 - `crates/fornax-tiff/src/constants.rs`
 - `crates/fornax-nef/**`
 - `crates/fornax-decoder/{Cargo.toml,README.md,src/lib.rs,tests/**}`
-- `crates/fornax-raw-core/src/metadata.rs`
+- `crates/fornax-raw/src/metadata.rs`
 - DNG, ARW, pipeline, tracker, and postprocessor constructors/tests affected by
   the new `ProcessMetadata` provenance fields
 - `crates/decoder-tracker/{golden/**,baseline.csv,README.md}`

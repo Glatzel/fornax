@@ -39,12 +39,12 @@ unimplemented or disabled codec does not change who owns an identifier.
 | `8` | Adobe Deflate/ZIP compression | Adobe TIFF-family assignment, identified as Adobe Deflate by LibTIFF 4.7.0; DNG 1.7.1.0 adopts it in DNG 1.4.0.0 | No | `fornax-tiff`; raster resolver to `Deflate` |
 | `32773` | PackBits byte-oriented run-length compression | TIFF 6.0 (3 June 1992), section 9 | No | `fornax-tiff`; optional `packbits` resolver to `PackBits` |
 | `32946` | Legacy LibTIFF Deflate/ZIP identifier | LibTIFF 3.9.7 and 4.7.0 `tiff.h` | No | `fornax-tiff` vocabulary; raster resolver to `Deflate` |
-| `34892` | DNG lossy JPEG | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.4.0.0 | Yes | `fornax-dng`; DNG override to `LossyJpeg` |
+| `34892` | DNG lossy JPEG | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.4.0.0 | Yes | `fornax-raw`; DNG override to `LossyJpeg` |
 | `34925` | LZMA2-compressed data | LibTIFF 4.0.0 release notes added tag `34925`; LibTIFF 4.7.0 `tiff.h` names it LZMA2 | No | `fornax-tiff` vocabulary; known codec unavailable until an `lzma` feature exists |
 | `50000` | Zstandard-compressed data | LibTIFF 4.0.10 self-assigned `50000`, explicitly not Adobe-registered | No | `fornax-tiff` vocabulary; resolver to `Zstd` when `zstd` is enabled |
 | `50001` | WebP-compressed data | LibTIFF 4.0.10 self-assigned `50001`, explicitly not Adobe-registered | No | `fornax-tiff` vocabulary; known codec unavailable until a `webp` feature exists |
 | `50002` | JPEG XL-compressed data | GDAL self-assigned `50002` for TIFF JPEG XL; LibTIFF 4.7.0 recognizes it and marks it unregistered | No | `fornax-tiff` vocabulary; resolver to `JpegXl` when `jpegxl` is enabled |
-| `52546` | DNG JPEG XL | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.7.0.0 | Yes | `fornax-dng`; DNG override to `JpegXl` |
+| `52546` | DNG JPEG XL | DNG 1.7.1.0 pages 20-21; introduced by DNG 1.7.0.0 | Yes | `fornax-raw`; DNG override to `JpegXl` |
 
 ## Decisions
 
@@ -54,7 +54,7 @@ unimplemented or disabled codec does not change who owns an identifier.
   Adobe-defined DNG values.
 - `8` and `32946` have distinct registration histories but the same Deflate
   payload meaning. They are not contradictory ownership claims.
-- Sony-private compression IDs remain owned by `fornax_raw_decoder::sony` and are outside the
+- Sony-private compression IDs remain owned by `fornax_raw::sony` and are outside the
   generic TIFF resolver. See
   [sony-arw.md](../decoders/reference/sony-arw.md).
 - The resolver must report undocumented IDs as unknown and documented IDs

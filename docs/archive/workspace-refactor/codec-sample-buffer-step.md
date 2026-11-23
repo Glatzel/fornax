@@ -66,7 +66,7 @@ overflow, requires the vector length to equal the image sample count, and then
 calls `ImageBuffer::from_raw`.
 
 `fornax-dng` privately owns the raw-workflow adapter in
-`crates/fornax-dng/src/sample_buffer.rs`:
+`crates/fornax-raw/src/dng/sample_buffer.rs`:
 
 ```rust
 pub fn from_raw_mosaic(mosaic: &RawMosaic) -> SampleBuffer;

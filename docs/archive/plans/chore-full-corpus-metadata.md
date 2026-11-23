@@ -99,10 +99,10 @@ git commit -m "docs: plan full corpus encoding metadata"
 
 **Files:**
 
-- Modify: `crates/fornax-raw-core/src/{lib.rs,metadata.rs,protocol.rs}`
-- Modify: `crates/fornax-dng/src/dng_decoder/mod.rs`
+- Modify: `crates/fornax-raw/src/{lib.rs,metadata.rs,protocol.rs}`
+- Modify: `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
 - Modify: each `crates/fornax-raw-{canon,fujifilm,hasselblad,nikon,panasonic,phase-one,sony}/src/lib.rs`
-- Modify: `crates/fornax-raw-decoder/src/lib.rs`
+- Modify: `crates/fornax-raw/src/lib.rs`
 - Test: focused unit tests in the affected crates
 
 **Interfaces:**

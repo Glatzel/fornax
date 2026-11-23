@@ -4,9 +4,68 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-zstd = ["fornax-raw-decoder/zstd"]
+metadata-json = ["dep:serde_json"]
+zstd = ["fornax-codec/zstd", "fornax-tiff/zstd"]
+
+[[bench]]
+harness = false
+name = "decoder"
+
+[[bench]]
+harness = false
+name = "demosaic"
+
+[[bench]]
+harness = false
+name = "dng_gap_probe"
+
+[[bench]]
+harness = false
+name = "flashraw_probe"
+
+[[bench]]
+harness = false
+name = "preprocessor"
+
+[[bench]]
+harness = false
+name = "writer"
 
 [dependencies]
-fornax-raw-core.workspace = true
-fornax-raw-decoder.workspace = true
-fornax-raw-pipeline.workspace = true
+bytemuck.workspace = true
+clerk.workspace = true
+fornax-bmff.workspace = true
+fornax-codec = { workspace = true, features = ["jpegxl", "lossless-jpeg", "lossy-jpeg"] }
+fornax-core.workspace = true
+fornax-large-alloc.workspace = true
+fornax-tiff = { workspace = true, default-features = false, features = ["jpegxl", "raster"] }
+generic-num.workspace = true
+image.workspace = true
+num_enum.workspace = true
+num-traits.workspace = true
+rayon.workspace = true
+serde_json = { workspace = true, optional = true }
+strum.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+bytemuck.workspace = true
+criterion.workspace = true
+csv.workspace = true
+flashraw = "=0.4.0"
+fornax-devtool.workspace = true
+image.workspace = true
+insta.workspace = true
+libc.workspace = true
+memmap2.workspace = true
+mischief.workspace = true
+rand.workspace = true
+rawler = "0.8.0"
+sha2.workspace = true
+tempfile.workspace = true
+
+[target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
+raw-cpuid.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+libc.workspace = true

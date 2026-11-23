@@ -61,7 +61,7 @@ Out of scope:
 
 ## Files Expected to Change
 
-- `crates/fornax-raw-decoder/benches/dng_gap_probe.rs`
+- `crates/fornax-raw/benches/dng_gap_probe.rs`
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
 - `crates/fornax-codec/src/samples.rs` only if the allocation hypothesis wins
 - `docs/reference/decoders/perf/dng-remaining-gap.md`

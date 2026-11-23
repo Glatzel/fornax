@@ -252,13 +252,13 @@ evidence required before work starts.
 
 ## Rejected experiments
 
-- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs` checked 64-bit Huffman refill: D850 and
+- `crates/fornax-raw/src/decoders/nikon/codec.rs` checked 64-bit Huffman refill: D850 and
   Z7 regressed 1.7-2.9% at both thread counts; dropped.
-- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs` identity-curve fast path: D850 was
+- `crates/fornax-raw/src/decoders/nikon/codec.rs` identity-curve fast path: D850 was
   neutral at 1T and slightly slower at 16T; dropped.
-- `crates/fornax-raw-decoder/src/decoders/canon/codec/mod.rs` 64-bit CRX refill: R5/R6/R7 regressed
+- `crates/fornax-raw/src/decoders/canon/codec/mod.rs` 64-bit CRX refill: R5/R6/R7 regressed
   2.2-6.3% at 1T; dropped.
-- `crates/fornax-raw-decoder/src/decoders/canon/codec/mod.rs` compact line context: neutral at 1T
+- `crates/fornax-raw/src/decoders/canon/codec/mod.rs` compact line context: neutral at 1T
   and regressed at 16T; dropped.
 - `crates/fornax-codec/src/samples.rs` initial Sony uncompressed copy sweeps: one
   large copy regressed 1T by 38-43%; 64 KiB units regressed 16T by 8-21%; the
@@ -267,16 +267,16 @@ evidence required before work starts.
   uncompressed; dropped.
 - `crates/fornax-codec/src/ljpeg.rs` 12-bit Huffman lookahead was neutral to negative and regressed
   the Canon 5D3 DNG LJPEG control; dropped.
-- `crates/fornax-dng/src/dng_decoder/transforms.rs` 16K, 64K, and 128K
+- `crates/fornax-raw/src/dng/dng_decoder/transforms.rs` 16K, 64K, and 128K
   OpcodeList1 bands improved 1T or 8T but regressed at least one 16T target
   versus the retained 32K band; dropped.
-- `crates/fornax-dng/src/dng_decoder/transforms.rs` zero bad-pixel fast path
+- `crates/fornax-raw/src/dng/dng_decoder/transforms.rs` zero bad-pixel fast path
   using a plain `Vec::to_vec` output raised 16T faults and time; replaced by
   the shared large-page allocator.
 - `crates/fornax-codec/src/deflate.rs` tile-first inflate plus row-parallel
   reconstruction regressed FP16/FP24/FP32 at 16T by 8.3%/7.4%/20.1% and raised
   peak RSS to 1.46x/1.55x; dropped.
-- `crates/fornax-raw-decoder/src/decoders/nikon/codec.rs` paired 14-bit packed
+- `crates/fornax-raw/src/decoders/nikon/codec.rs` paired 14-bit packed
   groups improved 1T by 3.6-4.2% but regressed 16T and left D6 only 8.8%
   faster than FlashRaw; dropped.
 - Thread-selected large-page allocation for Nikon packed and Sony LJPEG outputs was removed:

@@ -146,9 +146,9 @@ public writer configuration mechanism.
 - `crates/fornax-codec/src/request.rs`
 - `crates/fornax-codec/tests/{decode_contract,encode_contract}.rs`
 - `crates/fornax-codec/README.md`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/writer.rs`
-- `crates/fornax-dng/src/metadata.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
+- `crates/fornax-raw/src/dng/metadata.rs`
 - `crates/fornax-raw/Cargo.toml`
 - `crates/fornax-raw/src/postprocessor.rs`
 - `crates/fornax-decoder-dnc/Cargo.toml`

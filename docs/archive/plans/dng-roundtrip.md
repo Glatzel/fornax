@@ -109,11 +109,11 @@ Out of scope:
 - `.github/workflows/libraw-bindgen.yml` (delete)
 - `Cargo.toml`, `Cargo.lock`
 - `crates/fornax-raw-core/Cargo.toml`
-- `crates/fornax-raw-core/src/error.rs`
-- `crates/fornax-raw-core/src/format.rs`
-- `crates/fornax-raw-core/src/metadata/dng.rs`
-- `crates/fornax-raw-core/src/primitive.rs`
-- `crates/fornax-raw-core/src/writer.rs`
+- `crates/fornax-raw/src/error.rs`
+- `crates/fornax-raw/src/format.rs`
+- `crates/fornax-raw/src/metadata/dng.rs`
+- `crates/fornax-raw/src/primitive.rs`
+- `crates/fornax-raw/src/writer.rs`
 - `crates/fornax-raw-core/tests/dng_roundtrip.rs`
 - `crates/fornax-raw-core/README.md`
 - `crates/fornax-raw-core/benches/decoder.rs`
@@ -121,8 +121,8 @@ Out of scope:
 - `crates/fornax-raw-pipeline/benches/preprocessor.rs`
 - `crates/fornax-raw-pipeline/benches/demosaic.rs`
 - `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/linear.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/lmmse.rs`
+- `crates/fornax-raw/src/demosaic/linear.rs`
+- `crates/fornax-raw/src/demosaic/lmmse.rs`
 - `crates/fornax-raw/examples/pipeline.rs`
 - `crates/fornax-raw/README.md`
 - `crates/compare-demosaic/AGENTS.md`

@@ -36,7 +36,9 @@ open; it stops being authoritative after merge.
 
 Decoder benchmark matrix entries compile with `--no-default-features`. All
 native vendor formats remain available because there are no per-format
-features; this only disables independent infrastructure such as mmap.
+features. File mapping and Linux large-page allocation remain internal defaults;
+the flag only disables optional facade features such as metadata JSON and
+Zstandard.
 
 `scripts/agent-validation.sh` runs:
 

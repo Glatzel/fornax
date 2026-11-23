@@ -12,14 +12,10 @@ fornax-bmff = { path = "./crates/fornax-bmff" }
 fornax-codec = { path = "./crates/fornax-codec" }
 fornax-core = { path = "./crates/fornax-core" }
 fornax-devtool = { path = "./crates/fornax-devtool" }
-fornax-dng = { path = "./crates/fornax-dng" }
 fornax-large-alloc = { path = "./crates/fornax-large-alloc" }
 fornax-tiff = { path = "./crates/fornax-tiff" }
 
 fornax-raw = { path = "./crates/fornax-raw" }
-fornax-raw-core = { path = "./crates/fornax-raw-core" }
-fornax-raw-decoder = { path = "./crates/fornax-raw-decoder" }
-fornax-raw-pipeline = { path = "./crates/fornax-raw-pipeline" }
 
 # glatzel
 clap-style = { git = "https://github.com/Glatzel/toolbox", tag = "v2026.10.11" }

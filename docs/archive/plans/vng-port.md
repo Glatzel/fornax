@@ -41,7 +41,7 @@ changes to comparison limits, and waivers for VNG failures.
 
 ## Files expected to change
 
-- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
+- `crates/fornax-raw/src/demosaic/vng.rs`
 - `crates/compare-demosaic/src/snapshots/*-VNG-*.snap`
 - `crates/compare-demosaic/README.md`
 - `crates/compare-demosaic/baseline/canonical.json`

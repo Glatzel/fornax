@@ -18,7 +18,7 @@ classic-TIFF writing used by Fornax RAW decoders.
 `TiffTag` names TIFF 6.0 and TIFF/EP fields while `Tag` carries dynamic
 identifiers. `CompressionMethod` and `PhotometricInterpretation` are typed
 TIFF-family field constants in `fornax_tiff::constants`; DNG-specific values
-are owned by `fornax-dng`. `TiffDirectory` accumulates and finalizes writer
+are owned by `fornax-raw`. `TiffDirectory` accumulates and finalizes writer
 entries.
 
 `RasterLayout` reads `ImageWidth`, `ImageLength`, strips/tiles, offsets, and
@@ -35,6 +35,9 @@ request.
 chain. An offset correction maps out-of-line values stored relative to a larger
 container into an extracted or decrypted sub-buffer; Sony private metadata uses
 that path.
+
+`TiffSource::from_path` uses a read-only memory map by default and falls back to
+reading the file into owned storage when mapping is unavailable.
 
 ## Raster Feature
 
@@ -62,7 +65,7 @@ TIFF-family compression identifiers represented by `CompressionMethod` are:
 | `50001` | WebP | Known; requires the future `webp` feature |
 | `50002` | JPEG XL | Resolves to `JpegXl` with `jpegxl` enabled |
 
-DNG compression `34892` and `52546` are owned by `fornax-dng`. Other TIFF
+DNG compression `34892` and `52546` are owned by `fornax-raw`. Other TIFF
 compression identifiers remain available through `CompressionMethod::Unknown`;
 recognizing an identifier here does not imply that a codec can decode every
 payload layout.
@@ -74,7 +77,7 @@ is recorded in
 [`compression-ids.md`](../../docs/reference/codecs/compression-ids.md).
 
 The crate intentionally owns container mechanics only. DNG-only tag semantics
-belong to `fornax-dng`; format-neutral raw codecs belong to `fornax-codec`.
+belong to `fornax-raw`; format-neutral raw codecs belong to `fornax-codec`.
 
 ## References
 

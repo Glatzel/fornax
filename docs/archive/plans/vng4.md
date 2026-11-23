@@ -43,8 +43,8 @@ VNG behavior or LibRaw non-four-color comparison.
 ## Files expected to change
 
 - `TODO.md`
-- `crates/fornax-raw-pipeline/src/demosaic.rs`
-- `crates/fornax-raw-pipeline/src/demosaic/vng.rs`
+- `crates/fornax-raw/src/demosaic.rs`
+- `crates/fornax-raw/src/demosaic/vng.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-raw-pipeline/benches/algorithms.json`
 - `crates/fornax-raw-pipeline/benches/support/demosaic_registry.rs`

@@ -154,9 +154,9 @@ not use the generic codec.
 - `crates/fornax-codec/tests/encode_contract.rs`
 - `crates/fornax-codec/tests/sample_buffer.rs`
 - `crates/fornax-dng/README.md`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/sample_buffer.rs`
-- `crates/fornax-dng/src/writer.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/sample_buffer.rs`
+- `crates/fornax-raw/src/dng/writer.rs`
 - `docs/architecture/overview.md`
 - `docs/_archive/plans/codec-sample-buffer.md`
 

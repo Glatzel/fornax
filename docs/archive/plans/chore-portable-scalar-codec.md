@@ -75,7 +75,7 @@ Out of scope:
 - `crates/fornax-codec/Cargo.toml`
 - `Cargo.lock`
 - `crates/fornax-codec/benches/ljpeg_gap_probe.rs`
-- `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs`
+- `crates/fornax-raw/benches/dng_gap_probe/linux.rs`
 - `docs/reference/decoders/perf/dng-remaining-gap.md`
 - `docs/reference/decoders/perf/dng-gap-profiles/*`
 - `docs/plans/chore-portable-scalar-codec.md`
@@ -164,7 +164,7 @@ git commit -m "refactor: remove platform output allocation"
 ### Task 2: Measure and document the allocator regression
 
 **Files:**
-- Modify: `crates/fornax-raw-decoder/benches/dng_gap_probe/linux.rs` only if a
+- Modify: `crates/fornax-raw/benches/dng_gap_probe/linux.rs` only if a
   measurement helper is missing
 - Modify: `docs/reference/decoders/perf/dng-remaining-gap.md`
 - Create: `docs/reference/decoders/perf/dng-gap-profiles/portable-allocation-regression.txt`

@@ -2,13 +2,12 @@
 
 use std::collections::BTreeMap;
 use std::fmt;
-#[cfg(not(feature = "mmap"))]
-use std::fs;
-#[cfg(feature = "mmap")]
-use std::fs::File;
+use std::fs::{self, File};
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
+
+use memmap2::Mmap;
 
 pub mod constants;
 mod parser;
@@ -49,45 +48,37 @@ impl DirectoryLookup for Directory {
 /// Owned backing storage for parsed TIFF bytes.
 #[derive(Clone)]
 pub enum TiffSource {
-    Owned(Arc<Vec<u8>>),
-    #[cfg(feature = "mmap")]
-    Mapped(Arc<memmap2::Mmap>),
+    Owned(Arc<[u8]>),
+    Mapped(Arc<Mmap>),
 }
 
 impl TiffSource {
-    /// Opens a TIFF source, using a read-only memory map when available.
+    /// Opens a TIFF source, preferring a read-only memory map.
     ///
     /// # Errors
     ///
-    /// Returns the file-open, mapping, or fallback read error.
+    /// Returns the file-open or fallback read error.
     pub fn from_path(path: &Path) -> std::io::Result<Self> {
-        #[cfg(feature = "mmap")]
-        {
-            let file = File::open(path)?;
-            // The mapping is read-only. Truncating the file while it is in use
-            // can make later accesses fault, as with any memory map.
-            let mmap = unsafe { memmap2::Mmap::map(&file)? };
-            Ok(Self::from_mmap(mmap))
+        let file = File::open(path)?;
+        // The mapping is read-only. Truncating the file while it is in use can
+        // make later accesses fault, as with any memory map.
+        if let Ok(mmap) = unsafe { Mmap::map(&file) } {
+            return Ok(Self::from_mmap(mmap));
         }
-        #[cfg(not(feature = "mmap"))]
-        {
-            fs::read(path).map(Self::from_vec)
-        }
+        fs::read(path).map(Self::from_vec)
     }
 
     /// Creates source storage from an owned vector without copying it.
-    pub fn from_vec(bytes: Vec<u8>) -> Self { Self::Owned(Arc::new(bytes)) }
+    pub fn from_vec(bytes: Vec<u8>) -> Self { Self::Owned(Arc::from(bytes)) }
 
     /// Creates source storage from a read-only memory mapping.
-    #[cfg(feature = "mmap")]
-    pub fn from_mmap(mmap: memmap2::Mmap) -> Self { Self::Mapped(Arc::new(mmap)) }
+    pub fn from_mmap(mmap: Mmap) -> Self { Self::Mapped(Arc::new(mmap)) }
 }
 
 impl AsRef<[u8]> for TiffSource {
     fn as_ref(&self) -> &[u8] {
         match self {
             Self::Owned(bytes) => bytes,
-            #[cfg(feature = "mmap")]
             Self::Mapped(mmap) => mmap,
         }
     }
@@ -113,7 +104,6 @@ impl TiffSource {
     const fn is_mapped(&self) -> bool {
         match self {
             Self::Owned(_) => false,
-            #[cfg(feature = "mmap")]
             Self::Mapped(_) => true,
         }
     }
@@ -154,7 +144,7 @@ impl fmt::Display for TiffError {
 
 impl std::error::Error for TiffError {}
 
-#[cfg(all(test, feature = "mmap", unix))]
+#[cfg(all(test, unix))]
 mod source_tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 

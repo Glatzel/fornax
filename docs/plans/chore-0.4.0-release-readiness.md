@@ -53,8 +53,8 @@ Out of scope:
 ## Files Expected To Change
 
 - `Cargo.lock`
-- `crates/fornax-raw-decoder/Cargo.toml`
-- `crates/fornax-raw-decoder/benches/`
+- `crates/fornax-raw/Cargo.toml`
+- `crates/fornax-raw/benches/`
 - `crates/decoder-tracker/src/golden_set.rs`
 - `crates/decoder-tracker/tests/`
 - `crates/decoder-tracker/golden/`
@@ -76,9 +76,9 @@ cargo run -p decoder-tracker -- golden-check
 cargo run --release -p decoder-tracker -- hash \
   --manifest crates/decoder-tracker/golden/test-manifest.csv \
   --check crates/decoder-tracker/golden/decode-hashes.csv
-cargo bench -p fornax-raw-decoder --no-run
+cargo bench -p fornax-raw --no-run
 FORNAX_PROBE_DECODERS=fornax,flashraw RAYON_NUM_THREADS=1 \
-  cargo run --release -p fornax-raw-decoder --bench flashraw_probe
+  cargo run --release -p fornax-raw --bench flashraw_probe
 scripts/agent-validation.sh
 git diff --check
 ```

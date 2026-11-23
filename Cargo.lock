@@ -598,9 +598,7 @@ dependencies = [
  "clap-verbosity-flag",
  "clerk",
  "csv",
- "fornax-dng",
- "fornax-raw-core",
- "fornax-raw-decoder",
+ "fornax-raw",
  "fornax-tiff",
  "globset",
  "hex",
@@ -813,9 +811,7 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "image 0.25.9",
- "thiserror",
 ]
 
 [[package]]
@@ -825,39 +821,13 @@ dependencies = [
  "clerk",
  "csv",
  "fornax-bmff",
- "fornax-core",
- "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
  "image 0.25.9",
  "mischief",
  "num-traits",
- "rand",
  "rayon",
  "strum",
-]
-
-[[package]]
-name = "fornax-dng"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "codspeed-criterion-compat",
- "fornax-codec",
- "fornax-core",
- "fornax-devtool",
- "fornax-large-alloc",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "num-traits",
- "num_enum",
- "rayon",
- "serde",
- "serde_json",
- "strum",
- "thiserror",
 ]
 
 [[package]]
@@ -872,9 +842,34 @@ dependencies = [
 name = "fornax-raw"
 version = "0.0.17"
 dependencies = [
- "fornax-raw-core",
- "fornax-raw-decoder",
- "fornax-raw-pipeline",
+ "bytemuck",
+ "clerk",
+ "codspeed-criterion-compat",
+ "csv",
+ "flashraw",
+ "fornax-bmff",
+ "fornax-codec",
+ "fornax-core",
+ "fornax-devtool",
+ "fornax-large-alloc",
+ "fornax-tiff",
+ "generic-num",
+ "image 0.25.9",
+ "insta",
+ "libc",
+ "memmap2",
+ "mischief",
+ "num-traits",
+ "num_enum",
+ "rand",
+ "raw-cpuid",
+ "rawler",
+ "rayon",
+ "serde_json",
+ "sha2",
+ "strum",
+ "tempfile",
+ "thiserror",
 ]
 
 [[package]]
@@ -886,7 +881,6 @@ dependencies = [
  "clap-style",
  "clap-verbosity-flag",
  "clerk",
- "fornax-dng",
  "fornax-raw",
  "image 0.25.9",
  "mischief",
@@ -897,65 +891,6 @@ dependencies = [
  "tempfile",
  "thiserror",
  "toml 1.2.2+spec-1.1.0",
-]
-
-[[package]]
-name = "fornax-raw-core"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "fornax-core",
- "fornax-large-alloc",
- "generic-num",
- "image 0.25.9",
- "libc",
- "num-traits",
- "num_enum",
- "raw-cpuid",
- "rayon",
- "strum",
- "thiserror",
-]
-
-[[package]]
-name = "fornax-raw-decoder"
-version = "0.0.17"
-dependencies = [
- "bytemuck",
- "clerk",
- "codspeed-criterion-compat",
- "csv",
- "flashraw",
- "fornax-bmff",
- "fornax-codec",
- "fornax-dng",
- "fornax-large-alloc",
- "fornax-raw-core",
- "fornax-tiff",
- "generic-num",
- "image 0.25.9",
- "libc",
- "memmap2",
- "rawler",
- "rayon",
- "sha2",
- "strum",
- "tempfile",
-]
-
-[[package]]
-name = "fornax-raw-pipeline"
-version = "0.0.17"
-dependencies = [
- "codspeed-criterion-compat",
- "fornax-devtool",
- "fornax-raw-core",
- "generic-num",
- "image 0.25.9",
- "insta",
- "mischief",
- "num-traits",
- "rayon",
 ]
 
 [[package]]

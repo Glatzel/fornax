@@ -4,10 +4,9 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = ["large-page-hint", "lzw", "packbits"]
+default = ["lzw", "packbits"]
 deflate = ["dep:flate2"]
 jpegxl = ["dep:jxl-oxide"]
-large-page-hint = ["fornax-large-alloc/large-page-hint"]
 lossless-jpeg = []
 lossy-jpeg = ["dep:zune-jpeg"]
 lzw = ["dep:weezl"]
@@ -27,7 +26,7 @@ name = "encode_probe"
 bytemuck.workspace = true
 flate2 = { workspace = true, optional = true }
 fornax-core.workspace = true
-fornax-large-alloc = { workspace = true, default-features = false }
+fornax-large-alloc.workspace = true
 image.workspace = true
 jxl-oxide = { workspace = true, optional = true }
 rayon.workspace = true

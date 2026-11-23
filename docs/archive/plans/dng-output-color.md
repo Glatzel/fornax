@@ -74,14 +74,14 @@ Out of scope:
 
 ## Files Expected to Change
 
-- `crates/fornax-raw-core/src/metadata/mod.rs`
-- `crates/fornax-raw-core/src/protocol.rs`
-- `crates/fornax-raw-core/src/error.rs`
-- `crates/fornax-dng/src/dng_decoder/process_metadata.rs`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/metadata.rs`
+- `crates/fornax-raw/src/metadata/mod.rs`
+- `crates/fornax-raw/src/protocol.rs`
+- `crates/fornax-raw/src/error.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/process_metadata.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/metadata.rs`
 - `crates/fornax-raw-pipeline/Cargo.toml`
-- `crates/fornax-raw-pipeline/src/lib.rs`
+- `crates/fornax-raw/src/lib.rs`
 - `crates/fornax-raw-pipeline/README.md`
 - `crates/fornax-decoder-rawler/src/lib.rs`
 - `docs/reference/decoders/reference/dng-output-color.md`

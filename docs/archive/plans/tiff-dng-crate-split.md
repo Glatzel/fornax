@@ -140,7 +140,7 @@ Run `scripts/agent-validation.sh`.
 - `crates/fornax-decoder/{Cargo.toml,src/**}`
 - `crates/fornax-decoder-rawler/src/lib.rs`
 - `crates/fornax-decoder-dnc/src/wrapper.rs`
-- `crates/fornax-raw-pipeline/src/lib.rs`
+- `crates/fornax-raw/src/lib.rs`
 - `scripts/agent-validation.sh`, `scripts/agent-validation-test.sh`
 - `docs/architecture/overview.md`, `docs/architecture/decoder.md`,
   `docs/decoder/formats/dng.md`

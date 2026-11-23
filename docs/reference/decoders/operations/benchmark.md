@@ -4,7 +4,7 @@ This guide defines the golden-corpus decoder benchmark, its comparison scope, an
 
 ## Current benchmark
 
-`fornax-raw-decoder` owns the `decoder` benchmark target. It compares the default
+`fornax-raw` owns the `decoder` benchmark target. It compares the default
 pure-Rust decoder with benchmark-only Rawler and FlashRaw adapters on every row
 of `crates/decoder-tracker/golden/perf-manifest.csv`.
 
@@ -70,7 +70,7 @@ CI run with no explicit selection defaults to Fornax alone. Every Fornax crop
 case uses `f32`.
 
 ```bash
-RAYON_NUM_THREADS=1 cargo bench -p fornax-raw-decoder
+RAYON_NUM_THREADS=1 cargo bench -p fornax-raw
 ```
 
 FlashRaw is configured for the CPU, one worker thread, strict corruption
@@ -83,7 +83,7 @@ manifest by default:
 ```bash
 FORNAX_PROBE_DECODERS=fornax \
 RAYON_NUM_THREADS=1 \
-cargo bench -p fornax-raw-decoder --bench flashraw_probe
+cargo bench -p fornax-raw --bench flashraw_probe
 ```
 
 Its current metadata matrix and report are
@@ -95,7 +95,7 @@ performance set.
 Compile the benchmark without executing timings:
 
 ```bash
-cargo bench -p fornax-raw-decoder --no-run
+cargo bench -p fornax-raw --no-run
 ```
 
 ## Decoder output equality
@@ -109,7 +109,7 @@ With the full performance set materialized:
 
 ```bash
 RAYON_NUM_THREADS=1 OMP_NUM_THREADS=1 \
-cargo test -p fornax-raw-decoder --test decoder_equivalence -- \
+cargo test -p fornax-raw --test decoder_equivalence -- \
   --ignored --nocapture
 ```
 
@@ -128,7 +128,7 @@ matrix item per file. Each `decoder-benchmark` job:
    `golden` job;
 3. fetches only a missing matrix item's Git LFS object;
 4. verifies its recorded size and SHA-256;
-5. builds `fornax-raw-decoder` with `--no-default-features`, which still
+5. builds `fornax-raw` with `--no-default-features`, which still
    includes every native vendor format;
 6. verifies the Fornax raw hash before timing and native equality across Fornax,
    Rawler, and FlashRaw;
@@ -162,7 +162,7 @@ output, and panics fail the matrix case.
 - Do not merge measurement stages into one Criterion item.
 - Compare `dng_metadata` and `process_metadata` only with another implementation
   that exposes equivalent metadata. The current reference adapters do not.
-- `rawler` and `flashraw` are dev-dependencies of `fornax-raw-decoder`. They must not
+- `rawler` and `flashraw` are dev-dependencies of `fornax-raw`. They must not
   appear in the normal dependency graph of any production decoder crate.
 
 See [FlashRaw reference notes](../reference/flashraw.md) for the pinned

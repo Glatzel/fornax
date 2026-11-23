@@ -119,8 +119,8 @@ caller behavior remains unchanged.
 - `crates/fornax-tiff/src/lib.rs`
 - `crates/fornax-tiff/src/value.rs`
 - `crates/fornax-tiff/tests/value_accessors.rs`
-- `crates/fornax-dng/src/dng_decoder/mod.rs`
-- `crates/fornax-dng/src/dng_decoder/transforms.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/mod.rs`
+- `crates/fornax-raw/src/dng/dng_decoder/transforms.rs`
 - `crates/fornax-arw/src/container.rs`
 - `crates/fornax-arw/src/metadata.rs`
 
