@@ -45,6 +45,7 @@ jobs:
             main:
               - ./**
               - '!**/*.md'
+
             benchmark_sony:
               - ./crates/fornax-codec/**
               - ./crates/fornax-raw/src/decoder/sony/**
@@ -78,10 +79,52 @@ jobs:
               - ./crates/fornax-raw/src/dng/**
               - ./crates/fornax-raw/benches/writer.rs
               - '!**/*.md'
-            benchmark_demosaic:
+
+            benchmark_aahd:
               - ./crates/fornax-raw/src/demosaic.rs
               - ./crates/fornax-raw/src/demosaic/**
               - '!**/*.md'
+            benchmark_ahd:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_amaze:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_dcb:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_dht:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_linear:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_lmmse:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_ppg:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_rcd:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_vng:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+            benchmark_vng4:
+              - ./crates/fornax-raw/src/demosaic.rs
+              - ./crates/fornax-raw/src/demosaic/**
+              - '!**/*.md'
+
             book_assets:
               - ./book/**
             golden:
