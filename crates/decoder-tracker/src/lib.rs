@@ -1,7 +1,6 @@
 //! Decoder corpus manifest, execution, merge, and regression comparison.
 
 pub mod csvio;
-pub mod duckdb;
 pub mod golden;
 pub mod golden_set;
 pub mod manifest;

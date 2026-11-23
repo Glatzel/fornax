@@ -9,7 +9,7 @@ on:
         required: true
         default: "*/**/*"
       run_duckdb_tests:
-        description: Test DuckDB selection, aggregation, and badge shell scripts before running shards.
+        description: Test the Python data layer and aggregation workflow before running shards.
         type: boolean
         required: false
         default: false
@@ -41,9 +41,9 @@ jobs:
         if: ${{ inputs.run_duckdb_tests }}
       - name: Install tracker tools
         run: pixi install -e tracker
-      - name: Test DuckDB aggregation
+      - name: Test tracker data layer
         if: ${{ inputs.run_duckdb_tests }}
-        run: pixi run -e tracker cargo test -q -p decoder-tracker duckdb_
+        run: pixi run -e tracker python -m unittest crates/decoder-tracker/scripts/test_tracker_data.py
       - id: plan
         shell: bash
         env:
@@ -51,8 +51,9 @@ jobs:
         run: |
           filter="${REQUESTED_FILTER:-*/**/*}"
           result="$(
-            pixi run -e tracker bash crates/decoder-tracker/scripts/select.sh \
-              --filter "$filter" \
+            pixi run -e tracker tracker-data select \
+              --manifest crates/decoder-tracker/data/manifest.csv \
+              --glob "$filter" \
               --out target/decoder-tracker/selected-manifest.csv
           )"
           printf '%s\n' "$result"

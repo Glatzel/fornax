@@ -21,26 +21,26 @@ decoder-tracker select [--camera C]... [--filename N]...
     [--glob G]... [--manifest F] [--out F]
 decoder-tracker run [filters] [--manifest F] [--shard I/N] [--out F]
     [--max-files N] [--allow-full]
-decoder-tracker merge [--manifest F] [--out F] SHARD...
-decoder-tracker diff --selected F [--out F] BASELINE CANDIDATE
-decoder-tracker update [--baseline F] --candidate F [--out F]
+tracker-data merge [--manifest F] [--out F] SHARD...
+tracker-data diff --selected F [--out F] BASELINE CANDIDATE
+tracker-data update [--baseline F] --candidate F [--out F]
 decoder-tracker hash [--manifest F] [--out F | --check F]
 decoder-tracker golden-coverage [--baseline F] [--corpus-manifest F]
     [--golden F] [--out F] [--selected-out F]
 ```
 
-Use `pixi run -e dev cargo run -q -p decoder-tracker -- <subcommand>` for the
-tracker, DuckDB, and the README script.
+Use `pixi run -e tracker decoder-tracker <subcommand>` for Rust tracker
+commands, `tracker-data` for CSV operations, and `tracker-badge` for the README.
 
 Common checks:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
-pixi run -e dev cargo run -q -p decoder-tracker -- run --filename IMG_0001
-pixi run -e dev cargo run --release -q -p decoder-tracker -- hash --check \
+pixi run -e tracker decoder-tracker manifest --check
+pixi run -e tracker decoder-tracker run --filename IMG_0001
+pixi run -e tracker decoder-tracker-release hash --check \
   crates/decoder-tracker/golden/decode-hashes.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- golden-coverage
-pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e tracker decoder-tracker golden-coverage
+pixi run -e tracker tracker-badge
 ```
 
 `run` fetches only selected LFS payloads and defaults to at most two files.
@@ -73,7 +73,7 @@ baseline refresh workflow below. A routine decoder change must not use it.
 After either form of initialization, require:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- manifest --check
+pixi run -e tracker decoder-tracker manifest --check
 ```
 
 Use root `scripts/setup.sh` only for `external/raw-images`; it does not
@@ -86,18 +86,18 @@ selection deterministically. `merge` requires every selected key exactly once,
 then `diff --selected` compares only those keys with the committed baseline:
 
 ```bash
-pixi run -e dev cargo run -q -p decoder-tracker -- select \
+pixi run -e tracker decoder-tracker select \
   --glob '*/**/*' \
   --out target/decoder-tracker/selected-manifest.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- run \
+pixi run -e tracker decoder-tracker run \
   --manifest target/decoder-tracker/selected-manifest.csv \
   --shard 0/2 --allow-full \
   --out target/decoder-tracker/shards/shard-0.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- merge \
+pixi run -e tracker tracker-data merge \
   --manifest target/decoder-tracker/selected-manifest.csv \
   --out target/decoder-tracker/candidate.csv \
   target/decoder-tracker/shards/*.csv
-pixi run -e dev cargo run -q -p decoder-tracker -- diff \
+pixi run -e tracker tracker-data diff \
   --selected target/decoder-tracker/selected-manifest.csv \
   crates/decoder-tracker/data/baseline.csv \
   target/decoder-tracker/candidate.csv
@@ -143,7 +143,7 @@ reviewed artifact baseline, never the partial candidate:
 ```bash
 cp target/decoder-tracker/update/baseline.csv \
   crates/decoder-tracker/data/baseline.csv
-pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e tracker tracker-badge
 ```
 
 Inspect `git diff`, then commit and push the updated branch. Rerun the same
@@ -204,8 +204,7 @@ Follow the deliberately bounded procedure in
 For tracker code or guidance changes, run the task-specific tests:
 
 ```bash
-cargo test -p decoder-tracker
-pixi run -e dev cargo test -q -p decoder-tracker duckdb_
+pixi run -e tracker tracker-test
 ```
 
 Run the repository validation required by the root guide. Documentation-only

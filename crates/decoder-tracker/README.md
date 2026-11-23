@@ -139,16 +139,16 @@ a 300-second timeout, and writes a canonical no-timings CSV. Full local runs
 require `--allow-full` or `CI=true`; the default local guard permits two files.
 
 ```bash
-pixi run -e dev cargo run -p decoder-tracker -- manifest --check
-pixi run -e dev cargo run -p decoder-tracker -- select --glob 'Canon/**/*.DNG'
-pixi run -e dev cargo run -p decoder-tracker -- run --filename IMG_0001
-pixi run -e dev cargo run -p decoder-tracker -- merge --manifest MANIFEST SHARD...
-pixi run -e dev cargo run -p decoder-tracker -- diff --selected MANIFEST BASELINE CANDIDATE
-pixi run -e dev cargo run -p decoder-tracker -- update --baseline BASELINE --candidate CANDIDATE
-pixi run -e dev cargo run --release -p decoder-tracker -- hash --check GOLDEN
-pixi run -e dev cargo run -p decoder-tracker -- golden-coverage --baseline BASELINE \
+pixi run -e tracker decoder-tracker manifest --check
+pixi run -e tracker decoder-tracker select --glob 'Canon/**/*.DNG'
+pixi run -e tracker decoder-tracker run --filename IMG_0001
+pixi run -e tracker tracker-data merge --manifest MANIFEST SHARD...
+pixi run -e tracker tracker-data diff --selected MANIFEST BASELINE CANDIDATE
+pixi run -e tracker tracker-data update --baseline BASELINE --candidate CANDIDATE
+pixi run -e tracker decoder-tracker-release hash --check GOLDEN
+pixi run -e tracker decoder-tracker golden-coverage --baseline BASELINE \
   --corpus-manifest MANIFEST --golden GOLDEN
-pixi run -e dev bash crates/decoder-tracker/scripts/update-badge.sh
+pixi run -e tracker tracker-badge
 ```
 
 The committed corpus metadata manifest is `data/manifest.csv`; decoder pass
@@ -156,8 +156,8 @@ columns, outcomes, and source encoding fields are in `data/baseline.csv`.
 Encoding fields identify the exact codec variant, strip/tile/block storage,
 losslessness, source bit depth, sample format, predictor, and chunk geometry for
 every successfully decoded row. Formats without a native decoder remain as rows
-with unknown encoding fields. DuckDB CLI owns plan-time manifest filtering and the
-shell-driven merge, selected-key diff, and baseline upsert path. Stage columns
+with unknown encoding fields. Python owns plan-time manifest filtering and the
+DuckDB-backed merge, selected-key diff, and baseline upsert path. Stage columns
 remain numeric for SQL; a leading emoji `status` column makes pass/fail
 visually scannable. `update-badge.sh` joins the
 full manifest to the baseline and writes the accumulated badge and

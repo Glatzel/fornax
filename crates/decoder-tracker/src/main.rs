@@ -10,7 +10,6 @@ use clerk::tracing_subscriber::{EnvFilter, Layer, Registry};
 use decoder_tracker::csvio::{
     read_baseline_csv, read_manifest_csv, write_baseline_csv, write_manifest_csv,
 };
-use decoder_tracker::duckdb::{diff as duckdb_diff, merge as duckdb_merge};
 use decoder_tracker::golden::{
     build_golden_coverage, check_golden_csv_subset, decode_golden, read_golden_csv,
     write_golden_coverage_csv, write_golden_csv, write_golden_selection_csv,
@@ -21,7 +20,7 @@ use decoder_tracker::manifest::{
 };
 use decoder_tracker::model::{BaselineRow, ManifestRow, Result, TrackerError, status_for_stages};
 use decoder_tracker::runner::{materialize, run_isolation, timeout_from_env};
-use decoder_tracker::selection::{Selection, Shard, select_manifest};
+use decoder_tracker::selection::{Selection, Shard, select_file};
 use decoder_tracker::stages::{StageRow, evaluate_one};
 
 const DEFAULT_CORPUS: &str = "external/raw.pixls.us";
@@ -55,12 +54,6 @@ enum Command {
     Select(SelectArgs),
     /// Materialize and run selected corpus files in isolated children.
     Run(RunArgs),
-    /// Merge shard CSVs and reject missing or duplicate rows.
-    Merge(MergeArgs),
-    /// Compare two canonical baseline CSVs.
-    Diff(DiffArgs),
-    /// Update selected records in a full baseline.
-    Update(UpdateArgs),
     /// Write or verify canonical decoder-output hashes.
     Hash(HashArgs),
     /// Report golden corpus coverage by source encoding.
@@ -129,36 +122,6 @@ struct RunArgs {
     max_files: usize,
     #[arg(long)]
     allow_full: bool,
-}
-
-#[derive(Debug, Args)]
-struct MergeArgs {
-    #[arg(long, default_value = DEFAULT_MANIFEST)]
-    manifest: PathBuf,
-    #[arg(long, default_value = DEFAULT_OUTPUT)]
-    out: PathBuf,
-    #[arg(required = true)]
-    shards: Vec<PathBuf>,
-}
-
-#[derive(Debug, Args)]
-struct DiffArgs {
-    baseline: PathBuf,
-    candidate: PathBuf,
-    #[arg(long)]
-    selected: PathBuf,
-    #[arg(long, default_value = "target/decoder-tracker/diff.csv")]
-    out: PathBuf,
-}
-
-#[derive(Debug, Args)]
-struct UpdateArgs {
-    #[arg(long)]
-    baseline: Option<PathBuf>,
-    #[arg(long)]
-    candidate: PathBuf,
-    #[arg(long, default_value = "target/decoder-tracker/baseline.csv")]
-    out: PathBuf,
 }
 
 #[derive(Debug, Args)]
@@ -247,9 +210,6 @@ fn execute(cli: Cli) -> Result<ExitCode> {
         Command::Manifest(args) => manifest(args),
         Command::Select(args) => select(args),
         Command::Run(args) => run(args),
-        Command::Merge(args) => merge(args),
-        Command::Diff(args) => diff(args),
-        Command::Update(args) => update(args),
         Command::Hash(args) => hash(args),
         Command::GoldenCoverage(args) => golden_coverage(args),
         Command::GoldenCheck(args) => golden_check(args),
@@ -261,15 +221,9 @@ fn execute(cli: Cli) -> Result<ExitCode> {
 }
 
 fn select(args: SelectArgs) -> Result<ExitCode> {
-    let rows = read_manifest_csv(read_file(&args.manifest)?)?;
-    let selected = select_manifest(&rows, &args.filter.selection(None))?;
-    if selected.is_empty() {
-        return Err(TrackerError::new("filters matched no corpus files"));
-    }
-    let bytes = write_manifest_csv(&selected)?;
-    write_file(&args.out, &bytes)?;
-    clerk::info!("selected {} corpus files", selected.len());
-    println!("selected={}", selected.len());
+    let count = select_file(&args.manifest, &args.out, &args.filter.selection(None))?;
+    clerk::info!("selected {count} corpus files");
+    println!("selected={count}");
     Ok(ExitCode::SUCCESS)
 }
 
@@ -296,20 +250,24 @@ fn manifest(args: ManifestArgs) -> Result<ExitCode> {
 }
 
 fn run(args: RunArgs) -> Result<ExitCode> {
-    let rows = read_manifest_csv(fs::read(&args.manifest).map_err(|error| {
-        TrackerError::new(format!(
-            "reading manifest {} failed: {error}",
-            args.manifest.display()
-        ))
-    })?)?;
     let selection = args.filter.selection(args.shard);
-    let selected = select_manifest(&rows, &selection)?;
+    let selected_path = args
+        .out
+        .with_file_name(format!(".selected-{}.csv", std::process::id()));
+    let selected_count = select_file(&args.manifest, &selected_path, &selection)?;
+    let selected_bytes = fs::read(&selected_path).map_err(|error| {
+        TrackerError::new(format!(
+            "reading selected manifest {} failed: {error}",
+            selected_path.display()
+        ))
+    })?;
+    let _ = fs::remove_file(&selected_path);
+    let selected = read_manifest_csv(selected_bytes)?;
     let ci = std::env::var("CI").is_ok_and(|value| value == "true");
-    if !args.allow_full && !ci && selected.len() > args.max_files {
+    if !args.allow_full && !ci && selected_count > args.max_files {
         return Err(TrackerError::new(format!(
             "selection has {} files but --max-files is {}; use filters, a shard, CI=true, or --allow-full",
-            selected.len(),
-            args.max_files
+            selected_count, args.max_files
         )));
     }
 
@@ -350,43 +308,6 @@ fn run(args: RunArgs) -> Result<ExitCode> {
         output.len(),
         args.out.display()
     );
-    Ok(ExitCode::SUCCESS)
-}
-
-fn merge(args: MergeArgs) -> Result<ExitCode> {
-    let rows = duckdb_merge(&args.manifest, &args.shards, &args.out)?;
-    clerk::info!("DuckDB merged {rows} shard rows");
-    println!(
-        "merge: wrote {rows} complete rows to {}",
-        args.out.display()
-    );
-    Ok(ExitCode::SUCCESS)
-}
-
-fn diff(args: DiffArgs) -> Result<ExitCode> {
-    let report = duckdb_diff(&args.baseline, &args.candidate, &args.selected, &args.out)?;
-    clerk::info!(
-        "DuckDB diff found {} missing, {} extra, {} changed rows",
-        report.missing,
-        report.extra,
-        report.changed
-    );
-    println!(
-        "diff: {} missing, {} extra, {} changed",
-        report.missing, report.extra, report.changed
-    );
-    Ok(if report.is_empty() {
-        ExitCode::SUCCESS
-    } else {
-        ExitCode::FAILURE
-    })
-}
-
-fn update(args: UpdateArgs) -> Result<ExitCode> {
-    let rows =
-        decoder_tracker::duckdb::upsert(args.baseline.as_deref(), &args.candidate, &args.out)?;
-    clerk::info!("DuckDB upserted {rows} baseline rows");
-    println!("update: wrote {rows} rows to {}", args.out.display());
     Ok(ExitCode::SUCCESS)
 }
 
