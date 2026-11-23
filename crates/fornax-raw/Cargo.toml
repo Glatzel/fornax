@@ -4,10 +4,10 @@ version.workspace = true
 edition.workspace = true
 
 [features]
-default = ["mmap", "large-page-hint"]
-mmap = ["dep:memmap2", "fornax-tiff/mmap"]
+default = ["large-page-hint", "mmap"]
 large-page-hint = ["fornax-large-alloc/large-page-hint"]
 metadata-json = ["dep:serde_json"]
+mmap = ["dep:memmap2", "fornax-tiff/mmap"]
 zstd = ["fornax-codec/zstd", "fornax-tiff/zstd"]
 
 [[bench]]
