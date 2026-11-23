@@ -449,6 +449,7 @@ API.
 
 **Files:**
 - Modify: `README.md`
+- Modify: `.github/workflows/ci.yml`
 - Modify: `crates/fornax-raw/README.md`
 - Modify: `docs/architecture/overview.md`
 - Modify: `docs/architecture/decoder.md`
@@ -465,7 +466,9 @@ API.
 
 Document `fornax-raw` as owner of core contracts, DNG, native decoders, pipeline
 stages, and `fornax_raw::writer`. Remove package-level references to the four
-deleted crates from current documentation.
+deleted crates from current documentation. Remap CI changed-file filters and
+benchmark matrix entries to `fornax-raw`, preserving format-specific decoder
+benchmark selection.
 
 - [x] **Step 2: Update commands and doctests**
 
