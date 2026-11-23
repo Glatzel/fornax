@@ -1,10 +1,6 @@
-use image::{ImageBuffer, Luma, LumaA};
+use fornax_core::MonoImage;
+use image::ImageBuffer;
 use thiserror::Error;
-
-type Mono<T> = ImageBuffer<Luma<T>, Vec<T>>;
-type _Uv<T> = ImageBuffer<LumaA<T>, Vec<T>>;
-type _Rgb<T> = ImageBuffer<image::Rgb<T>, Vec<T>>;
-type _Rgba<T> = ImageBuffer<image::Rgba<T>, Vec<T>>;
 
 /// A single-band buffer of raw codec samples.
 ///
@@ -23,15 +19,15 @@ type _Rgba<T> = ImageBuffer<image::Rgba<T>, Vec<T>>;
 #[non_exhaustive]
 pub enum SampleBuffer {
     /// 8-bit unsigned samples.
-    U8(Mono<u8>),
+    U8(MonoImage<u8>),
     /// 16-bit unsigned samples.
-    U16(Mono<u16>),
+    U16(MonoImage<u16>),
     /// 32-bit unsigned samples.
-    U32(Mono<u32>),
+    U32(MonoImage<u32>),
     /// 32-bit floating-point samples.
-    F32(Mono<f32>),
+    F32(MonoImage<f32>),
     /// 64-bit floating-point samples.
-    F64(Mono<f64>),
+    F64(MonoImage<f64>),
 }
 
 impl SampleBuffer {
@@ -323,7 +319,7 @@ pub enum SampleBufferError {
     },
 }
 
-fn create<T>(width: u32, height: u32, data: Vec<T>) -> Result<Mono<T>, SampleBufferError>
+fn create<T>(width: u32, height: u32, data: Vec<T>) -> Result<MonoImage<T>, SampleBufferError>
 where
     T: image::Primitive,
 {

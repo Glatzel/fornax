@@ -1,0 +1,9 @@
+[package]
+name = "fornax-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+image.workspace = true
+thiserror.workspace = true

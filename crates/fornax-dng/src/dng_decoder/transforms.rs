@@ -1,6 +1,7 @@
 use bytemuck::Pod;
+use fornax_core::MonoImage;
+use fornax_raw_core::RawMosaic;
 use fornax_raw_core::error::DecodeError;
-use fornax_raw_core::{MonoImage, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{DirectoryLookup, Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;

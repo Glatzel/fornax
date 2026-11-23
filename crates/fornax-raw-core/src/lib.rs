@@ -10,5 +10,6 @@ pub mod utils;
 pub use bayer::{BayerChannel, BayerPattern};
 pub use crop_cast::crop_and_cast;
 pub use format::RawFormat;
+pub use fornax_core::{MonoImage, RgbImage};
 pub use metadata::{EncodingMetadata, EncodingSampleFormat};
-pub use primitive::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive, RawMosaic, RgbImage};
+pub use primitive::{CroppedMosaic, NormalizedMosaic, RawFloat, RawMosaic};

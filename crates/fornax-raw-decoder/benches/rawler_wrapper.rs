@@ -3,7 +3,7 @@ use std::path::Path;
 use fornax_raw_core::error::{DecodeError, RawValidationError};
 use fornax_raw_core::metadata::ProcessMetadata;
 use fornax_raw_core::protocol::IDecoder;
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic};
 use generic_num::num;
 use image::math::Rect;
 use rawler::decoders::{RawImage, RawImageData, RawPhotometricInterpretation};
@@ -50,7 +50,7 @@ impl IDecoder for RawlerDecoder {
     }
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let raw = &self.raw;
         let cfa = match &raw.photometric {

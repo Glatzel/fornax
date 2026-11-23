@@ -15,6 +15,7 @@ name = "writer"
 
 [dependencies]
 bytemuck.workspace = true
+fornax-core.workspace = true
 fornax-large-alloc = { workspace = true, default-features = false }
 fornax-raw-core.workspace = true
 generic-num.workspace = true

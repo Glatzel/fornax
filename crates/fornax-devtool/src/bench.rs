@@ -298,7 +298,8 @@ mod tests {
 
     #[test]
     fn raw_mosaic_bytes_uses_native_sample_width() {
-        use fornax_raw_core::{MonoImage, RawMosaic};
+        use fornax_core::MonoImage;
+        use fornax_raw_core::RawMosaic;
 
         assert_eq!(
             raw_mosaic_bytes(&RawMosaic::U8(

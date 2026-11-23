@@ -9,7 +9,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, MetadataSource, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 
 mod codec;
 mod color_data;
@@ -121,7 +121,7 @@ impl Cr3Image {
     /// sample conversion fails.
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let metadata = self.process_metadata()?;
@@ -194,7 +194,7 @@ impl IDecoder for Cr3Image {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Self::cropped_mosaic(self)
     }

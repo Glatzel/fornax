@@ -7,7 +7,8 @@ use std::path::Path;
 
 pub use bench::*;
 pub use dirs::*;
-use fornax_raw_core::{MonoImage, Primitive};
+use fornax_core::MonoImage;
+use fornax_raw_core::RawFloat;
 use generic_num::num;
 use image::{ImageBuffer, Pixel, PixelWithColorType, Primitive as ImagePrimitive};
 use num_traits::Float;
@@ -18,7 +19,7 @@ pub fn setup() { clerk::init_log_with_level(clerk::LevelFilter::TRACE); }
 
 pub fn synthetic_mono_image<T>((width, height): (u32, u32), upper: f64) -> MonoImage<T>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     assert!(upper.is_finite() && upper > 0.0);
     let mut rng = StdRng::seed_from_u64(12_345);

@@ -1,6 +1,6 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use fornax_devtool::{BenchParams, BenchSampleBits, synthetic_mono_image};
-use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerPattern, MonoImage, RawFloat};
 use fornax_raw_pipeline::{Demosaic, IDemosaic, LazyDemosaic};
 fn selected_algorithm() -> Vec<(String, Demosaic)> {
     const ALL: &[&str] = &["amaze", "linear", "lmmse", "ppg", "rcd", "vng", "vng4"];
@@ -35,7 +35,7 @@ fn bench_methods<D, T>(
     image: MonoImage<T>,
 ) where
     D: IDemosaic<T>,
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     c.bench_function(name, |b| {
         b.iter(|| {
@@ -49,7 +49,7 @@ fn bench_methods<D, T>(
 
 fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)
 where
-    T: Primitive + Send + Sync,
+    T: RawFloat + Send + Sync,
 {
     for (threads, pool) in params.pools() {
         for size in &params.sizes {

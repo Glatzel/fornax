@@ -798,6 +798,7 @@ version = "0.0.17"
 dependencies = [
  "bytemuck",
  "flate2",
+ "fornax-core",
  "fornax-large-alloc",
  "image 0.25.9",
  "jxl-oxide",
@@ -809,12 +810,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "fornax-core"
+version = "0.0.17"
+dependencies = [
+ "bytemuck",
+ "image 0.25.9",
+ "thiserror",
+]
+
+[[package]]
 name = "fornax-devtool"
 version = "0.0.17"
 dependencies = [
  "clerk",
  "csv",
  "fornax-bmff",
+ "fornax-core",
  "fornax-raw-core",
  "fornax-tiff",
  "generic-num",
@@ -833,6 +844,7 @@ dependencies = [
  "bytemuck",
  "codspeed-criterion-compat",
  "fornax-codec",
+ "fornax-core",
  "fornax-devtool",
  "fornax-large-alloc",
  "fornax-raw-core",
@@ -892,6 +904,7 @@ name = "fornax-raw-core"
 version = "0.0.17"
 dependencies = [
  "bytemuck",
+ "fornax-core",
  "fornax-large-alloc",
  "generic-num",
  "image 0.25.9",

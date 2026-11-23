@@ -24,7 +24,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 use fornax_tiff::{Directory, ParsedTiff, TiffSource};
 
 /// A parsed Sony ARW or NRW image.
@@ -107,7 +107,7 @@ impl ArwImage {
     /// invalid, or the output sample type cannot represent the samples.
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let metadata = self.process_metadata()?;
@@ -156,7 +156,7 @@ impl IDecoder for ArwImage {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Self::cropped_mosaic(self)
     }

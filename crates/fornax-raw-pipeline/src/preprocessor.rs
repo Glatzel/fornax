@@ -1,13 +1,13 @@
 use fornax_raw_core::error::PreprocessError;
 use fornax_raw_core::metadata::Levels;
 use fornax_raw_core::protocol::IPreprocessor;
-use fornax_raw_core::{CroppedMosaic, MonoImage, NormalizedMosaic, Primitive};
+use fornax_raw_core::{CroppedMosaic, MonoImage, NormalizedMosaic, RawFloat};
 use generic_num::num;
 use rayon::prelude::*;
 pub struct Preprocessor;
 impl<T> IPreprocessor<T> for Preprocessor
 where
-    T: Primitive,
+    T: RawFloat,
 {
     fn process(
         &self,

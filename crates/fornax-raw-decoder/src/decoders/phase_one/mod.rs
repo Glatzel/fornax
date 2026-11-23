@@ -32,7 +32,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic};
 use fornax_tiff::{Directory, ParsedTiff};
 use generic_num::num;
 use image::math::Rect;
@@ -167,7 +167,7 @@ impl IiqImage {
     /// Crops the active Bayer area and converts samples to `T`.
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let active = self.process_metadata()?.active_area;
@@ -193,7 +193,7 @@ impl IDecoder for IiqImage {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Self::cropped_mosaic(self)
     }
@@ -236,7 +236,7 @@ const fn encoding_metadata_for_layout(layout: &RawLayout) -> EncodingMetadata {
 fn crop_and_cast<S, T>(mut image: MonoImage<S>, area: Rect) -> Result<MonoImage<T>, DecodeError>
 where
     S: image::Primitive + Send + Sync,
-    T: Primitive,
+    T: RawFloat,
 {
     image.crop_in_place(area);
     let (width, height) = image.dimensions();

@@ -15,7 +15,7 @@ use std::num::NonZeroU8;
 
 use amaze::DemosaicAmaze;
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerPattern, MonoImage, RawFloat};
 use linear::{DemosaicLinear, LinearLazy};
 use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
@@ -102,7 +102,7 @@ impl Demosaic {
     }
 }
 
-pub enum AnyLazy<'a, T: Primitive> {
+pub enum AnyLazy<'a, T: RawFloat> {
     Amaze(buffer::DenseLazy<T>),
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
@@ -112,7 +112,7 @@ pub enum AnyLazy<'a, T: Primitive> {
     Vng4(buffer::DenseLazy<T>),
 }
 
-impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
+impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) {
         match self {
             Self::Linear(l) => l.dimensions(),
@@ -143,7 +143,7 @@ impl<T: Primitive + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
     }
 }
 
-impl<T: Primitive + Send + Sync> IDemosaic<T> for Demosaic {
+impl<T: RawFloat + Send + Sync> IDemosaic<T> for Demosaic {
     #[allow(
         refining_impl_trait,
         reason = "callers holding a concrete `Demosaic` should be able to name `AnyLazy`"
@@ -189,7 +189,7 @@ mod rust_algorithm_tests {
     fn all_algorithms_preserve_linear_boundary() -> mischief::Result<()> {
         fn check<T>(value: T) -> mischief::Result<()>
         where
-            T: Primitive + Send + Sync + std::fmt::Debug,
+            T: RawFloat + Send + Sync + std::fmt::Debug,
         {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [

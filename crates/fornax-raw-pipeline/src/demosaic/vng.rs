@@ -8,7 +8,7 @@
 //! explicit four-color VNG4 selector.
 
 use fornax_raw_core::error::DemosaicError;
-use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, Primitive};
+use fornax_raw_core::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 use generic_num::num;
 
 use super::buffer::{DenseLazy, dense_from_vec};
@@ -115,7 +115,7 @@ impl DemosaicVng {
         pattern: BayerPattern,
     ) -> Result<DenseLazy<T>, DemosaicError>
     where
-        T: Primitive + Send + Sync,
+        T: RawFloat + Send + Sync,
     {
         if bayer.width() < 8 || bayer.height() < 8 {
             return Err(DemosaicError::InvalidInput(
@@ -135,7 +135,7 @@ impl DemosaicVng {
 
 fn interpolate<T>(input: &[T], width: usize, height: usize, pattern: BayerPattern) -> Vec<T>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut pixels = linear_interpolate(input, width, height, pattern);
     let phases = build_phases(width, pattern);
@@ -228,7 +228,7 @@ fn linear_interpolate<T>(
     pattern: BayerPattern,
 ) -> Vec<[T; 4]>
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let mut pixels = vec![[T::zero(); 4]; width * height];
     for row in 0..height {
@@ -320,7 +320,7 @@ fn build_phases(width: usize, pattern: BayerPattern) -> Vec<[PhaseCode; 2]> {
 
 fn sample<T>(pixels: &[[T; 4]], pixel: usize, offset: i32) -> T
 where
-    T: Primitive,
+    T: RawFloat,
 {
     let flat = pixel as i64 * 4 + i64::from(offset);
     pixels[(flat / 4) as usize][(flat % 4) as usize]

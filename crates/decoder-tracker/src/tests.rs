@@ -9,7 +9,7 @@ use fornax_raw_core::metadata::{
     ProcessMetadata, RawColorMeta,
 };
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage, Primitive, RawMosaic};
+use fornax_raw_core::{BayerPattern, CroppedMosaic, MonoImage, RawFloat, RawMosaic};
 use fornax_tiff::Value;
 use image::math::Rect;
 use rstest::rstest;
@@ -364,7 +364,7 @@ impl IDecoder for RawFailureDecoder {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Err(DecodeError::Unsupported("raw layout".into()))
     }

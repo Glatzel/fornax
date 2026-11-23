@@ -1,4 +1,5 @@
-use fornax_raw_core::{MonoImage, crop_and_cast};
+use fornax_core::MonoImage;
+use fornax_raw_core::crop_and_cast;
 use image::math::Rect;
 
 #[test]

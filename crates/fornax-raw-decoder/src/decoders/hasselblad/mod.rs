@@ -34,7 +34,7 @@ use fornax_dng::metadata::IDecoderDng;
 use fornax_raw_core::error::DecodeError;
 use fornax_raw_core::metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 use fornax_raw_core::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw_core::{CroppedMosaic, MonoImage, Primitive, RawMosaic, crop_and_cast};
+use fornax_raw_core::{CroppedMosaic, MonoImage, RawFloat, RawMosaic, crop_and_cast};
 use fornax_tiff::Directory;
 
 /// A parsed Hasselblad 3FR image.
@@ -201,7 +201,7 @@ impl HasselbladImage {
     /// ```
     pub fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         let pixels = self.raw_mosaic()?;
         let active = self.process_metadata()?.active_area;
@@ -226,7 +226,7 @@ impl IDecoder for HasselbladImage {
 
     fn cropped_mosaic<T>(&self) -> Result<CroppedMosaic<T>, DecodeError>
     where
-        T: Primitive,
+        T: RawFloat,
     {
         Self::cropped_mosaic(self)
     }
