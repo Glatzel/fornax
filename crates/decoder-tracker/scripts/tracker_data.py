@@ -2,14 +2,13 @@
 """Run decoder-tracker selection and DuckDB-backed CSV operations."""
 
 import csv
-from pathlib import Path
 import shutil
+from pathlib import Path
 from typing import Annotated
 
 import duckdb
-from pathspec import GitIgnoreSpec
 import typer
-
+from pathspec import GitIgnoreSpec
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SQL_DIR = SCRIPT_DIR.parent / "sql"
@@ -110,9 +109,7 @@ def parse_shard(value: str) -> tuple[int, int]:
         index = int(index_text)
         count = int(count_text)
     except ValueError as error:
-        raise TrackerDataError(
-            "shard must use zero-based INDEX/COUNT syntax"
-        ) from error
+        raise TrackerDataError("shard must use zero-based INDEX/COUNT syntax") from error
     if count <= 0 or index < 0 or index >= count:
         raise TrackerDataError(f"shard {index}/{count} is outside the valid range")
     return index, count
@@ -135,9 +132,7 @@ def select_data(
     selected = []
     for row in rows:
         path = row["path"]
-        if camera_filters and not any(
-            camera in camera_for(path).lower() for camera in camera_filters
-        ):
+        if camera_filters and not any(camera in camera_for(path).lower() for camera in camera_filters):
             continue
         if filename_filters and filename_for(path).lower() not in filename_filters:
             continue
@@ -147,16 +142,12 @@ def select_data(
     selected.sort(key=lambda row: (row["sha256"], row["path"]))
     if shard is not None:
         index, count = shard
-        selected = [
-            row for position, row in enumerate(selected) if position % count == index
-        ]
+        selected = [row for position, row in enumerate(selected) if position % count == index]
     ensure_parent(output)
     with output.open("w", encoding="utf-8", newline="") as stream:
         writer = csv.writer(stream, lineterminator="\n")
         writer.writerow(MANIFEST_HEADER)
-        writer.writerows(
-            ([row["path"], row["size"], row["sha256"]] for row in selected)
-        )
+        writer.writerows([row["path"], row["size"], row["sha256"]] for row in selected)
     if not selected:
         raise TrackerDataError("filters matched no corpus files")
     return len(selected)
@@ -194,10 +185,7 @@ def merge_data(manifest: Path, shards: list[Path], output: Path) -> int:
     if duplicates:
         raise TrackerDataError(f"merged shards contain {duplicates} duplicate rows")
     if missing or unexpected:
-        raise TrackerDataError(
-            f"merged shards are incomplete: {missing} missing and "
-            f"{unexpected} unexpected rows"
-        )
+        raise TrackerDataError(f"merged shards are incomplete: {missing} missing and {unexpected} unexpected rows")
     if invalid_values or invalid_order or invalid_metadata or invalid_error or invalid_status:
         raise TrackerDataError(
             "shard validation failed: "

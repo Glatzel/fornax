@@ -1,13 +1,12 @@
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 import tracker_data
-
 
 SHA_A = "a" * 64
 SHA_B = "b" * 64
