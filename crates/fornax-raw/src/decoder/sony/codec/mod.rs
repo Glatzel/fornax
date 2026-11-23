@@ -131,8 +131,7 @@ mod tests {
 
     #[test]
     fn sony_ljpeg_one_component_keeps_the_tile_shape() {
-        let stream =
-            crate::decoder::sony::ljpeg::encode_interleaved_for_test(&[0; 4], 2, 2, 1, 12);
+        let stream = crate::decoder::sony::ljpeg::encode_interleaved_for_test(&[0; 4], 2, 2, 1, 12);
         let chunks = [Chunk {
             offset: 0,
             byte_count: stream.len(),
@@ -371,8 +370,7 @@ mod tests {
 
     #[test]
     fn sony_ljpeg_rejects_wrong_tile_geometry() {
-        let stream =
-            crate::decoder::sony::ljpeg::encode_interleaved_for_test(&[0; 4], 2, 2, 1, 12);
+        let stream = crate::decoder::sony::ljpeg::encode_interleaved_for_test(&[0; 4], 2, 2, 1, 12);
         let chunks = [Chunk {
             offset: 0,
             byte_count: stream.len(),

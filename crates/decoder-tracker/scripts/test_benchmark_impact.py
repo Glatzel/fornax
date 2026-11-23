@@ -7,8 +7,8 @@ import benchmark_matrix
 
 
 def test_direct_vendor_changes_select_only_that_vendor():
-    assert benchmark_matrix.impacted_formats(["crates/fornax-raw/src/decoders/sony/codec/mod.rs"]) == frozenset({"ARW"})
-    assert benchmark_matrix.impacted_formats(["crates/fornax-raw/src/decoders/panasonic/codec/v8.rs"]) == frozenset(
+    assert benchmark_matrix.impacted_formats(["crates/fornax-raw/src/decoder/sony/codec/mod.rs"]) == frozenset({"ARW"})
+    assert benchmark_matrix.impacted_formats(["crates/fornax-raw/src/decoder/panasonic/codec/v8.rs"]) == frozenset(
         {"RW2"}
     )
 

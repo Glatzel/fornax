@@ -7,8 +7,6 @@ use fornax_raw::metadata::Levels;
 use fornax_raw::preprocessor::Preprocessor;
 use fornax_raw::protocol::IPreprocessor;
 use fornax_raw::{CroppedMosaic, MonoImage, RawFloat};
-
-
 use support::synthetic_mono_image;
 
 fn bench_sizes<T>(c: &mut Criterion, params: &BenchParams, bits: BenchSampleBits)

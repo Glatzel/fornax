@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use clap::{Parser, ValueEnum};
 use clap_verbosity_flag::InfoLevel;
-use fornax_raw::Demosaic;
+use fornax_raw::demosaic::Demosaic;
 use fornax_raw::dng::writer::DngWriterCompression;
 use serde::Deserialize;
 use thiserror::Error;

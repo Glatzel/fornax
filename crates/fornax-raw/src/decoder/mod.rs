@@ -1,4 +1,5 @@
 pub mod canon;
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 pub mod dnc;
 pub mod fujifilm;
 pub mod hasselblad;

@@ -68,8 +68,7 @@ pub use error::{
 pub use format::RawFormat;
 pub use metadata::{EncodingMetadata, EncodingSampleFormat, ProcessMetadata};
 pub use primitive::{CroppedMosaic, NormalizedMosaic, RawFloat, RawMosaic};
-pub use decoder::Decoder;
-pub use decoders::{canon, fujifilm, hasselblad, nikon, panasonic, phase_one, sony};
+pub mod decoder;
 pub use demosaic::{Demosaic, IDemosaic, LazyDemosaic, OutputColorSpace};
 pub use postprocessor::PostProcessor;
 pub use preprocessor::Preprocessor;
@@ -336,9 +335,9 @@ Expected: all pass and writer behavior is unchanged.
 
 **Files:**
 - Move: `crates/fornax-raw-decoder/src/decoders/`
-  to `crates/fornax-raw/src/decoders/`
+  to `crates/fornax-raw/src/decoder/`
 - Move: `crates/fornax-raw-decoder/src/lib.rs`
-  to `crates/fornax-raw/src/decoder.rs`
+  to `crates/fornax-raw/src/decoder/mod.rs`
 - Move: `crates/fornax-raw-decoder/src/dnc.rs`
   to `crates/fornax-raw/src/dnc.rs`
 - Move: decoder tests and benches to `crates/fornax-raw/`
@@ -355,10 +354,9 @@ Expected: all pass and writer behavior is unchanged.
 
 - [x] **Step 1: Preserve vendor module paths**
 
-Declare `mod decoders` at the crate root and have `decoder.rs` use
-`crate::decoders`. Re-export the seven vendor modules from the crate root so
-existing `fornax_raw_decoder::sony` users move mechanically to
-`fornax_raw::sony`.
+Declare `pub mod decoder` at the crate root. Keep the seven vendor modules
+under `fornax_raw::decoder` so decoder dispatch and format modules share one
+namespace.
 
 - [x] **Step 2: Rewrite moved imports**
 

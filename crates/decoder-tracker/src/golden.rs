@@ -1,10 +1,11 @@
 use std::collections::BTreeMap;
 
 use csv::{ReaderBuilder, StringRecord, Terminator, WriterBuilder};
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::metadata::{ColorTransform, Matrix3x3, ProcessMetadata};
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, MonoImage, RawMosaic};
+use fornax_raw::{MonoImage, RawMosaic};
 use fornax_tiff::{Directory, Value};
 use image::math::Rect;
 use serde::{Deserialize, Serialize};

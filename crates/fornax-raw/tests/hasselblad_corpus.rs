@@ -2,9 +2,9 @@ use std::io::Cursor;
 use std::path::PathBuf;
 
 use fornax_raw::RawMosaic;
+use fornax_raw::decoder::hasselblad::HasselbladImage;
 use fornax_raw::dng::dng_decoder::DngImage;
 use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
-use fornax_raw::decoder::hasselblad::HasselbladImage;
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{ParsedTiff, Tag, Value, unsigned_scalar};
 use rawler::decompressors::ljpeg::LjpegDecompressor;

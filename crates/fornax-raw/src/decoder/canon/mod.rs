@@ -21,8 +21,7 @@ mod request;
 use codec::CanonCodec;
 pub use codec::CanonCrxCfa;
 use color_data::ColorDataStatus;
-use fornax_codec::ICodecDecode;
-use fornax_codec::{DecodeRequest, SampleBuffer};
+use fornax_codec::{DecodeRequest, ICodecDecode, SampleBuffer};
 pub use request::CanonCrxHeader;
 
 #[cfg(test)]

@@ -78,14 +78,14 @@ non-2x2 CFA layouts before constructing active pipeline input.
 | `fornax-codec/src` | Format-neutral requests, sample buffers, chunk assembly, predictors, Huffman and byte-order support, `ICodecDecode`/`ICodecEncode`, and generic codecs |
 | `fornax-raw/src/dng/metadata.rs` | DNG-only `DngTag` values and deterministic JSON over `Directory` |
 | `fornax-raw/src/dng/constants.rs` | DNG-owned compression and photometric interpretation values |
-| `fornax-raw/src/decoders/sony` | Sony TIFF selection, private metadata, ARW codec ownership, CFA layout mapping, and DNG metadata mapping |
-| `fornax-raw/src/decoders/canon` | Canon BMFF/track selection, CMT/CTMD metadata, CMP1/IAD1 geometry, CRX codec ownership, and CFA types |
-| `fornax-raw/src/decoders/nikon` | Nikon TIFF selection, type-2 maker notes, packed/word/striped/Huffman codec ownership, metadata mapping, and Bayer handoff |
-| `fornax-raw/src/decoders/fujifilm` | RAF pointer/tag parsing, Fuji IFD selection, packed/lossless and CFA-layout codec ownership, metadata mapping, and Bayer-only handoff |
-| `fornax-raw/src/decoders/hasselblad` | 3FR TIFF/SubIFD selection, camera profiles, uncompressed and predictor-8 decoding, metadata mapping, and Bayer handoff |
-| `fornax-raw/src/decoders/phase_one` | Phase One private-IFD parsing, IIQ codec ownership, sensor correction, metadata mapping, and Bayer handoff |
-| `fornax-raw/src/decoders/panasonic` | Panasonic TIFF layout selection, V4-V8 and stamped codec ownership, V8 tables, metadata mapping, DNG round-trip, and Bayer handoff |
-| `fornax-raw/src/decoder.rs` | Default DNG and unconditional vendor dispatch and `IDecoder` implementation |
+| `fornax-raw/src/decoder/sony` | Sony TIFF selection, private metadata, ARW codec ownership, CFA layout mapping, and DNG metadata mapping |
+| `fornax-raw/src/decoder/canon` | Canon BMFF/track selection, CMT/CTMD metadata, CMP1/IAD1 geometry, CRX codec ownership, and CFA types |
+| `fornax-raw/src/decoder/nikon` | Nikon TIFF selection, type-2 maker notes, packed/word/striped/Huffman codec ownership, metadata mapping, and Bayer handoff |
+| `fornax-raw/src/decoder/fujifilm` | RAF pointer/tag parsing, Fuji IFD selection, packed/lossless and CFA-layout codec ownership, metadata mapping, and Bayer-only handoff |
+| `fornax-raw/src/decoder/hasselblad` | 3FR TIFF/SubIFD selection, camera profiles, uncompressed and predictor-8 decoding, metadata mapping, and Bayer handoff |
+| `fornax-raw/src/decoder/phase_one` | Phase One private-IFD parsing, IIQ codec ownership, sensor correction, metadata mapping, and Bayer handoff |
+| `fornax-raw/src/decoder/panasonic` | Panasonic TIFF layout selection, V4-V8 and stamped codec ownership, V8 tables, metadata mapping, DNG round-trip, and Bayer handoff |
+| `fornax-raw/src/decoder/mod.rs` | Default DNG and unconditional vendor dispatch and `IDecoder` implementation |
 | `fornax-decoder-dnc/src/wrapper.rs` | Adobe DNG Converter invocation and Rawler delegation |
 | `fornax-decoder-rawler/src/lib.rs` | Rawler decoding and metadata adaptation |
 | `fornax-raw/src/dng/dng_decoder/mod.rs` | Raw IFD selection, DNG-to-codec request mapping, transforms, and active crop |

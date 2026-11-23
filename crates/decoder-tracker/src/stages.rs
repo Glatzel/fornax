@@ -2,12 +2,13 @@ use std::fmt::Display;
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::path::Path;
 
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::dng::Directory;
 use fornax_raw::dng::metadata::IDecoderDng;
 use fornax_raw::error::DecodeError;
 use fornax_raw::metadata::{EncodingMetadata, ProcessMetadata};
 use fornax_raw::protocol::{IDecoder, IDecoderEncoding};
-use fornax_raw::{Decoder, RawMosaic};
 use fornax_tiff::constants::TiffTag;
 use fornax_tiff::{Tag, Value};
 
