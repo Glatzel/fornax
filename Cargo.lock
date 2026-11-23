@@ -811,9 +811,7 @@ dependencies = [
 name = "fornax-core"
 version = "0.0.17"
 dependencies = [
- "bytemuck",
  "image 0.25.9",
- "thiserror",
 ]
 
 [[package]]

@@ -16,8 +16,6 @@ mod crop_cast;
 mod decoder;
 mod decoders;
 mod demosaic;
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-mod dnc;
 pub mod dng;
 pub mod error;
 mod format;

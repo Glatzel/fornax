@@ -1,4 +1,5 @@
 pub mod canon;
+pub mod dnc;
 pub mod fujifilm;
 pub mod hasselblad;
 pub mod nikon;
