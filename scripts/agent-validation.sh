@@ -78,7 +78,7 @@ if [[ "$docs_only" == false ]]; then
 
     run_stage corpus-manifest cargo -q run -p decoder-tracker -- manifest --check
     run_stage golden-check cargo -q run -p decoder-tracker -- golden-check
-    run_stage tracker-duckdb pixi run -e tracker python -m unittest \
+    run_stage tracker-duckdb pixi run -e tracker python -m pytest \
         crates/decoder-tracker/scripts/test_tracker_data.py
     run_stage workspace-tests cargo -q test --workspace --all-features --exclude compare-demosaic
     run_stage codec-feature-check cargo -q check -p fornax-codec --no-default-features

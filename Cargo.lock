@@ -864,6 +864,7 @@ dependencies = [
  "raw-cpuid",
  "rawler",
  "rayon",
+ "rstest",
  "serde_json",
  "sha2",
  "strum",

@@ -17,6 +17,9 @@ In scope:
 - Keep a small Rust boundary for decoder execution, manifest generation,
   golden hashing, and portable child timeouts.
 - Update tracker commands, tests, and maintainer documentation.
+- Install the Python tracker tools in the normal and golden CI jobs.
+- Parallelize exhaustive and multi-file tests that were materially slowing CI.
+- Apply the reviewed baseline update produced by the full corpus run.
 
 Out of scope:
 
@@ -59,6 +62,11 @@ then retains materialization and child isolation.
 - [x] Remove Rust merge/diff/update commands and `duckdb.rs`.
 - [x] Remove `globset` and obsolete `select.sh`.
 - [x] Update tracker README, AGENTS, and corpus operations documentation.
+- [x] Install tracker Python dependencies in the normal and golden CI jobs.
+- [x] Convert the Python data-layer tests to pytest and enforce Ruff in the tracker task.
+- [x] Split the Nikon exhaustive loops and golden corpus checks into parallel `rstest` cases.
+- [x] Skip Git LFS work for payloads already materialized at the manifest size.
+- [x] Apply the complete reviewed corpus baseline update and regenerate the badge.
 - [ ] Run tracker, DuckDB, and repository validation.
 
 ## Files Expected To Change
@@ -68,6 +76,8 @@ then retains materialization and child isolation.
 - `crates/decoder-tracker/scripts/aggregate.sh`
 - `crates/decoder-tracker/scripts/select.sh` (delete)
 - `crates/decoder-tracker/src/selection.rs`
+- `crates/decoder-tracker/src/runner.rs`
+- `crates/decoder-tracker/src/tests.rs`
 - `crates/decoder-tracker/src/main.rs`
 - `crates/decoder-tracker/src/lib.rs`
 - `crates/decoder-tracker/src/duckdb.rs` (delete)
@@ -75,15 +85,22 @@ then retains materialization and child isolation.
 - `crates/decoder-tracker/tests/`
 - `crates/decoder-tracker/README.md`
 - `crates/decoder-tracker/AGENTS.md`
+- `crates/decoder-tracker/data/baseline.csv`
+- `crates/fornax-raw/Cargo.toml`
+- `crates/fornax-raw/src/decoder/nikon/codec.rs`
 - `docs/reference/decoders/operations/corpus.md`
+- `.github/workflows/ci.yml`
 - `pixi.toml`
+- `pixi.lock`
+- `Cargo.lock`
 - `.github/workflows/decoder-tracker-corpus.yml`
 
 ## Validation
 
 ```bash
-cargo test -p decoder-tracker
 pixi run -e tracker tracker-test
+cargo +nightly test --config 'profile.test.opt-level=3' -p decoder-tracker \
+  committed_golden_hashes_match_materialized_corpus --test golden_corpus
 scripts/agent-validation.sh
 ```
 
@@ -97,3 +114,9 @@ scripts/agent-validation.sh
 - `run` writes a temporary selected manifest and removes it after the run.
 - Typer, `pathspec`, and `python-duckdb` are development dependencies of the
   DuckDB-enabled Pixi environment.
+- Ruff and pytest are tracker development dependencies so the same environment
+  that runs data operations also verifies them.
+- The golden corpus test uses four `rstest` partitions. Its shared fixture
+  materializes once, then the partitions decode concurrently.
+- The reviewed corpus update changes only four Pentax DNG raw sample hashes;
+  pass status, geometry, CFA, and encoding metadata are unchanged.

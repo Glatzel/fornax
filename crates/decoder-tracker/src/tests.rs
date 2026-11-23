@@ -428,6 +428,30 @@ fn materialized_payload_is_not_parsed_as_an_unbounded_lfs_pointer() {
 }
 
 #[test]
+fn materialization_skips_files_already_at_the_manifest_size() {
+    let temp = tempdir().unwrap();
+    let corpus = temp.path();
+    let path = corpus.join("Canon/Camera/IMG_1.DNG");
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let mut row = manifest_row("aa", "Canon/Camera/IMG_1.DNG", "DNG");
+
+    fs::write(&path, b"raw payload").unwrap();
+    row.size = 11;
+    assert!(!crate::runner::payload_needs_materialization(corpus, &row).unwrap());
+
+    let pointer = format!(
+        "version https://git-lfs.github.com/spec/v1\noid sha256:{}\nsize 11\n",
+        "aa".repeat(32)
+    );
+    row.size = pointer.len() as u64;
+    fs::write(&path, pointer).unwrap();
+    assert!(crate::runner::payload_needs_materialization(corpus, &row).unwrap());
+
+    fs::remove_file(path).unwrap();
+    assert!(crate::runner::payload_needs_materialization(corpus, &row).unwrap());
+}
+
+#[test]
 fn manifest_includes_formats_without_decoder_support() {
     let temp = tempdir().unwrap();
     let corpus = temp.path();
@@ -587,7 +611,8 @@ fn child_timeout_kills_the_process_and_returns_timeout() {
     #[cfg(unix)]
     {
         let mut command = std::process::Command::new("sh");
-        command.args(["-c", "sleep 5"]);
+        command.args(["-c", "exec sleep 5"]);
+        let start = std::time::Instant::now();
         let outcome =
             crate::runner::wait_with_timeout(&mut command, std::time::Duration::from_millis(30))
                 .unwrap();
@@ -595,6 +620,7 @@ fn child_timeout_kills_the_process_and_returns_timeout() {
             outcome,
             crate::runner::ChildOutcome::TimedOut { .. }
         ));
+        assert!(start.elapsed() < std::time::Duration::from_secs(3));
     }
 }
 

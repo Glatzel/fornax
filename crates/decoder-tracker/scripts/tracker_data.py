@@ -55,9 +55,11 @@ def validate_header(path: Path, expected: list[str], description: str) -> None:
         with path.open(encoding="utf-8", newline="") as stream:
             header = next(csv.reader(stream))
     except (OSError, StopIteration) as error:
-        raise TrackerDataError(f"reading {description} {path} failed: {error}") from error
+        message = f"reading {description} {path} failed: {error}"
+        raise TrackerDataError(message) from error
     if header != expected:
-        raise TrackerDataError(f"{description} CSV header does not match the canonical schema")
+        message = f"{description} CSV header does not match the canonical schema"
+        raise TrackerDataError(message)
 
 
 def render_sql(name: str, replacements: dict[str, str]) -> str:
@@ -72,11 +74,13 @@ def duckdb_row(sql: str) -> tuple:
     try:
         row = connection.execute(sql).fetchone()
     except duckdb.Error as error:
-        raise TrackerDataError(f"DuckDB failed: {error}") from error
+        message = f"DuckDB failed: {error}"
+        raise TrackerDataError(message) from error
     finally:
         connection.close()
     if row is None:
-        raise TrackerDataError("DuckDB returned no result row")
+        message = "DuckDB returned no result row"
+        raise TrackerDataError(message)
     return row
 
 
@@ -87,7 +91,8 @@ def ensure_parent(path: Path) -> None:
 def camera_for(path: str) -> str:
     parts = path.split("/")
     if len(parts) < 3:
-        raise TrackerDataError(f"corpus path lacks vendor/camera/filename: {path!r}")
+        message = f"corpus path lacks vendor/camera/filename: {path!r}"
+        raise TrackerDataError(message)
     vendor, model = parts[0], parts[1]
     prefix = f"{vendor.lower()} "
     if model.lower() == vendor.lower() or model.lower().startswith(prefix):
@@ -99,7 +104,8 @@ def filename_for(path: str) -> str:
     filename = path.rsplit("/", 1)[-1]
     stem, separator, _ = filename.rpartition(".")
     if not separator:
-        raise TrackerDataError(f"corpus filename has no extension: {path!r}")
+        message = f"corpus filename has no extension: {path!r}"
+        raise TrackerDataError(message)
     return stem
 
 
@@ -109,9 +115,11 @@ def parse_shard(value: str) -> tuple[int, int]:
         index = int(index_text)
         count = int(count_text)
     except ValueError as error:
-        raise TrackerDataError("shard must use zero-based INDEX/COUNT syntax") from error
+        message = "shard must use zero-based INDEX/COUNT syntax"
+        raise TrackerDataError(message) from error
     if count <= 0 or index < 0 or index >= count:
-        raise TrackerDataError(f"shard {index}/{count} is outside the valid range")
+        message = f"shard {index}/{count} is outside the valid range"
+        raise TrackerDataError(message)
     return index, count
 
 
@@ -149,7 +157,8 @@ def select_data(
         writer.writerow(MANIFEST_HEADER)
         writer.writerows([row["path"], row["size"], row["sha256"]] for row in selected)
     if not selected:
-        raise TrackerDataError("filters matched no corpus files")
+        message = "filters matched no corpus files"
+        raise TrackerDataError(message)
     return len(selected)
 
 
@@ -170,7 +179,8 @@ def merge_data(manifest: Path, shards: list[Path], output: Path) -> int:
         )
     )
     if len(row) != 9:
-        raise TrackerDataError("DuckDB merge returned an unexpected summary")
+        message = "DuckDB merge returned an unexpected summary"
+        raise TrackerDataError(message)
     (
         duplicates,
         missing,
@@ -183,16 +193,19 @@ def merge_data(manifest: Path, shards: list[Path], output: Path) -> int:
         invalid_status,
     ) = map(int, row)
     if duplicates:
-        raise TrackerDataError(f"merged shards contain {duplicates} duplicate rows")
+        message = f"merged shards contain {duplicates} duplicate rows"
+        raise TrackerDataError(message)
     if missing or unexpected:
-        raise TrackerDataError(f"merged shards are incomplete: {missing} missing and {unexpected} unexpected rows")
+        message = f"merged shards are incomplete: {missing} missing and {unexpected} unexpected rows"
+        raise TrackerDataError(message)
     if invalid_values or invalid_order or invalid_metadata or invalid_error or invalid_status:
-        raise TrackerDataError(
+        message = (
             "shard validation failed: "
             f"stages={invalid_values} order={invalid_order} "
             f"metadata={invalid_metadata} errors={invalid_error} "
             f"status={invalid_status}"
         )
+        raise TrackerDataError(message)
     validate_header(output, BASELINE_HEADER, "merged baseline")
     return rows_merged
 
@@ -338,10 +351,11 @@ def migrate(
         with corpus_manifest.open(encoding="utf-8", newline="") as stream:
             corpus_count = sum(1 for _ in csv.DictReader(stream))
         if selected_count != corpus_count:
-            raise TrackerDataError(
+            message = (
                 "legacy baseline schema migration requires the complete corpus: "
                 f"selected {selected_count} of {corpus_count} rows"
             )
+            raise TrackerDataError(message)
         migrate_data(baseline, output)
         typer.echo(f"migrate: wrote {output}")
 

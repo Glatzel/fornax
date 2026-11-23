@@ -43,7 +43,7 @@ jobs:
         run: pixi install -e tracker
       - name: Test tracker data layer
         if: ${{ inputs.run_duckdb_tests }}
-        run: pixi run -e tracker python -m unittest crates/decoder-tracker/scripts/test_tracker_data.py
+        run: pixi run -e tracker python -m pytest crates/decoder-tracker/scripts/test_tracker_data.py
       - id: plan
         shell: bash
         env:

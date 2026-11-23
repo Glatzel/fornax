@@ -10,6 +10,8 @@ duckdb-cli = "*"
 pathspec = "*"
 python = "3.13.*"
 python-duckdb = "*"
+pytest = "==9.2.0"
+ruff = "*"
 typer = "*"
 
 [feature.tracker.tasks]
@@ -17,7 +19,8 @@ decoder-tracker = "cargo run -q -p decoder-tracker --"
 decoder-tracker-release = "cargo run --release -q -p decoder-tracker --"
 tracker-badge = "bash crates/decoder-tracker/scripts/update-badge.sh"
 tracker-data = "python crates/decoder-tracker/scripts/tracker_data.py"
-tracker-test = "cargo test -p decoder-tracker && python -m unittest crates/decoder-tracker/scripts/test_tracker_data.py"
+tracker-lint = "ruff check crates/decoder-tracker/scripts && ruff format --check crates/decoder-tracker/scripts"
+tracker-test = "ruff check crates/decoder-tracker/scripts && ruff format --check crates/decoder-tracker/scripts && cargo test -p decoder-tracker && python -m pytest crates/decoder-tracker/scripts/test_tracker_data.py"
 
 [feature.python.dependencies]
 maturin = "==1.16.0"
