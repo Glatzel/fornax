@@ -14,6 +14,18 @@ HEADER_HEIGHT = 40
 ROI_PAD_X = 32
 ROI_PAD_TOP = 48
 ROI_SIZE = 448
+SUPERSAMPLE_FACTOR = 4
+NOISE_SEED = 20261124
+
+# 6 flat patches (3 cols x 2 rows) for `noisy_flat_fields`: (linear_luminance, gaussian_sigma)
+NOISY_PATCH_SPECS: tuple[tuple[float, float], ...] = (
+    (0.00, 0.020),
+    (0.05, 0.015),
+    (0.18, 0.030),
+    (0.18, 0.060),
+    (0.50, 0.040),
+    (0.85, 0.050),
+)
 
 # Exact 2x2 Bayer masks matching `crates/fornax-raw/src/bayer.rs`:
 # 0 = R, 1 = G, 2 = B. Indexed as mask[y & 1][x & 1].

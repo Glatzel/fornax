@@ -30,12 +30,12 @@ Build a reproducible, pure-Rust + Python demosaic quality comparison harness in 
 - [x] Generate `crates/compare-demosaic/chart/demosaic_chart.svg`, lint, render preview via `resvg`, and stop for user review
 
 ### Phase 2 (TIFF export, Rust runner, evaluation, CI)
-- [ ] Complete `generate_chart.py` `export`/`all` subcommands (5 `float32` TIFFs in `temp/compare-demosaic/`)
-- [ ] Implement `crates/compare-demosaic` Rust crate (`Cargo.toml`, `src/lib.rs`, `src/main.rs`, tests)
-- [ ] Implement `evaluate.py`, `run.sh`, `test_compare_demosaic.py`, and generate `crates/compare-demosaic/README.md` + `data/`
-- [ ] Clean up `scripts/agent-validation.sh` and `scripts/agent-validation-test.sh`
-- [ ] Add `.github/workflows/compare-demosaic.yml`
-- [ ] Run `pixi run -e compare-demosaic compare-demosaic-test` and `scripts/agent-validation.sh`
+- [x] Complete `generate_chart.py` `export`/`all` subcommands (5 `float32` TIFFs in `temp/compare-demosaic/`)
+- [x] Implement `crates/compare-demosaic` Rust crate (`Cargo.toml`, `src/lib.rs`, `src/main.rs`, tests)
+- [x] Implement `evaluate.py`, `run.sh`, `test_compare_demosaic.py`, and generate `crates/compare-demosaic/README.md` + `data/`
+- [x] Clean up `scripts/agent-validation.sh` and `scripts/agent-validation-test.sh`
+- [x] Add `.github/workflows/compare-demosaic.yml`
+- [x] Run `pixi run -e compare-demosaic compare-demosaic-test` and `scripts/agent-validation.sh`
 
 ## Files expected to change
 

@@ -4,21 +4,31 @@
 from __future__ import annotations
 
 import math
+import os
 import random
+import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Annotated
 
+import numpy as np
+import tifffile
 import typer
 from chart_spec import (
+    BAYER_PATTERNS,
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
     HEADER_HEIGHT,
+    NOISE_SEED,
+    NOISY_PATCH_SPECS,
     ROI_SIZE,
+    SUPERSAMPLE_FACTOR,
     TILE_SIZE,
     TILES,
     TileSpec,
 )
+from PIL import Image
 
 CRATE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = CRATE_DIR.parent.parent
@@ -962,14 +972,367 @@ def svg(
     typer.echo(f"wrote SVG chart to {output} ({output.stat().st_size} bytes)")
 
 
+def _find_fonts_dir() -> Path | None:
+    """Locate a directory containing TTF/OTF fonts for resvg text rendering."""
+    candidates: list[Path] = []
+    conda_prefix = os.environ.get("CONDA_PREFIX")
+    if conda_prefix:
+        candidates.append(Path(conda_prefix) / "fonts")
+    candidates.extend(
+        [
+            Path("/home/glatzel/.pixi/envs/base/fonts"),
+            Path("/usr/share/fonts"),
+            Path("/usr/local/share/fonts"),
+        ]
+    )
+    for candidate in candidates:
+        if candidate.is_dir() and (any(candidate.rglob("*.ttf")) or any(candidate.rglob("*.otf"))):
+            return candidate
+    return None
+
+
+def _srgb_to_linear(srgb: np.ndarray) -> np.ndarray:
+    """Exact IEC 61966-2-1 sRGB to linear float32 EOTF."""
+    return np.where(
+        srgb <= 0.04045,
+        srgb / 12.92,
+        np.power((srgb + 0.055) / 1.055, 2.4),
+    ).astype(np.float32)
+
+
+def linear_to_srgb_u8(linear: np.ndarray) -> np.ndarray:
+    """Tone-map/clamp linear float RGB in [0, 1] to 8-bit sRGB for preview PNGs."""
+    clamped = np.clip(linear, 0.0, 1.0)
+    srgb = np.where(
+        clamped <= 0.0031308,
+        clamped * 12.92,
+        1.055 * np.power(clamped, 1.0 / 2.4) - 0.055,
+    )
+    return np.clip(np.round(srgb * 255.0), 0, 255).astype(np.uint8)
+
+
+def _ss_coords(size: int, factor: int = SUPERSAMPLE_FACTOR) -> tuple[np.ndarray, np.ndarray]:
+    """Return supersampled (yy, xx) pixel-center coordinates in [0, size)."""
+    sub = (np.arange(size * factor, dtype=np.float64) + 0.5) / factor
+    return np.meshgrid(sub, sub, indexing="ij")
+
+
+def _downsample_box(arr: np.ndarray, size: int, factor: int = SUPERSAMPLE_FACTOR) -> np.ndarray:
+    """4x4 box (area-average) downsample from (size*factor, size*factor, ...) to (size, size, ...)."""
+    if arr.ndim == 2:
+        return arr.reshape(size, factor, size, factor).mean(axis=(1, 3)).astype(np.float32)
+    c = arr.shape[2]
+    return arr.reshape(size, factor, size, factor, c).mean(axis=(1, 3)).astype(np.float32)
+
+
+def _synth_zone_plate(size: int) -> np.ndarray:
+    yy, xx = _ss_coords(size)
+    cx = size / 2.0
+    cy = size / 2.0
+    r2 = (xx - cx) ** 2 + (yy - cy) ** 2
+    # DC at center -> Nyquist (0.5 cyc/px) at r = size/2
+    val = 0.5 * (1.0 + np.cos(math.pi * 0.5 * r2 / (size / 2.0)))
+    gray = _downsample_box(val, size)
+    return np.repeat(gray[..., None], 3, axis=2)
+
+
+def _make_checker(
+    h: int, w: int, pitch: int, col_a: tuple[float, float, float], col_b: tuple[float, float, float]
+) -> np.ndarray:
+    yy, xx = np.ogrid[:h, :w]
+    mask = ((xx // pitch) + (yy // pitch)) % 2 == 0
+    out = np.empty((h, w, 3), dtype=np.float32)
+    out[mask] = col_a
+    out[~mask] = col_b
+    return out
+
+
+def _synth_bw_checkerboard(size: int) -> np.ndarray:
+    half = size // 2
+    out = np.empty((size, size, 3), dtype=np.float32)
+    out[:half, :half] = _make_checker(half, half, 1, (1.0, 1.0, 1.0), (0.0, 0.0, 0.0))
+    out[:half, half:] = _make_checker(half, half, 2, (1.0, 1.0, 1.0), (0.0, 0.0, 0.0))
+    out[half:, :half] = _make_checker(half, half, 3, (1.0, 1.0, 1.0), (0.0, 0.0, 0.0))
+    out[half:, half:] = _make_checker(half, half, 4, (1.0, 1.0, 1.0), (0.0, 0.0, 0.0))
+    return out
+
+
+def _synth_chroma_checkerboard(size: int) -> np.ndarray:
+    half = size // 2
+    out = np.empty((size, size, 3), dtype=np.float32)
+    out[:half, :half] = _make_checker(half, half, 1, (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+    out[:half, half:] = _make_checker(half, half, 2, (1.0, 0.0, 0.0), (0.0, 0.0, 1.0))
+    out[half:, :half] = _make_checker(half, half, 1, (0.0, 1.0, 0.0), (1.0, 0.0, 1.0))
+    out[half:, half:] = _make_checker(half, half, 2, (0.0, 1.0, 0.0), (1.0, 0.0, 1.0))
+    return out
+
+
+def _synth_freq_chirps(size: int) -> np.ndarray:
+    yy, xx = _ss_coords(size)
+    h3 = size // 3
+    f_max = 0.5  # Nyquist (cycles / pixel)
+    out_ss = np.empty((size * SUPERSAMPLE_FACTOR, size * SUPERSAMPLE_FACTOR), dtype=np.float64)
+
+    # Horizontal chirp: phase = 2*pi * 0.5 * f_max * x^2 / size
+    b0 = h3 * SUPERSAMPLE_FACTOR
+    b1 = 2 * h3 * SUPERSAMPLE_FACTOR
+    x_h = xx[:b0, :]
+    out_ss[:b0, :] = 0.5 * (1.0 + np.cos(math.pi * f_max * (x_h**2) / size))
+
+    # Vertical chirp
+    y_v = yy[b0:b1, :] - h3
+    out_ss[b0:b1, :] = 0.5 * (1.0 + np.cos(math.pi * f_max * (y_v**2) / h3))
+
+    # Diagonal 45 deg chirp
+    u = ((xx[b1:, :] + (yy[b1:, :] - 2 * h3)) / math.sqrt(2.0)).clip(min=0.0)
+    u_max = (size + (size - 2 * h3)) / math.sqrt(2.0)
+    out_ss[b1:, :] = 0.5 * (1.0 + np.cos(math.pi * f_max * (u**2) / u_max))
+
+    gray = _downsample_box(out_ss, size)
+    return np.repeat(gray[..., None], 3, axis=2)
+
+
+def _synth_impulses_grid(size: int) -> np.ndarray:
+    out = np.full((size, size, 3), 0.02, dtype=np.float32)
+    half = size // 2
+    colors = (
+        (1.0, 1.0, 1.0),
+        (1.0, 0.0, 0.0),
+        (0.0, 1.0, 0.0),
+        (0.0, 0.0, 1.0),
+    )
+    phases = ((0, 0), (1, 0), (0, 1), (1, 1))
+    for r_idx, col in enumerate(colors):
+        for c_idx, (px, py) in enumerate(phases):
+            bx = 32 + c_idx * 48 + px
+            by = 48 + r_idx * 96 + py
+            out[by, bx] = col
+            out[by + 36 : by + 38, bx : bx + 2] = col
+
+    gx0 = half + 16
+    gw = half - 32
+    for idx, col in enumerate(colors):
+        y0 = 16 + idx * 104
+        w = 1 if idx % 2 == 0 else 2
+        for step in range(0, gw, 16):
+            out[y0 : y0 + 88, gx0 + step : gx0 + step + w] = col
+        for step in range(0, 89, 16):
+            out[y0 + step : y0 + step + w, gx0 : gx0 + gw] = col
+    return out
+
+
+def _synth_noisy_flat_fields_gt(size: int) -> np.ndarray:
+    out = np.empty((size, size, 3), dtype=np.float32)
+    pw = size // 3
+    ph = size // 2
+    for idx, (lum, _) in enumerate(NOISY_PATCH_SPECS):
+        r, c = divmod(idx, 3)
+        y0, y1 = r * ph, (r + 1) * ph if r == 0 else size
+        x0, x1 = c * pw, (c + 1) * pw if c < 2 else size
+        out[y0:y1, x0:x1] = lum
+    return out
+
+
+def _synth_signed_zero_crossing(size: int) -> np.ndarray:
+    half = size // 2
+    out = np.empty((size, size, 3), dtype=np.float32)
+
+    # Top half: linear ramp [-0.25, +0.25]
+    ramp = np.linspace(-0.25, 0.25, size, dtype=np.float32)
+    out[:half, :, :] = ramp[None, :, None]
+
+    # Bottom-left: 5 deg slanted edge (-0.25 <-> +0.25), 4x supersampled
+    yy, xx = _ss_coords(half)
+    slope = math.tan(math.radians(5.0))
+    boundary = half / 2.0 + slope * (yy - half / 2.0)
+    edge_ss = np.where(xx < boundary, -0.25, 0.25)
+    edge = _downsample_box(edge_ss, half)
+    out[half:, :half, :] = edge[..., None]
+
+    # Bottom-right: signed sine grating 0.25 * sin(2*pi*x/12)
+    sine_ss = 0.25 * np.sin(2.0 * math.pi * xx / 12.0)
+    sine = _downsample_box(sine_ss, half)
+    out[half:, half:, :] = sine[..., None]
+    return out
+
+
+def _synth_hdr_specular(size: int) -> np.ndarray:
+    h3 = size // 3
+    out = np.full((size, size, 3), 0.05, dtype=np.float32)
+
+    # Top third: linear ramp 0.0 -> 4.0
+    ramp = np.linspace(0.0, 4.0, size, dtype=np.float32)
+    out[:h3, :, :] = ramp[None, :, None]
+
+    # Bottom 2/3: 4x supersampled specular circles + slanted bars at 4.0
+    bh = size - h3
+    sub_y = (np.arange(bh * SUPERSAMPLE_FACTOR, dtype=np.float64) + 0.5) / SUPERSAMPLE_FACTOR
+    sub_x = (np.arange(size * SUPERSAMPLE_FACTOR, dtype=np.float64) + 0.5) / SUPERSAMPLE_FACTOR
+    yy, xx = np.meshgrid(sub_y, sub_x, indexing="ij")
+    ss = np.full((bh * SUPERSAMPLE_FACTOR, size * SUPERSAMPLE_FACTOR, 3), 0.05, dtype=np.float64)
+
+    specs = (
+        (4.0, 4.0, 4.0),
+        (4.0, 0.1, 0.1),
+        (0.1, 4.0, 0.1),
+        (0.1, 0.1, 4.0),
+    )
+    for idx, col in enumerate(specs):
+        cx = 64.0 + idx * 104.0
+        cy = 95.0
+        disk_mask = (xx - cx) ** 2 + (yy - cy) ** 2 <= 18.0**2
+        ss[disk_mask] = col
+
+        # Slanted 45 deg bar of half-width 2.0 px
+        x0, y0 = cx - 28.0, cy + 85.0
+        x1, y1 = cx + 28.0, cy + 145.0
+        dx, dy = x1 - x0, y1 - y0
+        len2 = dx * dx + dy * dy
+        t = np.clip(((xx - x0) * dx + (yy - y0) * dy) / len2, 0.0, 1.0)
+        dist2 = (xx - (x0 + t * dx)) ** 2 + (yy - (y0 + t * dy)) ** 2
+        ss[dist2 <= 2.0**2] = col
+
+    out[h3:, :, :] = (
+        ss.reshape(bh, SUPERSAMPLE_FACTOR, size, SUPERSAMPLE_FACTOR, 3).mean(axis=(1, 3)).astype(np.float32)
+    )
+    return out
+
+
+def _synth_wide_range_signed_hdr(size: int) -> np.ndarray:
+    half = size // 2
+    out = np.empty((size, size, 3), dtype=np.float32)
+
+    # Top-left: 5 deg slanted edge (-0.5 <-> +2.5)
+    yy, xx = _ss_coords(half)
+    slope = math.tan(math.radians(5.0))
+    boundary = half / 2.0 + slope * (yy - half / 2.0)
+    edge_ss = np.where(xx < boundary, -0.5, 2.5)
+    out[:half, :half, :] = _downsample_box(edge_ss, half)[..., None]
+
+    # Top-right: 2px wide-range R/B checkerboard
+    out[:half, half:, :] = _make_checker(half, half, 2, (2.5, -0.5, -0.5), (-0.5, -0.5, 2.5))
+
+    # Bottom half: 4 mixed-sign flat patches
+    pw = size // 2
+    ph = (size - half) // 2
+    patches = (
+        (2.5, -0.3, 0.8),
+        (-0.4, 2.2, 0.2),
+        (0.6, -0.5, 2.5),
+        (-0.5, -0.5, -0.5),
+    )
+    for idx, col in enumerate(patches):
+        r, c = divmod(idx, 2)
+        y0 = half + r * ph
+        y1 = half + (r + 1) * ph if r == 0 else size
+        x0 = c * pw
+        x1 = (c + 1) * pw if c == 0 else size
+        out[y0:y1, x0:x1] = col
+    return out
+
+
+def _mosaic_bayer(rgb: np.ndarray, pattern: str) -> np.ndarray:
+    """Sample a 3-channel RGB image into a 1-channel Bayer mosaic using BAYER_PATTERNS."""
+    mask = BAYER_PATTERNS[pattern]
+    h, w, _ = rgb.shape
+    mosaic = np.empty((h, w), dtype=np.float32)
+    for py in range(2):
+        for px in range(2):
+            ch = mask[py][px]
+            mosaic[py::2, px::2] = rgb[py::2, px::2, ch]
+    return mosaic
+
+
+def _inject_mosaic_noise(mosaic: np.ndarray, tile: TileSpec, rng: np.random.Generator) -> np.ndarray:
+    """Inject deterministic Gaussian sensor noise ONLY into noisy_flat_fields of the Bayer mosaic."""
+    out = mosaic.copy()
+    x0, y0, size, _ = tile.roi_bounds()
+    pw = size // 3
+    ph = size // 2
+    for idx, (_, sigma) in enumerate(NOISY_PATCH_SPECS):
+        r, c = divmod(idx, 3)
+        py0 = y0 + r * ph
+        py1 = y0 + ((r + 1) * ph if r == 0 else size)
+        px0 = x0 + c * pw
+        px1 = x0 + ((c + 1) * pw if c < 2 else size)
+        noise = rng.normal(0.0, sigma, size=(py1 - py0, px1 - px0)).astype(np.float32)
+        out[py0:py1, px0:px1] += noise
+    return out
+
+
+def export_tiffs(svg_path: Path, temp_dir: Path) -> None:
+    """Rasterize SVG at 4x supersampling, synthesize float32 ROIs, and write 5 TIFFs."""
+    if not svg_path.exists():
+        svg(output=svg_path)
+
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    ss_w = CANVAS_WIDTH * SUPERSAMPLE_FACTOR
+    ss_h = CANVAS_HEIGHT * SUPERSAMPLE_FACTOR
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ss_png = Path(tmp) / "chart_ss.png"
+        cmd = ["resvg", "--width", str(ss_w), "--height", str(ss_h)]
+        fonts_dir = _find_fonts_dir()
+        if fonts_dir is not None:
+            cmd.extend(["--use-fonts-dir", str(fonts_dir)])
+        cmd.extend([str(svg_path), str(ss_png)])
+        subprocess.run(cmd, check=True)
+
+        Image.MAX_IMAGE_PIXELS = None
+        with Image.open(ss_png) as img:
+            srgb_ss = np.asarray(img.convert("RGB"), dtype=np.float32) / 255.0
+
+    linear_ss = _srgb_to_linear(srgb_ss)
+    gt_rgb = (
+        linear_ss.reshape(CANVAS_HEIGHT, SUPERSAMPLE_FACTOR, CANVAS_WIDTH, SUPERSAMPLE_FACTOR, 3)
+        .mean(axis=(1, 3))
+        .astype(np.float32)
+    )
+
+    # Replace analytic, pixel-exact, noisy-flat, and unclamped-float ROIs
+    synths = {
+        "zone_plate": _synth_zone_plate,
+        "bw_checkerboard": _synth_bw_checkerboard,
+        "freq_chirps": _synth_freq_chirps,
+        "impulses_grid": _synth_impulses_grid,
+        "chroma_checkerboard": _synth_chroma_checkerboard,
+        "noisy_flat_fields": _synth_noisy_flat_fields_gt,
+        "signed_zero_crossing": _synth_signed_zero_crossing,
+        "hdr_specular": _synth_hdr_specular,
+        "wide_range_signed_hdr": _synth_wide_range_signed_hdr,
+    }
+    noisy_tile: TileSpec | None = None
+    for tile in TILES:
+        if tile.id in synths:
+            ys, xs = tile.roi_slices()
+            gt_rgb[ys, xs, :] = synths[tile.id](ROI_SIZE)
+        if tile.id == "noisy_flat_fields":
+            noisy_tile = tile
+
+    gt_path = temp_dir / "ground_truth_rgb.tif"
+    tifffile.imwrite(gt_path, gt_rgb, photometric="rgb", compression=None)
+    typer.echo(f"wrote {gt_path} (shape={gt_rgb.shape}, min={gt_rgb.min():.3f}, max={gt_rgb.max():.3f})")
+
+    preview_path = temp_dir / "ground_truth_preview.png"
+    Image.fromarray(linear_to_srgb_u8(gt_rgb)).save(preview_path)
+
+    for idx, pattern in enumerate(BAYER_PATTERNS):
+        mosaic = _mosaic_bayer(gt_rgb, pattern)
+        if noisy_tile is not None:
+            rng = np.random.default_rng(NOISE_SEED + idx)
+            mosaic = _inject_mosaic_noise(mosaic, noisy_tile, rng)
+        bayer_path = temp_dir / f"bayer_{pattern}.tif"
+        tifffile.imwrite(bayer_path, mosaic, photometric="minisblack", compression=None)
+        typer.echo(f"wrote {bayer_path} (shape={mosaic.shape}, min={mosaic.min():.3f}, max={mosaic.max():.3f})")
+
+
 @app.command()
 def export(
     svg_path: Annotated[Path, typer.Option("--svg", help="Input SVG path.")] = DEFAULT_SVG_PATH,
     temp_dir: Annotated[Path, typer.Option("--temp-dir", help="Output temp directory.")] = DEFAULT_TEMP_DIR,
 ) -> None:
-    """Export 5 float32 TIFFs (Phase 2)."""
-    typer.echo(f"Phase 2 export not yet implemented (svg={svg_path}, temp_dir={temp_dir})")
-    raise typer.Exit(code=1)
+    """Export ground truth RGB and 4 Bayer pattern float32 TIFFs."""
+    export_tiffs(svg_path=svg_path, temp_dir=temp_dir)
 
 
 @app.command("all")

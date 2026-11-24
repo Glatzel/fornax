@@ -1,0 +1,27 @@
+[package]
+name = "compare-demosaic"
+version.workspace = true
+edition.workspace = true
+publish = false
+
+[[bin]]
+name = "compare-demosaic"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+clap-style.workspace = true
+clap-verbosity-flag.workspace = true
+clerk = { workspace = true, features = ["tracing"] }
+fornax-core.workspace = true
+fornax-devtool.workspace = true
+fornax-raw.workspace = true
+fornax-tiff = { workspace = true, features = ["raster"] }
+mischief.workspace = true
+strum.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+predicates.workspace = true
+rstest.workspace = true
+tempfile.workspace = true
