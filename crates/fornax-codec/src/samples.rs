@@ -999,7 +999,7 @@ pub fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
 }
 
 #[inline(always)]
-pub(crate) fn extend_fp16(raw: u32) -> f32 {
+pub fn extend_fp16(raw: u32) -> f32 {
     let exponent = (raw >> 10) & 0x1f;
     if exponent != 0 && exponent != 0x1f {
         f32::from_bits(((raw & 0x8000) << 16) | (((raw & 0x7fff) + (112 << 10)) << 13))
@@ -1009,7 +1009,7 @@ pub(crate) fn extend_fp16(raw: u32) -> f32 {
 }
 
 #[inline(always)]
-pub(crate) fn extend_fp24(raw: u32) -> f32 {
+pub fn extend_fp24(raw: u32) -> f32 {
     let exponent = (raw >> 16) & 0x7f;
     if exponent != 0 && exponent != 0x7f {
         f32::from_bits(((raw & 0x80_0000) << 8) | (((raw & 0x7f_ffff) + (64 << 16)) << 7))

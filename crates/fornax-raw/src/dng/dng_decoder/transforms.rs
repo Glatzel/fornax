@@ -907,7 +907,7 @@ mod tests {
         );
 
         // Case 3: dense (> 1/16) fallback trigger.
-        let mut dense = base.clone();
+        let mut dense = base;
         for r in 0..height {
             for c in (0..width).step_by(4) {
                 dense[r * width + c] = 0;
