@@ -113,26 +113,25 @@ impl TiffImage {
     }
 
     /// Decodes the root directory of a TIFF file at `path`.
-    pub fn open(path: impl AsRef<Path>) -> Result<Self, TiffIoError> {
+    pub fn open<P>(path: P) -> Result<Self, TiffIoError> where P: AsRef<Path> {
         let source = TiffSource::from_path(path.as_ref())?;
         crate::parse_source(source)?.decode_image(0)
     }
 
     /// Writes this image to a seekable writer using `options`.
-    pub fn write_to<W>(
-        &self,
-        writer: W,
-        options: &TiffWriteOptions,
-    ) -> Result<(), TiffIoError> where W: Write + Seek {
+    pub fn write_to<W>(&self, writer: W, options: &TiffWriteOptions) -> Result<(), TiffIoError>
+    where
+        W: Write + Seek,
+    {
         TiffWriter::new(writer)?.write_image(self, options)
     }
 
     /// Writes this image to a file at `path` using `options`.
-    pub fn save(
+    pub fn save<P>(
         &self,
-        path: impl AsRef<Path>,
+        path: P,
         options: &TiffWriteOptions,
-    ) -> Result<(), TiffIoError> {
+    ) -> Result<(), TiffIoError> where P: AsRef<Path> {
         let file = File::create(path.as_ref())?;
         self.write_to(BufWriter::new(file), options)
     }
@@ -274,7 +273,10 @@ pub fn deinterleave_planes<T>(
     height: u32,
     samples_per_pixel: usize,
     interleaved: &[T],
-) -> Result<MultiPlaneImage<T>, TiffIoError> where T: image::Primitive {
+) -> Result<MultiPlaneImage<T>, TiffIoError>
+where
+    T: image::Primitive,
+{
     let pixel_count = usize::try_from(width)
         .ok()
         .and_then(|w| {
@@ -299,7 +301,10 @@ pub fn deinterleave_planes<T>(
         .collect()
 }
 
-pub fn interleave_planes<T>(planes: &[MonoImage<T>]) -> Vec<T> where T: image::Primitive {
+pub fn interleave_planes<T>(planes: &[MonoImage<T>]) -> Vec<T>
+where
+    T: image::Primitive,
+{
     let pixel_count = planes.first().map_or(0, |p| p.as_raw().len());
     let mut interleaved = Vec::with_capacity(pixel_count * planes.len());
     for idx in 0..pixel_count {
