@@ -223,11 +223,11 @@ impl OpcodeList {
             .count()
     }
 
-    pub(super) const fn is_single_bad_pixels_constant(&self, value: u32) -> bool {
-        matches!(
-            self.opcodes.as_slice(),
-            [Opcode::FixBadPixelsConstant { constant }] if *constant == value
-        )
+    pub(super) const fn single_bad_pixels_constant(&self) -> Option<u32> {
+        match self.opcodes.as_slice() {
+            [Opcode::FixBadPixelsConstant { constant }] => Some(*constant),
+            _ => None,
+        }
     }
 
     pub(super) fn apply_full(&self, samples: &mut [f32], width: usize, height: usize) {
