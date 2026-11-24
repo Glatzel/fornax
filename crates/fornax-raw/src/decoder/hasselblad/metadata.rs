@@ -1,5 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, Tag, Value, unsigned_vec};
+use fornax_tiff::value::unsigned_vec;
+use fornax_tiff::{Directory, Tag, Value};
 
 use crate::decoder::hasselblad::container::Container;
 use crate::dng::metadata::DngTag;

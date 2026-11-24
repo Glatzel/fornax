@@ -6,3 +6,7 @@
 	path = external/raw.pixls.us
 	url = https://raw.pixls.us/data.lfs.git
 	branch = master
+[submodule "external/libtiff-pics"]
+	path = external/libtiff-pics
+	url = https://gitlab.com/libtiff/libtiff-pics.git
+	shallow = true

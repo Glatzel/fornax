@@ -1,7 +1,8 @@
 use std::io::Cursor;
 
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value, parse};
+use fornax_tiff::writer::{TiffDirectory, TiffWriter};
+use fornax_tiff::{Tag, Value, parse};
 
 #[test]
 fn tiff_directory_round_trips_typed_and_dynamic_entries() {

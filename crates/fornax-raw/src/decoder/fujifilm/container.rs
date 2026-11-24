@@ -1,4 +1,5 @@
-use fornax_tiff::{ByteOrder, Directory, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{ByteOrder, Directory, Tag, Value};
 
 use crate::decoder::fujifilm::profiles::{ModelProfile, profile};
 use crate::error::DecodeError;

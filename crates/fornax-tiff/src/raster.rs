@@ -4,8 +4,9 @@ use std::fmt;
 
 use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
 
-use crate::constants::TiffTag;
-use crate::{Directory, DirectoryLookup, Tag, ValueAccessError, unsigned_vec_lookup};
+use crate::constants::{PlanarConfiguration, TiffTag};
+use crate::value::{ValueAccessError, unsigned_vec_lookup};
+use crate::{Directory, DirectoryLookup, Tag};
 
 /// TIFF raster storage organization.
 ///
@@ -13,8 +14,8 @@ use crate::{Directory, DirectoryLookup, Tag, ValueAccessError, unsigned_vec_look
 ///
 /// ```
 /// assert_ne!(
-///     fornax_tiff::RasterStorage::Strips,
-///     fornax_tiff::RasterStorage::Tiles
+///     fornax_tiff::raster::RasterStorage::Strips,
+///     fornax_tiff::raster::RasterStorage::Tiles
 /// );
 /// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -31,7 +32,8 @@ pub enum RasterStorage {
 ///
 /// ```
 /// use fornax_tiff::constants::TiffTag;
-/// use fornax_tiff::{Directory, RasterLayout, RasterStorage, Tag, Value};
+/// use fornax_tiff::raster::{RasterLayout, RasterStorage};
+/// use fornax_tiff::{Directory, Tag, Value};
 ///
 /// let mut directory = Directory::default();
 /// directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(4));
@@ -57,6 +59,8 @@ pub struct RasterLayout {
     height: usize,
     chunk_width: usize,
     chunk_height: usize,
+    planes: usize,
+    chunks_per_plane: usize,
     chunks: Vec<Chunk>,
 }
 
@@ -77,7 +81,8 @@ impl RasterLayout {
     ///
     /// ```
     /// use fornax_tiff::constants::TiffTag;
-    /// use fornax_tiff::{Directory, RasterLayout, Value};
+    /// use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     ///
     /// let mut directory = Directory::default();
     /// directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(2));
@@ -87,7 +92,7 @@ impl RasterLayout {
     /// directory.insert(TiffTag::StripByteCounts.into(), Value::Unsigned(2));
     ///
     /// assert_eq!(RasterLayout::from_directory(&directory)?.chunks().len(), 1);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub fn from_directory(directory: &Directory) -> Result<Self, RasterError> {
         Self::from_lookup(directory)
@@ -103,6 +108,40 @@ impl RasterLayout {
     where
         D: DirectoryLookup + ?Sized,
     {
+        Self::from_lookup_with_planes_internal(directory, 1, PlanarConfiguration::Chunky, false)
+    }
+
+    /// Reads image, strip/tile, and planar chunk geometry through a metadata
+    /// lookup.
+    ///
+    /// When `RowsPerStrip` is absent in a strip-organized directory, TIFF 6.0
+    /// defaults it to `height` (a single strip for the entire image).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RasterError`] when a required tag is missing or invalid, a
+    /// dimension or plane count is zero, chunk lists do not match the image
+    /// geometry, or geometry arithmetic overflows.
+    pub fn from_lookup_with_planes<D>(
+        directory: &D,
+        samples_per_pixel: usize,
+        planar: PlanarConfiguration,
+    ) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
+        Self::from_lookup_with_planes_internal(directory, samples_per_pixel, planar, true)
+    }
+
+    fn from_lookup_with_planes_internal<D>(
+        directory: &D,
+        samples_per_pixel: usize,
+        planar: PlanarConfiguration,
+        default_rows_per_strip: bool,
+    ) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
         let width = required_usize(directory, TiffTag::ImageWidth)?;
         let height = required_usize(directory, TiffTag::ImageLength)?;
         if width == 0 {
@@ -111,6 +150,15 @@ impl RasterLayout {
         if height == 0 {
             return Err(RasterError::ZeroDimension(TiffTag::ImageLength.into()));
         }
+        let planes = match planar {
+            PlanarConfiguration::Planar => {
+                if samples_per_pixel == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::SamplesPerPixel.into()));
+                }
+                samples_per_pixel
+            }
+            PlanarConfiguration::Chunky | PlanarConfiguration::Unknown(_) => 1,
+        };
 
         let (storage, chunk_width, chunk_height, offsets, byte_counts) =
             if directory.contains_key(&Tag::from(TiffTag::TileOffsets)) {
@@ -129,8 +177,33 @@ impl RasterLayout {
                     unsigned_usizes(directory, TiffTag::TileOffsets)?,
                     unsigned_usizes(directory, TiffTag::TileByteCounts)?,
                 )
+            } else if directory.contains_key(&Tag::from(TiffTag::TileWidth))
+                && directory.contains_key(&Tag::from(TiffTag::TileLength))
+                && directory.contains_key(&Tag::from(TiffTag::StripOffsets))
+            {
+                let chunk_width = required_usize(directory, TiffTag::TileWidth)?;
+                let chunk_height = required_usize(directory, TiffTag::TileLength)?;
+                if chunk_width == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::TileWidth.into()));
+                }
+                if chunk_height == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::TileLength.into()));
+                }
+                (
+                    RasterStorage::Tiles,
+                    chunk_width,
+                    chunk_height,
+                    unsigned_usizes(directory, TiffTag::StripOffsets)?,
+                    unsigned_usizes(directory, TiffTag::StripByteCounts)?,
+                )
             } else {
-                let chunk_height = required_usize(directory, TiffTag::RowsPerStrip)?;
+                let chunk_height = if default_rows_per_strip
+                    && !directory.contains_key(&Tag::from(TiffTag::RowsPerStrip))
+                {
+                    height
+                } else {
+                    required_usize(directory, TiffTag::RowsPerStrip)?
+                };
                 if chunk_height == 0 {
                     return Err(RasterError::ZeroDimension(TiffTag::RowsPerStrip.into()));
                 }
@@ -151,8 +224,11 @@ impl RasterLayout {
         }
         let across = width.div_ceil(chunk_width);
         let down = height.div_ceil(chunk_height);
-        let expected = across
+        let chunks_per_plane = across
             .checked_mul(down)
+            .ok_or(RasterError::ChunkCountOverflow)?;
+        let expected = chunks_per_plane
+            .checked_mul(planes)
             .ok_or(RasterError::ChunkCountOverflow)?;
         if offsets.len() != expected {
             return Err(RasterError::ChunkCountMismatch {
@@ -171,6 +247,8 @@ impl RasterLayout {
             height,
             chunk_width,
             chunk_height,
+            planes,
+            chunks_per_plane,
             chunks,
         })
     }
@@ -181,7 +259,8 @@ impl RasterLayout {
     ///
     /// ```
     /// use fornax_tiff::constants::TiffTag;
-    /// use fornax_tiff::{Directory, RasterLayout, RasterStorage, Value};
+    /// use fornax_tiff::raster::{RasterLayout, RasterStorage};
+    /// use fornax_tiff::{Directory, Value};
     ///
     /// let mut directory = Directory::default();
     /// directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
@@ -194,7 +273,7 @@ impl RasterLayout {
     ///     RasterLayout::from_directory(&directory)?.storage(),
     ///     RasterStorage::Strips,
     /// );
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn storage(&self) -> RasterStorage { self.storage }
 
@@ -204,7 +283,8 @@ impl RasterLayout {
     ///
     /// ```
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterLayout, Value};
+    /// # use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(7));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -212,7 +292,7 @@ impl RasterLayout {
     /// # directory.insert(TiffTag::StripOffsets.into(), Value::Unsigned(8));
     /// # directory.insert(TiffTag::StripByteCounts.into(), Value::Unsigned(7));
     /// assert_eq!(RasterLayout::from_directory(&directory)?.width(), 7);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn width(&self) -> usize { self.width }
 
@@ -222,7 +302,8 @@ impl RasterLayout {
     ///
     /// ```
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterLayout, Value};
+    /// # use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(3));
@@ -234,7 +315,7 @@ impl RasterLayout {
     /// #     Value::Unsigned(1), Value::Unsigned(1), Value::Unsigned(1)
     /// # ]));
     /// assert_eq!(RasterLayout::from_directory(&directory)?.height(), 3);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn height(&self) -> usize { self.height }
 
@@ -244,7 +325,8 @@ impl RasterLayout {
     ///
     /// ```
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterLayout, Value};
+    /// # use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(3));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -252,7 +334,7 @@ impl RasterLayout {
     /// # directory.insert(TiffTag::StripOffsets.into(), Value::Unsigned(8));
     /// # directory.insert(TiffTag::StripByteCounts.into(), Value::Unsigned(3));
     /// assert_eq!(RasterLayout::from_directory(&directory)?.chunk_width(), 3);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn chunk_width(&self) -> usize { self.chunk_width }
 
@@ -262,7 +344,8 @@ impl RasterLayout {
     ///
     /// ```
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterLayout, Value};
+    /// # use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(5));
@@ -274,7 +357,7 @@ impl RasterLayout {
     /// #     Value::Unsigned(2), Value::Unsigned(2), Value::Unsigned(1)
     /// # ]));
     /// assert_eq!(RasterLayout::from_directory(&directory)?.chunk_height(), 2);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn chunk_height(&self) -> usize { self.chunk_height }
 
@@ -284,7 +367,8 @@ impl RasterLayout {
     ///
     /// ```
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterLayout, Value};
+    /// # use fornax_tiff::raster::RasterLayout;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -293,9 +377,25 @@ impl RasterLayout {
     /// # directory.insert(TiffTag::StripByteCounts.into(), Value::Unsigned(1));
     /// let layout = RasterLayout::from_directory(&directory)?;
     /// assert_eq!(layout.chunks()[0].offset, 8);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub fn chunks(&self) -> &[Chunk] { &self.chunks }
+
+    /// Returns the number of separate planes in this layout.
+    pub const fn planes(&self) -> usize { self.planes }
+
+    /// Returns the number of chunks per plane.
+    pub const fn chunks_per_plane(&self) -> usize { self.chunks_per_plane }
+
+    /// Returns the chunk slice for `plane` (`0..self.planes()`).
+    pub fn plane_chunks(&self, plane: usize) -> Option<&[Chunk]> {
+        if plane >= self.planes {
+            return None;
+        }
+        let start = plane.checked_mul(self.chunks_per_plane)?;
+        let end = start.checked_add(self.chunks_per_plane)?;
+        self.chunks.get(start..end)
+    }
 }
 
 /// A decoded TIFF raster request with a resolved codec compression.
@@ -309,7 +409,8 @@ impl RasterLayout {
 /// ```
 /// use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
 /// use fornax_tiff::constants::TiffTag;
-/// use fornax_tiff::{Directory, RasterRequest, Value};
+/// use fornax_tiff::raster::RasterRequest;
+/// use fornax_tiff::{Directory, Value};
 ///
 /// let mut directory = Directory::default();
 /// directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
@@ -331,7 +432,7 @@ impl RasterLayout {
 ///     (request.layout().width(), request.layout().height()),
 ///     (1, 1)
 /// );
-/// # Ok::<(), fornax_tiff::RasterError>(())
+/// # Ok::<(), fornax_tiff::raster::RasterError>(())
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RasterRequest<'a> {
@@ -357,7 +458,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// use fornax_tiff::constants::TiffTag;
-    /// use fornax_tiff::{Directory, RasterRequest, Value};
+    /// use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     ///
     /// let mut directory = Directory::default();
     /// directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
@@ -376,7 +478,7 @@ impl<'a> RasterRequest<'a> {
     ///     Predictor::None,
     /// )?;
     /// assert_eq!(request.layout().chunks()[0].offset, 4);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub fn new(
         source: &'a [u8],
@@ -448,7 +550,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -460,7 +563,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Little, Predictor::None,
     /// # )?;
     /// assert_eq!(request.compression(), DecodeCompression::Uncompressed);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub fn compression(&self) -> DecodeCompression { self.compression.clone() }
 
@@ -471,7 +574,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(2));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -483,7 +587,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Little, Predictor::None,
     /// # )?;
     /// assert_eq!(request.layout().chunks().len(), 1);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn layout(&self) -> &RasterLayout { &self.layout }
 
@@ -494,7 +598,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -506,7 +611,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Little, Predictor::None,
     /// # )?;
     /// assert_eq!(request.bits_per_sample(), 12);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn bits_per_sample(&self) -> u16 { self.bits_per_sample }
 
@@ -517,7 +622,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -529,7 +635,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Float, ByteOrder::Little, Predictor::None,
     /// # )?;
     /// assert_eq!(request.sample_format(), SampleFormat::Float);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn sample_format(&self) -> SampleFormat { self.sample_format }
 
@@ -540,7 +646,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -552,7 +659,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Big, Predictor::None,
     /// # )?;
     /// assert_eq!(request.byte_order(), ByteOrder::Big);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn byte_order(&self) -> ByteOrder { self.byte_order }
 
@@ -563,7 +670,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -575,7 +683,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Little, Predictor::HorizontalInteger,
     /// # )?;
     /// assert_eq!(request.predictor(), Predictor::HorizontalInteger);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub const fn predictor(&self) -> Predictor { self.predictor }
 
@@ -586,7 +694,8 @@ impl<'a> RasterRequest<'a> {
     /// ```
     /// # use fornax_codec::{ByteOrder, DecodeCompression, Predictor, SampleFormat};
     /// # use fornax_tiff::constants::TiffTag;
-    /// # use fornax_tiff::{Directory, RasterRequest, Value};
+    /// # use fornax_tiff::raster::RasterRequest;
+    /// use fornax_tiff::{Directory, Value};
     /// # let mut directory = Directory::default();
     /// # directory.insert(TiffTag::ImageWidth.into(), Value::Unsigned(1));
     /// # directory.insert(TiffTag::ImageLength.into(), Value::Unsigned(1));
@@ -598,7 +707,7 @@ impl<'a> RasterRequest<'a> {
     /// #     SampleFormat::Integer, ByteOrder::Little, Predictor::None,
     /// # )?;
     /// assert_eq!(request.codec_request().width, 1);
-    /// # Ok::<(), fornax_tiff::RasterError>(())
+    /// # Ok::<(), fornax_tiff::raster::RasterError>(())
     /// ```
     pub fn codec_request(&self) -> DecodeRequest<'_> {
         DecodeRequest {
@@ -621,7 +730,7 @@ impl<'a> RasterRequest<'a> {
 /// # Examples
 ///
 /// ```
-/// let error = fornax_tiff::RasterLayout::from_directory(&Default::default()).unwrap_err();
+/// let error = fornax_tiff::raster::RasterLayout::from_directory(&Default::default()).unwrap_err();
 /// assert!(error.to_string().contains("TIFF tag"));
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -717,7 +826,7 @@ impl std::error::Error for RasterError {}
 /// # Examples
 ///
 /// ```
-/// use fornax_tiff::{TiffCompressionError, resolve_tiff_compression};
+/// use fornax_tiff::raster::{TiffCompressionError, resolve_tiff_compression};
 ///
 /// assert_eq!(
 ///     resolve_tiff_compression(12_345),
@@ -778,7 +887,7 @@ impl std::error::Error for TiffCompressionError {}
 ///
 /// ```
 /// use fornax_codec::DecodeCompression;
-/// use fornax_tiff::{TiffCompressionError, resolve_tiff_compression};
+/// use fornax_tiff::raster::{TiffCompressionError, resolve_tiff_compression};
 ///
 /// assert_eq!(
 ///     resolve_tiff_compression(1),
@@ -841,7 +950,8 @@ where
 {
     let tag = tag.into();
     let value = directory.get(&tag).ok_or(RasterError::MissingTag(tag))?;
-    let value = crate::unsigned_scalar(Some(value)).ok_or(RasterError::InvalidValueType(tag))?;
+    let value =
+        crate::value::unsigned_scalar(Some(value)).ok_or(RasterError::InvalidValueType(tag))?;
     usize::try_from(value).map_err(|_| RasterError::ValueOutOfRange(tag))
 }
 

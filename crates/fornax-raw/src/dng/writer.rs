@@ -6,7 +6,8 @@ use fornax_codec::{
     ByteOrder, EncodeCompression, EncodeRequest, ICodecEncode, Predictor, SampleBuffer,
 };
 use fornax_tiff::constants::{CompressionMethod, PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
+use fornax_tiff::writer::{TiffDirectory, TiffWriter};
+use fornax_tiff::{Tag, Value};
 
 use crate::RawMosaic;
 use crate::dng::metadata::{Directory, DngTag};
@@ -668,7 +669,7 @@ fn tiff_write_error(error: fornax_tiff::TiffError) -> DngWriteError {
 mod tests {
     use std::io::Cursor;
 
-    use fornax_tiff::TiffWriter;
+    use fornax_tiff::writer::TiffWriter;
 
     use super::*;
 

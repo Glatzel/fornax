@@ -6,7 +6,8 @@ use fornax_raw::decoder::hasselblad::HasselbladImage;
 use fornax_raw::dng::dng_decoder::DngImage;
 use fornax_raw::dng::writer::{DngWriter, DngWriterCompression};
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{ParsedTiff, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{ParsedTiff, Tag, Value};
 use rawler::decompressors::ljpeg::LjpegDecompressor;
 use rawler::pixarray::PixU16;
 

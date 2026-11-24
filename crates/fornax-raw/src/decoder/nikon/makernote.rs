@@ -1,5 +1,6 @@
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value};
 
 use crate::error::DecodeError;
 

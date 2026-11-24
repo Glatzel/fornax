@@ -184,7 +184,8 @@ impl fmt::Display for Value {
 /// # Examples
 ///
 /// ```
-/// use fornax_tiff::{Value, unsigned_scalar};
+/// use fornax_tiff::Value;
+/// use fornax_tiff::value::unsigned_scalar;
 ///
 /// let value = Value::List(vec![Value::Short(7), Value::Short(9)]);
 /// assert_eq!(unsigned_scalar(Some(&value)), Some(7));
@@ -218,7 +219,8 @@ pub fn unsigned_scalar(value: Option<&Value>) -> Option<u64> {
 /// # Examples
 ///
 /// ```
-/// use fornax_tiff::{Directory, Tag, Value, unsigned_vec};
+/// use fornax_tiff::value::unsigned_vec;
+/// use fornax_tiff::{Directory, Tag, Value};
 ///
 /// let mut directory = Directory::default();
 /// directory.insert(

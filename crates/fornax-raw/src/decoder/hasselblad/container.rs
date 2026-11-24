@@ -1,5 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar, unsigned_vec};
+use fornax_tiff::value::{unsigned_scalar, unsigned_vec};
+use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value};
 use image::math::Rect;
 
 use crate::decoder::hasselblad::profiles::{ModelProfile, profile};

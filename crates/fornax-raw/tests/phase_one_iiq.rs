@@ -208,7 +208,7 @@ fn corrected_samples_and_cfa_round_trip_through_dng() {
     assert_eq!(decoded.raw_mosaic().unwrap(), raw);
     let round_trip = decoded.dng_metadata().unwrap();
     assert_eq!(
-        fornax_tiff::unsigned_vec::<_, u8>(
+        fornax_tiff::value::unsigned_vec::<_, u8>(
             &round_trip,
             fornax_tiff::constants::TiffTag::CfaPattern
         )

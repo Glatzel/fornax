@@ -1,5 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value};
 
 use crate::decoder::sony::container::{
     CompressionFamily, RawLayout, SONY_BLACK_LEVEL_1, SONY_CURVE, SONY_GRBG_WHITE_BALANCE,

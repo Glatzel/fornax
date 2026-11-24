@@ -285,11 +285,436 @@ fn seek_error(error: std::io::Error) -> TiffError {
     TiffError::new(format!("seeking TIFF failed: {error}"))
 }
 
+#[cfg(feature = "raster")]
+mod image_write {
+    use std::io::{Seek, Write};
+
+    use fornax_codec::{
+        ByteOrder, EncodeCompression, EncodeRequest, ICodecEncode, Predictor, SampleBuffer,
+    };
+    use fornax_core::MonoImage;
+
+    use crate::TiffError;
+    use crate::constants::{
+        CompressionMethod, PhotometricInterpretation, PlanarConfiguration, SampleFormatTag, TiffTag,
+    };
+    use crate::image::{
+        TiffImage, TiffIoError, TypedTiffImage, deinterleave_planes, interleave_planes,
+    };
+    use crate::writer::{TiffDirectory, TiffWriter};
+
+    /// Strip or tile storage configuration for [`TiffWriteOptions`].
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum WriteStorage {
+        /// Store image rows in strips. `None` writes the entire image as one
+        /// strip.
+        Strips {
+            /// Number of rows per strip, or `None` for a single strip.
+            rows_per_strip: Option<u32>,
+        },
+        /// Store image samples in rectangular tiles.
+        Tiles {
+            /// Tile width in pixels.
+            width: u32,
+            /// Tile height in pixels.
+            height: u32,
+        },
+    }
+
+    /// Configuration for writing a [`TiffImage`].
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub struct TiffWriteOptions {
+        /// Compression algorithm applied to each strip or tile.
+        pub compression: EncodeCompression,
+        /// Strip or tile chunk layout.
+        pub storage: WriteStorage,
+        /// Interleaved (`Chunky`) or separated (`Planar`) sample storage.
+        pub planar_configuration: PlanarConfiguration,
+        /// Reversible predictor applied before compression.
+        ///
+        /// When [`Predictor::HorizontalInteger`] is selected with
+        /// [`PlanarConfiguration::Chunky`] and `samples_per_pixel > 1`, the
+        /// writer automatically uses channel-strided horizontal differencing.
+        pub predictor: Predictor,
+        /// Explicit photometric interpretation override, or `None` to infer
+        /// from channel count.
+        pub photometric: Option<PhotometricInterpretation>,
+    }
+
+    impl Default for TiffWriteOptions {
+        fn default() -> Self {
+            Self {
+                compression: EncodeCompression::Uncompressed,
+                storage: WriteStorage::Strips {
+                    rows_per_strip: None,
+                },
+                planar_configuration: PlanarConfiguration::Chunky,
+                predictor: Predictor::None,
+                photometric: None,
+            }
+        }
+    }
+
+    impl TiffWriteOptions {
+        /// Sets the compression algorithm.
+        pub const fn with_compression(mut self, compression: EncodeCompression) -> Self {
+            self.compression = compression;
+            self
+        }
+
+        /// Sets the strip or tile storage layout.
+        pub const fn with_storage(mut self, storage: WriteStorage) -> Self {
+            self.storage = storage;
+            self
+        }
+
+        /// Sets the planar configuration.
+        pub const fn with_planar_configuration(mut self, planar: PlanarConfiguration) -> Self {
+            self.planar_configuration = planar;
+            self
+        }
+
+        /// Sets the predictor.
+        pub const fn with_predictor(mut self, predictor: Predictor) -> Self {
+            self.predictor = predictor;
+            self
+        }
+
+        /// Sets an explicit photometric interpretation.
+        pub const fn with_photometric(mut self, photometric: PhotometricInterpretation) -> Self {
+            self.photometric = Some(photometric);
+            self
+        }
+    }
+
+    impl<W> TiffWriter<W>
+    where
+        W: Write + Seek,
+    {
+        /// Encodes and writes a [`TiffImage`] as the root directory and
+        /// finalizes the container.
+        pub fn write_image(
+            mut self,
+            image: &TiffImage,
+            options: &TiffWriteOptions,
+        ) -> Result<(), TiffIoError> {
+            let width = image.width();
+            let height = image.height();
+            let samples_per_pixel = image.samples_per_pixel();
+            if width == 0 || height == 0 {
+                return Err(TiffIoError::Invalid(
+                    "image dimensions must not be zero".into(),
+                ));
+            }
+            if samples_per_pixel == 0 {
+                return Err(TiffIoError::Invalid(
+                    "image must contain at least one plane".into(),
+                ));
+            }
+
+            let (chunk_width, chunk_height, is_tiles) = match options.storage {
+                WriteStorage::Strips { rows_per_strip } => {
+                    let rows = rows_per_strip.unwrap_or(height);
+                    if rows == 0 {
+                        return Err(TiffIoError::Invalid(
+                            "rows_per_strip must not be zero".into(),
+                        ));
+                    }
+                    (width, rows, false)
+                }
+                WriteStorage::Tiles {
+                    width: tw,
+                    height: th,
+                } => {
+                    if tw == 0 || th == 0 {
+                        return Err(TiffIoError::Invalid(
+                            "tile dimensions must not be zero".into(),
+                        ));
+                    }
+                    (tw, th, true)
+                }
+            };
+
+            let planar = match options.planar_configuration {
+                PlanarConfiguration::Chunky => PlanarConfiguration::Chunky,
+                PlanarConfiguration::Planar => PlanarConfiguration::Planar,
+                PlanarConfiguration::Unknown(id) => {
+                    return Err(TiffIoError::Unsupported(
+                        format!("unsupported planar configuration {id}").into(),
+                    ));
+                }
+            };
+
+            let (bits_per_sample, sample_format_tag, encoded_chunks) =
+                encode_tiff_image(image, chunk_width, chunk_height, planar, options)?;
+
+            let mut offsets = Vec::with_capacity(encoded_chunks.len());
+            let mut byte_counts = Vec::with_capacity(encoded_chunks.len());
+            for chunk in encoded_chunks {
+                let offset = self.write_data(&chunk)?;
+                let offset = u32::try_from(offset)
+                    .map_err(|_| TiffError::new("classic TIFF chunk offset exceeds u32"))?;
+                let byte_count = u32::try_from(chunk.len())
+                    .map_err(|_| TiffError::new("classic TIFF chunk byte count exceeds u32"))?;
+                offsets.push(offset);
+                byte_counts.push(byte_count);
+            }
+
+            let photometric = options.photometric.unwrap_or(if samples_per_pixel <= 2 {
+                PhotometricInterpretation::BlackIsZero
+            } else {
+                PhotometricInterpretation::Rgb
+            });
+
+            let mut dir = TiffDirectory::new(&mut self);
+            dir.write_tag(TiffTag::ImageWidth, width)?;
+            dir.write_tag(TiffTag::ImageLength, height)?;
+
+            let spp_u16 = u16::try_from(samples_per_pixel)
+                .map_err(|_| TiffIoError::Invalid("samples_per_pixel exceeds u16".into()))?;
+            dir.write_tag(TiffTag::SamplesPerPixel, spp_u16)?;
+            if samples_per_pixel == 1 {
+                dir.write_tag(TiffTag::BitsPerSample, bits_per_sample)?;
+                dir.write_tag(TiffTag::SampleFormat, u16::from(sample_format_tag))?;
+            } else {
+                let bits = vec![bits_per_sample; samples_per_pixel];
+                let formats = vec![u16::from(sample_format_tag); samples_per_pixel];
+                dir.write_tag(TiffTag::BitsPerSample, bits.as_slice())?;
+                dir.write_tag(TiffTag::SampleFormat, formats.as_slice())?;
+            }
+
+            dir.write_tag(
+                TiffTag::Compression,
+                u16::from(compression_method(options.compression)),
+            )?;
+            dir.write_tag(TiffTag::PhotometricInterpretation, u16::from(photometric))?;
+            dir.write_tag(TiffTag::PlanarConfiguration, u16::from(planar))?;
+
+            if matches!(
+                image,
+                TiffImage::U8(TypedTiffImage::Uv(_) | TypedTiffImage::Rgba(_))
+                    | TiffImage::U16(TypedTiffImage::Uv(_) | TypedTiffImage::Rgba(_))
+                    | TiffImage::U32(TypedTiffImage::Uv(_) | TypedTiffImage::Rgba(_))
+                    | TiffImage::F32(TypedTiffImage::Uv(_) | TypedTiffImage::Rgba(_))
+                    | TiffImage::F64(TypedTiffImage::Uv(_) | TypedTiffImage::Rgba(_))
+            ) {
+                // Unassociated alpha (2) is the standard default for general
+                // RGBA/GA.
+                dir.write_tag(TiffTag::ExtraSamples, 2_u16)?;
+            }
+
+            let predictor_tag = match options.predictor {
+                Predictor::None => 1_u16,
+                Predictor::HorizontalInteger | Predictor::HorizontalIntegerStrided { .. } => 2_u16,
+                Predictor::FloatingPoint { .. } => 3_u16,
+            };
+            if predictor_tag != 1 {
+                dir.write_tag(TiffTag::Predictor, predictor_tag)?;
+            }
+
+            if is_tiles {
+                dir.write_tag(TiffTag::TileWidth, chunk_width)?;
+                dir.write_tag(TiffTag::TileLength, chunk_height)?;
+                dir.write_tag(TiffTag::TileOffsets, offsets.as_slice())?;
+                dir.write_tag(TiffTag::TileByteCounts, byte_counts.as_slice())?;
+            } else {
+                dir.write_tag(TiffTag::RowsPerStrip, chunk_height)?;
+                dir.write_tag(TiffTag::StripOffsets, offsets.as_slice())?;
+                dir.write_tag(TiffTag::StripByteCounts, byte_counts.as_slice())?;
+            }
+
+            dir.finish()?;
+            Ok(())
+        }
+    }
+
+    fn encode_tiff_image(
+        image: &TiffImage,
+        chunk_width: u32,
+        chunk_height: u32,
+        planar: PlanarConfiguration,
+        options: &TiffWriteOptions,
+    ) -> Result<(u16, SampleFormatTag, Vec<Vec<u8>>), TiffIoError> {
+        let cw = usize::try_from(chunk_width)
+            .map_err(|_| TiffIoError::Invalid("chunk_width exceeds usize".into()))?;
+        let ch = usize::try_from(chunk_height)
+            .map_err(|_| TiffIoError::Invalid("chunk_height exceeds usize".into()))?;
+
+        macro_rules! encode_typed {
+            ($typed:expr, $bits:expr, $format:expr, $ctor:expr) => {{
+                let samples_per_pixel = $typed.samples_per_pixel();
+                let predictor = encode_predictor(options.predictor, planar, samples_per_pixel);
+                match planar {
+                    PlanarConfiguration::Chunky => {
+                        let w = $typed.width();
+                        let h = $typed.height();
+                        let interleaved_w = w
+                            .checked_mul(u32::try_from(samples_per_pixel).map_err(|_| {
+                                TiffIoError::Invalid("samples_per_pixel exceeds u32".into())
+                            })?)
+                            .ok_or_else(|| {
+                                TiffIoError::Invalid("interleaved image width exceeds u32".into())
+                            })?;
+                        let interleaved_cw =
+                            cw.checked_mul(samples_per_pixel).ok_or_else(|| {
+                                TiffIoError::Invalid("interleaved chunk width exceeds usize".into())
+                            })?;
+                        let raw = typed_to_interleaved($typed)?;
+                        let buf = $ctor(interleaved_w, h, raw)?;
+                        let encoded = options.compression.encode(&EncodeRequest {
+                            image: &buf,
+                            chunk_width: interleaved_cw,
+                            chunk_height: ch,
+                            byte_order: ByteOrder::Little,
+                            predictor,
+                        })?;
+                        Ok(($bits, $format, encoded.chunks))
+                    }
+                    PlanarConfiguration::Planar => {
+                        let planes = typed_to_planes($typed)?;
+                        let mut all_chunks = Vec::new();
+                        for plane in planes {
+                            let buf = $ctor(plane.width(), plane.height(), plane.into_raw())?;
+                            let encoded = options.compression.encode(&EncodeRequest {
+                                image: &buf,
+                                chunk_width: cw,
+                                chunk_height: ch,
+                                byte_order: ByteOrder::Little,
+                                predictor,
+                            })?;
+                            all_chunks.extend(encoded.chunks);
+                        }
+                        Ok(($bits, $format, all_chunks))
+                    }
+                    PlanarConfiguration::Unknown(_) => unreachable!(),
+                }
+            }};
+        }
+
+        match image {
+            TiffImage::U8(typed) => {
+                encode_typed!(typed, 8, SampleFormatTag::Unsigned, SampleBuffer::from_u8)
+            }
+            TiffImage::U16(typed) => {
+                encode_typed!(typed, 16, SampleFormatTag::Unsigned, SampleBuffer::from_u16)
+            }
+            TiffImage::U32(typed) => {
+                encode_typed!(typed, 32, SampleFormatTag::Unsigned, SampleBuffer::from_u32)
+            }
+            TiffImage::F32(typed) => {
+                encode_typed!(typed, 32, SampleFormatTag::Float, SampleBuffer::from_f32)
+            }
+            TiffImage::F64(typed) => {
+                encode_typed!(typed, 64, SampleFormatTag::Float, SampleBuffer::from_f64)
+            }
+        }
+    }
+
+    fn encode_predictor(
+        predictor: Predictor,
+        planar: PlanarConfiguration,
+        samples_per_pixel: usize,
+    ) -> Predictor {
+        match predictor {
+            Predictor::HorizontalInteger
+                if planar == PlanarConfiguration::Chunky && samples_per_pixel > 1 =>
+            {
+                Predictor::HorizontalIntegerStrided { samples_per_pixel }
+            }
+            Predictor::FloatingPoint { .. } => Predictor::FloatingPoint {
+                byte_stride: if planar == PlanarConfiguration::Planar {
+                    1
+                } else {
+                    samples_per_pixel
+                },
+            },
+            other => other,
+        }
+    }
+
+    fn typed_to_interleaved<T>(typed: &TypedTiffImage<T>) -> Result<Vec<T>, TiffIoError>
+    where
+        T: image::Primitive,
+    {
+        match typed {
+            TypedTiffImage::Mono(img) => Ok(img.as_raw().clone()),
+            TypedTiffImage::Uv(img) => Ok(img.as_raw().clone()),
+            TypedTiffImage::Rgb(img) => Ok(img.as_raw().clone()),
+            TypedTiffImage::Rgba(img) => Ok(img.as_raw().clone()),
+            TypedTiffImage::MultiPlane(planes) => {
+                validate_multiplane_dimensions(planes)?;
+                Ok(interleave_planes(planes))
+            }
+        }
+    }
+
+    fn typed_to_planes<T>(typed: &TypedTiffImage<T>) -> Result<Vec<MonoImage<T>>, TiffIoError>
+    where
+        T: image::Primitive,
+    {
+        match typed {
+            TypedTiffImage::Mono(img) => Ok(vec![img.clone()]),
+            TypedTiffImage::Uv(img) => {
+                deinterleave_planes(img.width(), img.height(), 2, img.as_raw())
+            }
+            TypedTiffImage::Rgb(img) => {
+                deinterleave_planes(img.width(), img.height(), 3, img.as_raw())
+            }
+            TypedTiffImage::Rgba(img) => {
+                deinterleave_planes(img.width(), img.height(), 4, img.as_raw())
+            }
+            TypedTiffImage::MultiPlane(planes) => {
+                validate_multiplane_dimensions(planes)?;
+                Ok(planes.clone())
+            }
+        }
+    }
+
+    fn validate_multiplane_dimensions<T>(planes: &[MonoImage<T>]) -> Result<(), TiffIoError>
+    where
+        T: image::Primitive,
+    {
+        let first = planes
+            .first()
+            .ok_or_else(|| TiffIoError::Invalid("multi-plane image has no planes".into()))?;
+        let dims = first.dimensions();
+        if dims.0 == 0 || dims.1 == 0 {
+            return Err(TiffIoError::Invalid(
+                "multi-plane image dimensions must not be zero".into(),
+            ));
+        }
+        if planes.iter().any(|plane| plane.dimensions() != dims) {
+            return Err(TiffIoError::Invalid(
+                "all planes in a multi-plane image must share the same dimensions".into(),
+            ));
+        }
+        Ok(())
+    }
+
+    const fn compression_method(compression: EncodeCompression) -> CompressionMethod {
+        match compression {
+            EncodeCompression::Uncompressed => CompressionMethod::Uncompressed,
+            EncodeCompression::LosslessJpeg => CompressionMethod::LosslessJpeg,
+            EncodeCompression::Deflate => CompressionMethod::Deflate,
+            #[cfg(feature = "lzw")]
+            EncodeCompression::Lzw => CompressionMethod::Lzw,
+            #[cfg(feature = "packbits")]
+            EncodeCompression::PackBits => CompressionMethod::PackBits,
+            #[cfg(feature = "zstd")]
+            EncodeCompression::Zstd { .. } => CompressionMethod::Zstd,
+        }
+    }
+}
+
+#[cfg(feature = "raster")]
+pub use image_write::{TiffWriteOptions, WriteStorage};
+
 #[cfg(test)]
 mod tests {
     use std::io::Cursor;
 
-    use crate::{Tag, TiffWriter, Value, parse};
+    use crate::writer::TiffWriter;
+    use crate::{Tag, Value, parse};
 
     #[test]
     fn writer_round_trips_inline_and_external_values() {

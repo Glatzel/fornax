@@ -1,7 +1,8 @@
 use std::io::Cursor;
 
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, TiffDirectory, TiffWriter, Value};
+use fornax_tiff::writer::{TiffDirectory, TiffWriter};
+use fornax_tiff::{Tag, Value};
 use sha2::{Digest, Sha256};
 
 use crate::decoder::panasonic::Rw2Image;

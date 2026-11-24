@@ -141,6 +141,7 @@ where
         .across
         .checked_mul(geometry.down)
         .ok_or_else(|| invalid("encoded chunk count overflow"))?;
+    let is_strips = geometry.across == 1 && geometry.chunk_width == geometry.width;
     let target_row_bytes = geometry.chunk_width * S::BYTES;
     let encode_chunk = |chunk_index| {
         let tile_y_index = chunk_index / geometry.across;
@@ -149,7 +150,12 @@ where
         let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
         let tile_x = tile_x_index * geometry.chunk_width;
         let copy_width = geometry.chunk_width.min(geometry.width - tile_x);
-        let mut chunk = vec![0_u8; chunk_bytes];
+        let alloc_bytes = if is_strips {
+            copy_height * target_row_bytes
+        } else {
+            chunk_bytes
+        };
+        let mut chunk = vec![0_u8; alloc_bytes];
         for row in 0..copy_height {
             let target_start = row * target_row_bytes;
             let target_end = target_start + copy_width * S::BYTES;

@@ -4,10 +4,11 @@ use fornax_codec::{
     ByteOrder, Chunk, DecodeCompression, ICodecDecode, Predictor, SampleBuffer, SampleFormat,
 };
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{
-    Directory, DirectoryLookup, RasterError, RasterLayout, RasterRequest, RasterStorage, Tag,
-    TiffCompressionError, Value, resolve_tiff_compression,
+use fornax_tiff::raster::{
+    RasterError, RasterLayout, RasterRequest, RasterStorage, TiffCompressionError,
+    resolve_tiff_compression,
 };
+use fornax_tiff::{Directory, DirectoryLookup, Tag, Value};
 
 fn directory(
     width: u32,

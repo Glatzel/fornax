@@ -1,7 +1,8 @@
 use bytemuck::Pod;
 use fornax_core::MonoImage;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{DirectoryLookup, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{DirectoryLookup, Tag, Value};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 

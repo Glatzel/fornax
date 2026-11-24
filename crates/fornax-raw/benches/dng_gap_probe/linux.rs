@@ -18,8 +18,9 @@ use fornax_codec::{
 use fornax_raw::dng::dng_decoder::DngImage;
 use fornax_raw::protocol::IDecoder;
 use fornax_raw::{Decoder, RawMosaic};
+use fornax_tiff::TiffSource;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{TiffSource, unsigned_scalar, unsigned_vec};
+use fornax_tiff::value::{unsigned_scalar, unsigned_vec};
 use memmap2::Mmap;
 use rawler_wrapper::RawlerDecoder;
 

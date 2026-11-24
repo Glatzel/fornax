@@ -1,4 +1,5 @@
-use fornax_tiff::{Directory, Tag, Value, ValueAccessError, unsigned_scalar, unsigned_vec};
+use fornax_tiff::value::{ValueAccessError, unsigned_scalar, unsigned_vec};
+use fornax_tiff::{Directory, Tag, Value};
 
 #[test]
 fn unsigned_scalar_accepts_tiff_unsigned_variants() {

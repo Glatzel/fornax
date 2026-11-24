@@ -10,22 +10,17 @@ use std::sync::Arc;
 use memmap2::Mmap;
 
 pub mod constants;
+#[cfg(feature = "raster")]
+pub mod image;
 mod parser;
 #[cfg(feature = "raster")]
-mod raster;
-mod value;
-mod writer;
-
+pub mod raster;
 #[cfg(feature = "raster")]
-pub use raster::{
-    RasterError, RasterLayout, RasterRequest, RasterStorage, TiffCompressionError,
-    resolve_tiff_compression,
-};
-pub use value::{
-    LARGE_BYTE_VALUE_THRESHOLD, Tag, Value, ValueAccessError, ValueConversionError,
-    unsigned_scalar, unsigned_vec, unsigned_vec_lookup,
-};
-pub use writer::{IntoValue, TiffDirectory, TiffWriter};
+mod reader;
+pub mod value;
+pub mod writer;
+
+pub use value::{Tag, Value};
 
 /// A TIFF image file directory.
 pub type Directory = BTreeMap<Tag, Value>;
@@ -119,6 +114,14 @@ pub struct ParsedTiff {
 impl ParsedTiff {
     /// Returns the first TIFF image file directory.
     pub fn root(&self) -> &Directory { &self.directories[0] }
+
+    /// Returns the TIFF container byte order declared in the file header.
+    pub fn byte_order(&self) -> ByteOrder {
+        match self.source.get(..2) {
+            Some(b"MM") => ByteOrder::Big,
+            _ => ByteOrder::Little,
+        }
+    }
 }
 
 /// TIFF header byte order.

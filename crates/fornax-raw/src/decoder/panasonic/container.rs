@@ -1,6 +1,7 @@
 use fornax_codec::Chunk;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, parse_ifd_at, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{ByteOrder, Directory, ParsedTiff, Tag, Value, parse_ifd_at};
 
 use crate::decoder::panasonic::codec::PanasonicCodec;
 use crate::decoder::panasonic::{PanasonicV8Params, PanasonicV8Strip};

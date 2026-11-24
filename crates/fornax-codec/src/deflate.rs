@@ -44,11 +44,12 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
         let encoded = chunk(request.source, range)?;
         let mut payload = inflate(encoded)
             .map_err(|detail| invalid(format!("Deflate chunk {index}: {detail}")))?;
+        let chunk_height = geometry.actual_chunk_height(index);
         predictor::reverse(
             &mut payload,
             request.predictor,
             request.chunk_width,
-            request.chunk_height,
+            chunk_height,
             request.bits_per_sample,
             request.sample_format,
             request.byte_order,
@@ -214,9 +215,9 @@ fn decode_float_row_in_place_into(
     let planar = match predictor {
         Predictor::None => false,
         Predictor::FloatingPoint { byte_stride } => {
-            if !matches!(bits, 16 | 24 | 32 | 64) || !matches!(byte_stride, 1 | 2 | 4 | 8) {
+            if !matches!(bits, 16 | 24 | 32 | 64) || byte_stride == 0 {
                 return Err(invalid(
-                    "floating-point prediction requires 16/24/32/64-bit floats and stride 1, 2, 4, or 8",
+                    "floating-point prediction requires 16/24/32/64-bit floats and non-zero stride",
                 ));
             }
             let row_mut = &mut row[..row_bytes];
@@ -233,7 +234,7 @@ fn decode_float_row_in_place_into(
             }
             true
         }
-        Predictor::HorizontalInteger => {
+        Predictor::HorizontalInteger | Predictor::HorizontalIntegerStrided { .. } => {
             return Err(invalid(
                 "horizontal integer prediction cannot produce float samples",
             ));
@@ -269,7 +270,7 @@ fn decode_float_row_into(
             predictor::reverse_floating_row(source, scratch, source_width, bits, byte_stride)?;
             &scratch[..row_bytes]
         }
-        Predictor::HorizontalInteger => {
+        Predictor::HorizontalInteger | Predictor::HorizontalIntegerStrided { .. } => {
             return Err(invalid(
                 "horizontal integer prediction cannot produce float samples",
             ));
@@ -370,7 +371,7 @@ fn decode_float_row_into_oracle(
             predictor::reverse_floating_row(source, scratch, source_width, bits, byte_stride)?;
             &scratch[..row_bytes]
         }
-        Predictor::HorizontalInteger => {
+        Predictor::HorizontalInteger | Predictor::HorizontalIntegerStrided { .. } => {
             return Err(invalid(
                 "horizontal integer prediction cannot produce float samples",
             ));
@@ -410,19 +411,30 @@ fn decode_float_row_into_oracle(
 }
 
 pub fn encode(request: &EncodeRequest<'_>) -> Result<EncodedChunks, CodecError> {
+    let width =
+        usize::try_from(request.image.width()).map_err(|_| invalid("image width exceeds usize"))?;
+    let height = usize::try_from(request.image.height())
+        .map_err(|_| invalid("image height exceeds usize"))?;
     let mut encoded = encode_image(
         request.image,
         request.chunk_width,
         request.chunk_height,
         request.byte_order,
     )?;
+    let geometry = Geometry::new(
+        width,
+        height,
+        request.chunk_width,
+        request.chunk_height,
+        encoded.chunks.len(),
+    )?;
     let mut chunks = Vec::with_capacity(encoded.chunks.len());
-    for chunk in &mut encoded.chunks {
+    for (index, chunk) in encoded.chunks.iter_mut().enumerate() {
         predictor::apply(
             chunk,
             request.predictor,
             request.chunk_width,
-            request.chunk_height,
+            geometry.actual_chunk_height(index),
             encoded.bits_per_sample,
             encoded.sample_format,
             request.byte_order,

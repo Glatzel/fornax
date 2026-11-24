@@ -1,9 +1,8 @@
 use std::collections::{HashSet, VecDeque};
 
 use crate::constants::TiffTag;
-use crate::{
-    ByteOrder, Directory, LARGE_BYTE_VALUE_THRESHOLD, ParsedTiff, Tag, TiffError, TiffSource, Value,
-};
+use crate::value::LARGE_BYTE_VALUE_THRESHOLD;
+use crate::{ByteOrder, Directory, ParsedTiff, Tag, TiffError, TiffSource, Value};
 
 struct Reader<'a> {
     bytes: &'a [u8],

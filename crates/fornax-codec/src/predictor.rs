@@ -17,6 +17,15 @@ pub enum Predictor {
     None,
     /// Horizontal integer differencing using the previous sample.
     HorizontalInteger,
+    /// Horizontal integer differencing with a per-channel sample stride.
+    ///
+    /// In chunky multi-sample images, each channel is differenced against the
+    /// same channel of the previous pixel (`samples_per_pixel` scalar samples
+    /// earlier).
+    HorizontalIntegerStrided {
+        /// Number of interleaved scalar samples per pixel.
+        samples_per_pixel: usize,
+    },
     /// TIFF floating-point byte shuffling and differencing.
     FloatingPoint {
         /// Distance between differenced bytes.
@@ -55,6 +64,26 @@ fn check_horizontal(sample_format: SampleFormat, bits: u16) -> Result<(), CodecE
     Ok(())
 }
 
+fn check_horizontal_strided(
+    sample_format: SampleFormat,
+    bits: u16,
+    width: usize,
+    samples_per_pixel: usize,
+) -> Result<(), CodecError> {
+    check_horizontal(sample_format, bits)?;
+    if samples_per_pixel == 0 {
+        return Err(invalid(
+            "horizontal prediction requires at least one sample per pixel",
+        ));
+    }
+    if !width.is_multiple_of(samples_per_pixel) {
+        return Err(invalid(
+            "horizontal prediction row width must be a multiple of samples per pixel",
+        ));
+    }
+    Ok(())
+}
+
 fn check_floating_point(
     sample_format: SampleFormat,
     bits: u16,
@@ -62,10 +91,10 @@ fn check_floating_point(
 ) -> Result<(), CodecError> {
     if sample_format != SampleFormat::Float
         || !matches!(bits, 16 | 24 | 32 | 64)
-        || !matches!(byte_stride, 1 | 2 | 4 | 8)
+        || byte_stride == 0
     {
         return Err(invalid(
-            "floating-point prediction requires 16/24/32/64-bit floats and stride 1, 2, 4, or 8",
+            "floating-point prediction requires 16/24/32/64-bit floats and non-zero stride",
         ));
     }
     Ok(())
@@ -125,6 +154,19 @@ pub fn reverse(
                 row_bytes,
                 bytes_per_sample,
                 byte_order,
+            );
+        }
+        Predictor::HorizontalIntegerStrided { samples_per_pixel } => {
+            check_horizontal_strided(sample_format, bits, width, samples_per_pixel)?;
+            if needed == 0 {
+                return Ok(());
+            }
+            integer_rows_strided::<true>(
+                &mut payload[..needed],
+                row_bytes,
+                bytes_per_sample,
+                byte_order,
+                samples_per_pixel,
             );
         }
         Predictor::FloatingPoint { byte_stride } => {
@@ -190,6 +232,19 @@ pub fn apply(
                 return Ok(());
             }
             integer_rows::<false>(payload, row_bytes, bytes_per_sample, byte_order);
+        }
+        Predictor::HorizontalIntegerStrided { samples_per_pixel } => {
+            check_horizontal_strided(sample_format, bits, width, samples_per_pixel)?;
+            if needed == 0 {
+                return Ok(());
+            }
+            integer_rows_strided::<false>(
+                payload,
+                row_bytes,
+                bytes_per_sample,
+                byte_order,
+                samples_per_pixel,
+            );
         }
         Predictor::FloatingPoint { byte_stride } => {
             check_floating_point(sample_format, bits, byte_stride)?;
@@ -331,5 +386,299 @@ fn diff_row<T, const N: usize>(
         let current = from(*chunk);
         chunk.copy_from_slice(&to(sub(current, previous)));
         previous = current;
+    }
+}
+
+fn integer_rows_strided<const ADD: bool>(
+    payload: &mut [u8],
+    row_bytes: usize,
+    bytes_per_sample: usize,
+    byte_order: ByteOrder,
+    stride: usize,
+) {
+    if stride == 1 {
+        integer_rows::<ADD>(payload, row_bytes, bytes_per_sample, byte_order);
+        return;
+    }
+
+    macro_rules! run {
+        ($zero:expr, $from:expr, $to:expr, $add:expr, $sub:expr) => {{
+            let mut scratch = vec![$zero; stride];
+            for row in payload.chunks_exact_mut(row_bytes) {
+                scratch.fill($zero);
+                if ADD {
+                    undiff_row_strided(row, &mut scratch, $from, $to, $add);
+                } else {
+                    diff_row_strided(row, &mut scratch, $from, $to, $sub);
+                }
+            }
+        }};
+    }
+
+    match (bytes_per_sample, byte_order) {
+        (1, _) => run!(
+            0_u8,
+            u8::from_le_bytes,
+            u8::to_le_bytes,
+            u8::wrapping_add,
+            u8::wrapping_sub
+        ),
+        (2, ByteOrder::Little) => run!(
+            0_u16,
+            u16::from_le_bytes,
+            u16::to_le_bytes,
+            u16::wrapping_add,
+            u16::wrapping_sub
+        ),
+        (2, ByteOrder::Big) => run!(
+            0_u16,
+            u16::from_be_bytes,
+            u16::to_be_bytes,
+            u16::wrapping_add,
+            u16::wrapping_sub
+        ),
+        (4, ByteOrder::Little) => run!(
+            0_u32,
+            u32::from_le_bytes,
+            u32::to_le_bytes,
+            u32::wrapping_add,
+            u32::wrapping_sub
+        ),
+        (4, ByteOrder::Big) => run!(
+            0_u32,
+            u32::from_be_bytes,
+            u32::to_be_bytes,
+            u32::wrapping_add,
+            u32::wrapping_sub
+        ),
+        _ => unreachable!("the sample width is validated by the caller"),
+    }
+}
+
+#[inline(always)]
+fn undiff_row_strided<T, const N: usize>(
+    row: &mut [u8],
+    acc: &mut [T],
+    from: impl Fn([u8; N]) -> T,
+    to: impl Fn(T) -> [u8; N],
+    add: impl Fn(T, T) -> T,
+) where
+    T: Copy,
+{
+    let stride = acc.len();
+    for (index, chunk) in row.as_chunks_mut::<N>().0.iter_mut().enumerate() {
+        let channel = index % stride;
+        acc[channel] = add(acc[channel], from(*chunk));
+        chunk.copy_from_slice(&to(acc[channel]));
+    }
+}
+
+#[inline(always)]
+fn diff_row_strided<T, const N: usize>(
+    row: &mut [u8],
+    previous: &mut [T],
+    from: impl Fn([u8; N]) -> T,
+    to: impl Fn(T) -> [u8; N],
+    sub: impl Fn(T, T) -> T,
+) where
+    T: Copy,
+{
+    let stride = previous.len();
+    for (index, chunk) in row.as_chunks_mut::<N>().0.iter_mut().enumerate() {
+        let channel = index % stride;
+        let current = from(*chunk);
+        chunk.copy_from_slice(&to(sub(current, previous[channel])));
+        previous[channel] = current;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        Chunk, DecodeCompression, DecodeRequest, EncodeCompression, EncodeRequest, ICodecDecode,
+        ICodecEncode, SampleBuffer,
+    };
+
+    #[test]
+    fn strided_horizontal_integer_round_trips_across_channels_and_bit_depths() {
+        for samples_per_pixel in [2_usize, 3, 4, 5] {
+            let pixel_width = 7;
+            let height = 3;
+            let width = pixel_width * samples_per_pixel;
+            let predictor = Predictor::HorizontalIntegerStrided { samples_per_pixel };
+            for bits in [8_u16, 16, 32] {
+                let bytes_per_sample = usize::from(bits / 8);
+                for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+                    let original = (0..width * height * bytes_per_sample)
+                        .map(|index| ((index * 37 + 13) & 0xff) as u8)
+                        .collect::<Vec<_>>();
+                    let mut encoded = original.clone();
+                    apply(
+                        &mut encoded,
+                        predictor,
+                        width,
+                        height,
+                        bits,
+                        SampleFormat::Integer,
+                        byte_order,
+                    )
+                    .unwrap();
+                    reverse(
+                        &mut encoded,
+                        predictor,
+                        width,
+                        height,
+                        bits,
+                        SampleFormat::Integer,
+                        byte_order,
+                    )
+                    .unwrap();
+                    assert_eq!(
+                        encoded, original,
+                        "spp={samples_per_pixel} bits={bits} {byte_order:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn floating_point_predictor_supports_rgb_and_multiplane_strides() {
+        for byte_stride in [3_usize, 5] {
+            let width = 6 * byte_stride;
+            let height = 2;
+            let predictor = Predictor::FloatingPoint { byte_stride };
+            for bits in [16_u16, 24, 32, 64] {
+                let bytes_per_sample = usize::from(bits / 8);
+                for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+                    let original = (0..width * height * bytes_per_sample)
+                        .map(|index| ((index * 53 + 7) & 0xff) as u8)
+                        .collect::<Vec<_>>();
+                    let mut encoded = original.clone();
+                    apply(
+                        &mut encoded,
+                        predictor,
+                        width,
+                        height,
+                        bits,
+                        SampleFormat::Float,
+                        byte_order,
+                    )
+                    .unwrap();
+                    reverse(
+                        &mut encoded,
+                        predictor,
+                        width,
+                        height,
+                        bits,
+                        SampleFormat::Float,
+                        byte_order,
+                    )
+                    .unwrap();
+                    assert_eq!(
+                        encoded, original,
+                        "stride={byte_stride} bits={bits} {byte_order:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn partial_final_strip_round_trips_with_predictors() {
+        let width = 9_usize;
+        let height = 5_usize;
+        let rows_per_strip = 2_usize;
+        let u16_image = SampleBuffer::from_u16(
+            width as u32,
+            height as u32,
+            (0..width * height)
+                .map(|index| ((index * 197 + 17) & 0xffff) as u16)
+                .collect(),
+        )
+        .unwrap();
+        let f32_image = SampleBuffer::from_f32(
+            width as u32,
+            height as u32,
+            (0..width * height)
+                .map(|index| (index as f32).mul_add(0.25, -2.5))
+                .collect(),
+        )
+        .unwrap();
+
+        let compressions = [
+            (
+                EncodeCompression::Deflate,
+                DecodeCompression::Deflate,
+                "deflate",
+            ),
+            (EncodeCompression::Lzw, DecodeCompression::Lzw, "lzw"),
+            (
+                EncodeCompression::PackBits,
+                DecodeCompression::PackBits,
+                "packbits",
+            ),
+            (
+                EncodeCompression::Zstd { level: 1 },
+                DecodeCompression::Zstd,
+                "zstd",
+            ),
+        ];
+
+        for (encode_comp, decode_comp, label) in compressions {
+            for (image, predictor, sample_format, bits) in [
+                (
+                    &u16_image,
+                    Predictor::HorizontalIntegerStrided {
+                        samples_per_pixel: 3,
+                    },
+                    SampleFormat::Integer,
+                    16_u16,
+                ),
+                (
+                    &f32_image,
+                    Predictor::FloatingPoint { byte_stride: 3 },
+                    SampleFormat::Float,
+                    32_u16,
+                ),
+            ] {
+                let encoded = encode_comp
+                    .encode(&EncodeRequest {
+                        image,
+                        chunk_width: width,
+                        chunk_height: rows_per_strip,
+                        byte_order: ByteOrder::Little,
+                        predictor,
+                    })
+                    .unwrap();
+                assert_eq!(encoded.chunks.len(), 3, "{label}");
+                let mut source = Vec::new();
+                let mut chunks = Vec::new();
+                for bytes in encoded.chunks {
+                    let offset = source.len();
+                    source.extend_from_slice(&bytes);
+                    chunks.push(Chunk {
+                        offset,
+                        byte_count: bytes.len(),
+                    });
+                }
+                let decoded = decode_comp
+                    .decode(&DecodeRequest {
+                        source: &source,
+                        width,
+                        height,
+                        chunk_width: width,
+                        chunk_height: rows_per_strip,
+                        chunks: &chunks,
+                        bits_per_sample: bits,
+                        sample_format,
+                        byte_order: ByteOrder::Little,
+                        predictor,
+                    })
+                    .unwrap();
+                assert_eq!(&decoded, image, "{label} {predictor:?}");
+            }
+        }
     }
 }

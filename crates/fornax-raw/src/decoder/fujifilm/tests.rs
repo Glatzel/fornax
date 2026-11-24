@@ -257,18 +257,20 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
     assert_eq!(ours.as_raw().as_slice(), reference_samples.as_slice());
 
     let metadata = decoder.dng_metadata().unwrap();
-    let repeat = fornax_tiff::unsigned_vec::<_, u32>(
+    let repeat = fornax_tiff::value::unsigned_vec::<_, u32>(
         &metadata,
         fornax_tiff::constants::TiffTag::CfaRepeatPatternDim,
     )
     .unwrap();
-    let pattern =
-        fornax_tiff::unsigned_vec::<_, u8>(&metadata, fornax_tiff::constants::TiffTag::CfaPattern)
-            .unwrap();
+    let pattern = fornax_tiff::value::unsigned_vec::<_, u8>(
+        &metadata,
+        fornax_tiff::constants::TiffTag::CfaPattern,
+    )
+    .unwrap();
     assert_eq!(repeat, [6, 6]);
     assert_eq!(pattern.len(), 36);
     assert_eq!(
-        fornax_tiff::unsigned_scalar(metadata.get(&fornax_tiff::Tag::from(
+        fornax_tiff::value::unsigned_scalar(metadata.get(&fornax_tiff::Tag::from(
             fornax_tiff::constants::TiffTag::Orientation
         ))),
         Some(6)
@@ -293,7 +295,7 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
     assert_eq!(round_trip, ours);
     let round_trip_metadata = decoded.dng_metadata().unwrap();
     assert_eq!(
-        fornax_tiff::unsigned_vec::<_, u32>(
+        fornax_tiff::value::unsigned_vec::<_, u32>(
             &round_trip_metadata,
             fornax_tiff::constants::TiffTag::CfaRepeatPatternDim
         )
@@ -301,7 +303,7 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
         [6, 6]
     );
     assert_eq!(
-        fornax_tiff::unsigned_vec::<_, u8>(
+        fornax_tiff::value::unsigned_vec::<_, u8>(
             &round_trip_metadata,
             fornax_tiff::constants::TiffTag::CfaPattern
         )
@@ -309,7 +311,7 @@ fn xtrans_lossless_fixture_matches_rawler_and_round_trips_through_dng() {
         pattern
     );
     assert_eq!(
-        fornax_tiff::unsigned_scalar(round_trip_metadata.get(&fornax_tiff::Tag::from(
+        fornax_tiff::value::unsigned_scalar(round_trip_metadata.get(&fornax_tiff::Tag::from(
             fornax_tiff::constants::TiffTag::Orientation
         ))),
         Some(6)

@@ -6,11 +6,11 @@ mod transforms;
 
 use fornax_codec::{ByteOrder, DecodeCompression, ICodecDecode, Predictor, SampleFormat};
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{
-    Directory, DirectoryLookup, ParsedTiff, RasterRequest, Tag, TiffCompressionError, TiffSource,
-    ValueAccessError, resolve_tiff_compression, unsigned_scalar,
-    unsigned_vec_lookup as tiff_unsigned_vec,
+use fornax_tiff::raster::{RasterRequest, TiffCompressionError, resolve_tiff_compression};
+use fornax_tiff::value::{
+    ValueAccessError, unsigned_scalar, unsigned_vec_lookup as tiff_unsigned_vec,
 };
+use fornax_tiff::{Directory, DirectoryLookup, ParsedTiff, Tag, TiffSource};
 pub use process_metadata::process_metadata_from_dng_metadata;
 
 use crate::dng::constants::{DngCompressionMethod, DngPhotometricInterpretation};
@@ -423,7 +423,8 @@ mod tests {
 
     use fornax_core::MonoImage;
     use fornax_tiff::constants::{CompressionMethod, TiffTag};
-    use fornax_tiff::{Tag, TiffWriter, Value};
+    use fornax_tiff::writer::TiffWriter;
+    use fornax_tiff::{Tag, Value};
 
     use super::*;
     use crate::RawMosaic;

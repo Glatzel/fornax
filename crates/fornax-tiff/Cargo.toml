@@ -11,11 +11,17 @@ default = ["lzw", "packbits"]
 jpegxl = ["fornax-codec/jpegxl", "raster"]
 lzw = ["fornax-codec/lzw", "raster"]
 packbits = ["fornax-codec/packbits", "raster"]
-raster = ["dep:fornax-codec"]
+raster = ["dep:fornax-codec", "dep:fornax-core", "dep:image"]
 zstd = ["fornax-codec/zstd", "raster"]
 
 [dependencies]
 fornax-codec = { workspace = true, default-features = false, features = ["deflate", "lossless-jpeg"], optional = true }
+fornax-core = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
 memmap2.workspace = true
 num_enum.workspace = true
 strum.workspace = true
+
+[dev-dependencies]
+fornax-devtool.workspace = true
+image = { workspace = true, features = ["tiff"] }

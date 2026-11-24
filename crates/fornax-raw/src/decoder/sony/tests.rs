@@ -2,7 +2,8 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Tag, TiffWriter, Value};
+use fornax_tiff::writer::TiffWriter;
+use fornax_tiff::{Tag, Value};
 use rawler::decoders::RawImageData;
 use sha2::{Digest, Sha256};
 

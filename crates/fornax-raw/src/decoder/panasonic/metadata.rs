@@ -1,5 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{Directory, Tag, Value};
 use image::math::Rect;
 
 use crate::decoder::panasonic::container::{self, Container};

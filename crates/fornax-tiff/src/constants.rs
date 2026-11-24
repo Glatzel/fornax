@@ -56,6 +56,8 @@ pub enum TiffTag {
     TileOffsets = 324,
     /// `TileByteCounts`.
     TileByteCounts = 325,
+    /// `ExtraSamples`.
+    ExtraSamples = 338,
     /// `SampleFormat`.
     SampleFormat = 339,
     // TIFF Technical Note 1 extension adopted by TIFF/EP.
@@ -148,6 +150,37 @@ pub enum PhotometricInterpretation {
     /// Color filter array.
     Cfa = 32_803,
     /// An unsupported or private photometric interpretation.
+    #[num_enum(catch_all)]
+    Unknown(u16),
+}
+
+/// TIFF planar configuration identifiers (`PlanarConfiguration`, tag 284).
+#[repr(u16)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
+pub enum PlanarConfiguration {
+    /// Samples for each pixel are stored contiguously (e.g. `RGBRGB...`).
+    Chunky = 1,
+    /// Each component is stored in its own contiguous plane (e.g.
+    /// `RRR...GGG...BBB...`).
+    Planar = 2,
+    /// An unsupported planar configuration identifier.
+    #[num_enum(catch_all)]
+    Unknown(u16),
+}
+
+/// TIFF sample format identifiers (`SampleFormat`, tag 339).
+#[repr(u16)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, FromPrimitive, IntoPrimitive)]
+pub enum SampleFormatTag {
+    /// Unsigned integer data.
+    Unsigned = 1,
+    /// Two's complement signed integer data.
+    Signed = 2,
+    /// IEEE floating-point data.
+    Float = 3,
+    /// Undefined data format.
+    Undefined = 4,
+    /// An unsupported sample format identifier.
     #[num_enum(catch_all)]
     Unknown(u16),
 }

@@ -69,6 +69,16 @@ impl Geometry {
         checked_product([self.chunk_width, self.chunk_height])
             .ok_or_else(|| invalid("chunk sample count overflow"))
     }
+
+    #[allow(dead_code, reason = "used by feature-gated compression codecs")]
+    pub fn actual_chunk_height(&self, index: usize) -> usize {
+        if self.across == 1 && self.chunk_width == self.width {
+            let first_row = index * self.chunk_height;
+            self.chunk_height.min(self.height.saturating_sub(first_row))
+        } else {
+            self.chunk_height
+        }
+    }
 }
 
 pub fn chunk(source: &[u8], chunk: Chunk) -> Result<&[u8], CodecError> {
