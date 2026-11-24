@@ -27,12 +27,12 @@ Out of scope:
 ## Task checklist
 
 - [x] Phase 0: baseline (1T/8T/16T, faults, RSS, CPUs), OpcodeList1 fairness/diff/floor/census, Pentax 645Z split, Nikon D6 regression check, and 16T `perf` leaf profiles.
-- [ ] Phase 1: OpcodeList1 identity elision, zero-copy bad-pixel scan, and 16T residual check.
-- [ ] Phase 2: Pentax 645Z / DNG LJPEG exact unstuffing / shared-kernel check.
-- [ ] Phase 3: Canon CRX serial tail and slowest-plane kernel (time-boxed).
-- [ ] Phase 4: DNG Deflate FP24/FP32 per-tile parallelism and fused float predictor.
-- [ ] Phase 5: Sony LJPEG and Nikon mode-10 shared-kernel improvements.
-- [ ] Final: documentation update (`docs/reference/decoders/perf/flashraw-vs-fornax.md`) and full validation.
+- [x] Phase 1: OpcodeList1 identity elision, zero-copy bad-pixel scan, and 16T residual check (`89459ef`, `34f1f1b`, `fd196a1`; `1d` rejected).
+- [x] Phase 2: Pentax 645Z / DNG LJPEG exact unstuffing / shared-kernel check (`f7501e8`, `cb7deb2`; `2a v1` rejected).
+- [x] Phase 3: Canon CRX serial tail and slowest-plane kernel (time-boxed; `a48f625`, `30ab4f6`; `3c` rejected).
+- [x] Phase 4: DNG Deflate FP24/FP32 per-tile parallelism and fused float predictor (`aac3741`; `4a v1`, `4a v2`, `4a reusable` rejected).
+- [x] Phase 5: Sony LJPEG and Nikon mode-10 shared-kernel improvements (`18220dd`; `5b`, `5c` rejected).
+- [x] Final: documentation update (`docs/reference/decoders/perf/flashraw-vs-fornax.md`) and full validation.
 
 ## Files expected to change
 
@@ -158,4 +158,52 @@ Controls baseline (`1T / 8T / 16T` Fornax / FlashRaw):
 
 - Phase 0 confirmed no code regression in Nikon D6 (`36.6–36.7 ms` across `ada8360`, `41625d0`, `main`).
 - Phase 0 confirmed `OpcodeList1` produces 0 sample diffs on G1 X, Leica SL2, and Nokia Lumia 1020, and FlashRaw `apply_opcodes: true` produces identical hashes.
-- Phase 0 confirmed `fornax_large_alloc::zeroed_samples` (`MADV_HUGEPAGE`) + 16T parallel writes cause throughput regression on large DNG buffers (Nokia, SL2).
+- Phase 0 confirmed `fornax_large_alloc::zeroed_samples` (`MADV_HUGEPAGE`) + 16T parallel writes cause throughput regression on large DNG buffers (Nokia, SL2) and Nikon mode-10 (`decode_packed`).
+
+## Round 2 Final Results (HEAD `18220dd` vs Phase 0 Baseline)
+
+| Row | Phase 0 (1T / 8T / 16T) | Final (1T / 8T / 16T) | Final 16T Ratio (FR op=0) | Final 16T Ratio (FR op=1) | 16T CPUs | 16T RSS (MiB) |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| Canon G1 X (DNG) | 2.40x / 2.06x / 3.72x | 10.59 / 6.86 / 6.58 ms (`1.05x / 0.93x / 1.05x`) | 1.05x | 0.91x (`7.23 ms`) | 7.47 | 61 (was 89) |
+| Leica SL2 (DNG) | 2.11x / 1.84x / 3.38x | 37.46 / 20.96 / 26.87 ms (`1.10x / 1.03x / 1.81x`) | 1.81x | 1.42x (`18.90 ms`) | 13.65 | 177 (was 267) |
+| Nokia Lumia 1020 (DNG) | 9.79x / 3.20x / 5.25x | 24.79 / 14.19 / 19.16 ms (`0.92x / 0.87x / 1.59x`) | 1.59x | 0.61x (`31.32 ms`) | 13.34 | 126 (was 201) |
+| Pentax 645Z (LJPEG) | 1.22x / 2.32x / 2.56x | 256.94 / 238.05 / 243.82 ms (`0.98x / 1.60x / 1.87x`) | 1.87x | — | 1.92 | 231 (1.37x of 169) |
+| Canon EOS R5 (CRX) | 2.15x / 2.89x / 2.65x | 758.50 / 273.25 / 281.30 ms (`1.94x / 2.54x / 2.34x`) | 2.34x | — | 3.88 | 291 |
+| Canon EOS R6 (CRX) | 2.16x / 2.88x / 2.88x | 136.44 / 50.77 / 54.00 ms (`1.93x / 2.52x / 2.68x`) | 2.68x | — | 3.95 | 71 |
+| Canon EOS R7 (CRX) | 2.28x / 3.45x / 3.10x | 597.39 / 247.27 / 253.88 ms (`2.09x / 3.08x / 2.82x`) | 2.82x | — | 3.35 | 225 |
+| 5D3 Deflate FP24 | 1.47x / 1.89x / 1.22x | 282.20 / 66.87 / 52.84 ms (`1.36x / 1.83x / 1.18x`) | 1.18x | — | 8.65 | 137 |
+| 5D3 Deflate FP32 | 1.28x / 1.70x / 1.17x | 332.69 / 74.56 / 55.52 ms (`1.27x / 1.72x / 1.15x`) | 1.15x | — | 9.82 | 158 |
+| 5D3 Deflate FP16 (ctrl) | 1.40x / 1.26x / 1.00x | 169.99 / 34.84 / 40.22 ms (`1.28x / 1.20x / 0.92x`) | 0.92x | — | 6.86 | 121 |
+| Sony ILCE-1 LJPEG | 1.44x / 1.18x / 0.71x | 306.75 / 44.78 / 31.64 ms (`1.19x / 1.00x / 0.63x`) | 0.63x | — | 14.77 | 178 |
+| Sony ILCE-7RM5 LJPEG | 1.53x / 1.18x / 0.74x | 334.54 / 49.47 / 35.07 ms (`1.27x / 1.04x / 0.62x`) | 0.62x | — | 14.84 | 202 |
+| Sony ILCE-9M3 LJPEG | 1.20x / 1.12x / 1.00x | 51.67 / 10.13 / 8.44 ms (`0.95x / 0.96x / 0.93x`) | 0.93x | — | 9.92 | 45 |
+| Nikon D6 mode-10 | 2.41x / 0.75x / 0.86x | 37.46 / 6.57 / 5.49 ms (`2.49x / 0.72x / 0.80x`) | 0.80x | — | 13.26 | 81 |
+| Nikon Z7 mode-10 | 2.62x / 0.74x / 0.83x | 79.68 / 13.28 / 10.78 ms (`2.63x / 0.74x / 0.81x`) | 0.81x | — | 14.35 | 171 |
+
+### OpcodeList1 one-pass floor comparison (16T)
+
+- G1 X: `6.58 ms` total (`decode` + `FixBadPixelsConstant`) vs `2.44 ms` `inplace_rw` floor (`7.23 ms` FlashRaw `op=1`).
+- Leica SL2: `26.87 ms` total vs `10.23 ms` `inplace_rw` floor (`18.90 ms` FlashRaw `op=1`).
+- Nokia Lumia 1020: `19.16 ms` total (`0 ms` opcode overhead after identity `MapTable` elision) vs `8.40 ms` `inplace_rw` floor (`31.32 ms` FlashRaw `op=1`).
+
+### Report-only option: applying `OpcodeList1` in `f32` normalization
+
+Applying `OpcodeList1` inside `fornax-raw-pipeline` `f32` normalization instead of inside DNG `decode` is feasible because `OpcodeList1` ops operate on normalized `[0, 1]` / `f32` sample values, and skipping them in DNG `decode` would avoid the `u16 -> f32 -> round -> u16` round trip completely for non-identity `u16` DNG opcodes. However, for any non-identity `u16` DNG `OpcodeList1` input, `crates/decoder-tracker/golden/decode-hashes.csv` would change `raw_sha256`, `cropped_sha256`, and `dng_sha256` (which hash the post-`OpcodeList1` raw mosaic), and `process_sha256` could also shift slightly where `u16` rounding previously quantized intermediate `OpcodeList1` results before normalization. (For G1 X, Leica SL2, and Nokia Lumia 1020 specifically, `OpcodeList1` is a semantic no-op with 0 differing samples, so none of their hashes would change.)
+
+### Rejected experiments summary
+
+- `1d` (`samples.rs` `as_chunks` in `unpack_10_msb`/`unpack_14_msb_kernel`): neutral at 16T within control drift (`+0.92%` Nokia, `-1.26%` SL2).
+- `2a v1` (`ljpeg.rs` `Vec<Vec<u8>>` 2 MiB chunked unstuffing): 1T regressed `+8.91%` from page faults / slice extensions; replaced by single `zeroed_samples` SWAR unstuffing (`f7501e8`).
+- `3c` (`canon/codec.rs` 64-bit masked `CrxBitReader::fill`): regressed R5 (`+2.45%` 1T, `+2.18%` 16T).
+- `4a v1` (`deflate.rs` per-tile `TileWork` + reusable `Decompress`): regressed FP16 16T `+4.48%` via 2 MiB THP folio contention.
+- `4a v2` (`deflate.rs` 2-way `rayon::join` per band): regressed 16T `+3.72%..+8.26%`.
+- `4a reusable` (`deflate.rs` reusable `Decompress` per band): neutral within control drift (`-1.16%..-1.32%`).
+- `5b` (`nikon/codec.rs` `zeroed_samples` in `decode_packed`): 1T improved `-56.69%`/`-60.75%`, but 8T/16T regressed `+27.18%/+99.62%` (D6) and `+25.46%/+93.10%` (Z7) via THP contention.
+- `5c` (`nikon/codec.rs` zipped chunk iterator in `unpack_row_chunked_14_le`): neutral within noise (`D6 +0.01%/-0.21%`).
+
+### Ranked follow-ups
+
+1. **Canon CRX speculative intra-plane start**: requires solving the checkpoint gate (`docs/plans/chore-crx-intra-plane-start.md`) with user approval.
+2. **Pentax 645Z speculative entropy splitting**: FlashRaw's 16T lead comes from `53.51%` `ljpeg_par::Scan::bulk` + `1.15%` `par_entropy::decode` (`19.38%` unstuff, `8.31%` `sum_rows`); reopening `docs/reference/decoders/design/restart-free-single-scan-parallelism-design.md` requires user approval.
+3. **DNG Deflate FP24/FP32**: `miniz_oxide` (54–63%) + 10–11 coarse tile rows dominate; consider evaluating an approved faster inflate crate or safe non-contending intra-band work.
+4. **Leica SL2 16T DNG bandwidth**: `unpack_row_u16` + in-place `FixBadPixelsConstant` scan at `26.87 ms` vs `10.23 ms` floor.
