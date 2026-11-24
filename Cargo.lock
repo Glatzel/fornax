@@ -899,6 +899,7 @@ version = "0.0.17"
 dependencies = [
  "fornax-codec",
  "fornax-core",
+ "fornax-devtool",
  "image 0.25.9",
  "memmap2",
  "num_enum",

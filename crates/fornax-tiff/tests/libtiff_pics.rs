@@ -116,7 +116,7 @@ fn oracle_matches(path: &Path, actual: &TiffImage) -> Option<String> {
 
 #[test]
 fn libtiff_pics_corpus_decode_oracle_and_roundtrip() {
-    let corpus_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../external/libtiff-pics");
+    let corpus_dir = fornax_devtool::root_dir().join("external/libtiff-pics");
     assert!(
         corpus_dir.is_dir(),
         "external/libtiff-pics submodule is missing at {}",
