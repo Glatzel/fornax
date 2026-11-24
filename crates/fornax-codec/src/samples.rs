@@ -438,9 +438,9 @@ where
             .ok_or_else(|| invalid("packed-row source offset overflow"))?;
         unpack_row(&payloads[chunk][start..start + row_bytes], target)
     };
-    let threads = rayon::current_num_threads();
+    let threads = rayon::current_num_threads().max(1);
     if should_parallelize_word_rows(output.len(), threads) {
-        let rows_per_item = geometry.height.div_ceil(threads * 4).max(1);
+        let rows_per_item = geometry.height.div_ceil(threads).max(1);
         let samples_per_item = geometry
             .width
             .checked_mul(rows_per_item)
