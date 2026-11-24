@@ -11,14 +11,15 @@ use crate::allocation::zeroed_samples;
 use crate::encode::encode_image;
 use crate::error::invalid;
 use crate::request::{ByteOrder, DecodeRequest, EncodeRequest, EncodedChunks, SampleFormat};
+#[cfg(test)]
+use crate::samples::extend_float;
 use crate::samples::{
-    Geometry, chunk, decode_payloads, extend_float, read_u16, read_u24, read_u32,
+    Geometry, chunk, decode_payloads, extend_fp16, extend_fp24, read_u16, read_u24, read_u32,
 };
 use crate::{CodecError, Predictor, SampleBuffer, predictor};
 
 struct DeflateScratch {
     compressed: Vec<u8>,
-    rows: Vec<u8>,
 }
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
@@ -106,7 +107,6 @@ fn decode_float_fused(
         .try_for_each(|(tile_y_index, band)| {
             let mut scratch = DeflateScratch {
                 compressed: Vec::new(),
-                rows: vec![0; row_bytes],
             };
             let tile_y = tile_y_index * geometry.chunk_height;
             let copy_height = geometry.chunk_height.min(geometry.height - tile_y);
@@ -124,17 +124,16 @@ fn decode_float_fused(
                     return Err(invalid(format!("Deflate chunk {index} is truncated")));
                 }
                 for y in 0..copy_height {
-                    let source = &scratch.compressed[y * row_bytes..][..row_bytes];
+                    let row_bytes_mut = &mut scratch.compressed[y * row_bytes..][..row_bytes];
                     let target = &mut band[y * geometry.width + tile_x..][..copy_width];
-                    decode_float_row_into(
-                        source,
+                    decode_float_row_in_place_into(
+                        row_bytes_mut,
                         geometry.chunk_width,
                         copy_width,
                         request.bits_per_sample,
                         request.predictor,
                         request.byte_order,
                         target,
-                        &mut scratch.rows,
                     )?;
                 }
             }
@@ -196,7 +195,162 @@ fn decode_float_rows_into(
     Ok(())
 }
 
+fn decode_float_row_in_place_into(
+    row: &mut [u8],
+    source_width: usize,
+    output_width: usize,
+    bits: u16,
+    predictor: Predictor,
+    byte_order: ByteOrder,
+    output: &mut [f32],
+) -> Result<(), CodecError> {
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
+    let row_bytes = source_width
+        .checked_mul(bytes_per_sample)
+        .ok_or_else(|| invalid("Deflate row size overflow"))?;
+    if row.len() < row_bytes || output.len() < output_width || output_width > source_width {
+        return Err(invalid("fused float row is truncated"));
+    }
+    let planar = match predictor {
+        Predictor::None => false,
+        Predictor::FloatingPoint { byte_stride } => {
+            if !matches!(bits, 16 | 24 | 32 | 64) || !matches!(byte_stride, 1 | 2 | 4 | 8) {
+                return Err(invalid(
+                    "floating-point prediction requires 16/24/32/64-bit floats and stride 1, 2, 4, or 8",
+                ));
+            }
+            let row_mut = &mut row[..row_bytes];
+            if byte_stride == 1 {
+                let mut acc = 0_u8;
+                for byte in row_mut.iter_mut() {
+                    acc = acc.wrapping_add(*byte);
+                    *byte = acc;
+                }
+            } else {
+                for index in byte_stride..row_bytes {
+                    row_mut[index] = row_mut[index].wrapping_add(row_mut[index - byte_stride]);
+                }
+            }
+            true
+        }
+        Predictor::HorizontalInteger => {
+            return Err(invalid(
+                "horizontal integer prediction cannot produce float samples",
+            ));
+        }
+    };
+    write_float_planes_into(
+        &row[..row_bytes],
+        source_width,
+        bits,
+        planar,
+        byte_order,
+        &mut output[..output_width],
+    )
+}
+
 fn decode_float_row_into(
+    source: &[u8],
+    source_width: usize,
+    output_width: usize,
+    bits: u16,
+    predictor: Predictor,
+    byte_order: ByteOrder,
+    output: &mut [f32],
+    scratch: &mut [u8],
+) -> Result<(), CodecError> {
+    let bytes_per_sample = usize::from(bits.div_ceil(8));
+    let row_bytes = source_width
+        .checked_mul(bytes_per_sample)
+        .ok_or_else(|| invalid("Deflate row size overflow"))?;
+    let planes = match predictor {
+        Predictor::None => source,
+        Predictor::FloatingPoint { byte_stride } => {
+            predictor::reverse_floating_row(source, scratch, source_width, bits, byte_stride)?;
+            &scratch[..row_bytes]
+        }
+        Predictor::HorizontalInteger => {
+            return Err(invalid(
+                "horizontal integer prediction cannot produce float samples",
+            ));
+        }
+    };
+    let planar = predictor != Predictor::None;
+    if planes.len() < row_bytes || output.len() < output_width || output_width > source_width {
+        return Err(invalid("fused float row is truncated"));
+    }
+    write_float_planes_into(
+        &planes[..row_bytes],
+        source_width,
+        bits,
+        planar,
+        byte_order,
+        &mut output[..output_width],
+    )
+}
+
+fn write_float_planes_into(
+    planes: &[u8],
+    source_width: usize,
+    bits: u16,
+    planar: bool,
+    byte_order: ByteOrder,
+    output: &mut [f32],
+) -> Result<(), CodecError> {
+    let copy_width = output.len();
+    match (bits, planar, byte_order) {
+        (16, true, _) => {
+            let p0 = &planes[..copy_width];
+            let p1 = &planes[source_width..source_width + copy_width];
+            for ((dst, &b0), &b1) in output.iter_mut().zip(p0).zip(p1) {
+                *dst = extend_fp16((u32::from(b0) << 8) | u32::from(b1));
+            }
+        }
+        (24, true, _) => {
+            let p0 = &planes[..copy_width];
+            let p1 = &planes[source_width..source_width + copy_width];
+            let p2 = &planes[2 * source_width..2 * source_width + copy_width];
+            for (((dst, &b0), &b1), &b2) in output.iter_mut().zip(p0).zip(p1).zip(p2) {
+                *dst = extend_fp24((u32::from(b0) << 16) | (u32::from(b1) << 8) | u32::from(b2));
+            }
+        }
+        (32, true, _) => {
+            let p0 = &planes[..copy_width];
+            let p1 = &planes[source_width..source_width + copy_width];
+            let p2 = &planes[2 * source_width..2 * source_width + copy_width];
+            let p3 = &planes[3 * source_width..3 * source_width + copy_width];
+            for ((((dst, &b0), &b1), &b2), &b3) in output.iter_mut().zip(p0).zip(p1).zip(p2).zip(p3)
+            {
+                *dst = f32::from_bits(
+                    (u32::from(b0) << 24)
+                        | (u32::from(b1) << 16)
+                        | (u32::from(b2) << 8)
+                        | u32::from(b3),
+                );
+            }
+        }
+        (16, false, _) => {
+            for (dst, bytes) in output.iter_mut().zip(planes.as_chunks::<2>().0) {
+                *dst = extend_fp16(u32::from(read_u16(bytes, byte_order)));
+            }
+        }
+        (24, false, _) => {
+            for (dst, bytes) in output.iter_mut().zip(planes.as_chunks::<3>().0) {
+                *dst = extend_fp24(read_u24(bytes, byte_order));
+            }
+        }
+        (32, false, _) => {
+            for (dst, bytes) in output.iter_mut().zip(planes.as_chunks::<4>().0) {
+                *dst = f32::from_bits(read_u32(bytes, byte_order));
+            }
+        }
+        _ => return Err(invalid("unsupported fused float width")),
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+fn decode_float_row_into_oracle(
     source: &[u8],
     source_width: usize,
     output_width: usize,
@@ -420,5 +574,68 @@ mod tests {
             }
         }
         bytes
+    }
+
+    #[test]
+    fn in_place_float_row_decode_matches_oracle_for_odd_widths_and_edges() {
+        for bits in [16_u16, 24, 32] {
+            let bytes_per_sample = usize::from(bits.div_ceil(8));
+            for byte_order in [ByteOrder::Little, ByteOrder::Big] {
+                for (source_width, output_width) in [(1, 1), (7, 5), (15, 11)] {
+                    let raw = float_storage(source_width, bits, byte_order);
+                    for predictor in [
+                        Predictor::None,
+                        Predictor::FloatingPoint { byte_stride: 1 },
+                        Predictor::FloatingPoint { byte_stride: 2 },
+                        Predictor::FloatingPoint { byte_stride: 4 },
+                    ] {
+                        let mut encoded = raw.clone();
+                        predictor::apply(
+                            &mut encoded,
+                            predictor,
+                            source_width,
+                            1,
+                            bits,
+                            SampleFormat::Float,
+                            byte_order,
+                        )
+                        .unwrap();
+
+                        let mut oracle = vec![0.0_f32; output_width];
+                        let mut scratch = vec![0_u8; source_width * bytes_per_sample];
+                        super::decode_float_row_into_oracle(
+                            &encoded,
+                            source_width,
+                            output_width,
+                            bits,
+                            predictor,
+                            byte_order,
+                            &mut oracle,
+                            &mut scratch,
+                        )
+                        .unwrap();
+
+                        let mut in_place = vec![0.0_f32; output_width];
+                        let mut buf = encoded.clone();
+                        super::decode_float_row_in_place_into(
+                            &mut buf,
+                            source_width,
+                            output_width,
+                            bits,
+                            predictor,
+                            byte_order,
+                            &mut in_place,
+                        )
+                        .unwrap();
+
+                        assert_eq!(
+                            in_place.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+                            oracle.iter().map(|v| v.to_bits()).collect::<Vec<_>>(),
+                            "bits={bits} {byte_order:?} {predictor:?} {source_width}->{output_width}"
+                        );
+                    }
+                }
+            }
+        }
     }
 }
