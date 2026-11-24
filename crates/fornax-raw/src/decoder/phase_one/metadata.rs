@@ -1,5 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{Directory, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{Directory, Tag, Value};
 
 use crate::decoder::phase_one::container::{MakerNote, RawLayout};
 use crate::decoder::phase_one::invalid;

@@ -3,7 +3,8 @@ use fornax_raw::decoder::hasselblad::HasselbladImage;
 use fornax_raw::dng::metadata::DngTag;
 use fornax_raw::error::DecodeError;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, Value, unsigned_vec};
+use fornax_tiff::value::unsigned_vec;
+use fornax_tiff::{Tag, Value};
 
 const RAW_IFD_TAG: Tag = Tag(330);
 

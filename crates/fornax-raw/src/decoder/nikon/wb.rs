@@ -1,4 +1,5 @@
-use fornax_tiff::{Directory, Tag, Value, unsigned_scalar};
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::{Directory, Tag, Value};
 
 use crate::error::DecodeError;
 use crate::metadata::MetadataSource;

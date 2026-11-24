@@ -8,9 +8,9 @@ use std::path::Path;
 use fornax_codec::{CodecError, SampleBufferError};
 use fornax_core::{MonoImage, MultiPlaneImage, RgbImage, RgbaImage, UvImage};
 
-use crate::{
-    RasterError, TiffCompressionError, TiffError, TiffSource, TiffWriteOptions, TiffWriter,
-};
+use crate::raster::{RasterError, TiffCompressionError};
+use crate::writer::{TiffWriteOptions, TiffWriter};
+use crate::{TiffError, TiffSource};
 
 /// A typed image buffer matching one of `fornax-core`'s image layouts.
 #[derive(Clone, Debug, PartialEq)]

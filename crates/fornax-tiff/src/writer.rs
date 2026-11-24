@@ -294,11 +294,14 @@ mod image_write {
     };
     use fornax_core::MonoImage;
 
+    use crate::TiffError;
     use crate::constants::{
         CompressionMethod, PhotometricInterpretation, PlanarConfiguration, SampleFormatTag, TiffTag,
     };
-    use crate::image::{deinterleave_planes, interleave_planes};
-    use crate::{TiffDirectory, TiffError, TiffImage, TiffIoError, TiffWriter, TypedTiffImage};
+    use crate::image::{
+        TiffImage, TiffIoError, TypedTiffImage, deinterleave_planes, interleave_planes,
+    };
+    use crate::writer::{TiffDirectory, TiffWriter};
 
     /// Strip or tile storage configuration for [`TiffWriteOptions`].
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -707,7 +710,8 @@ pub use image_write::{TiffWriteOptions, WriteStorage};
 mod tests {
     use std::io::Cursor;
 
-    use crate::{Tag, TiffWriter, Value, parse};
+    use crate::writer::TiffWriter;
+    use crate::{Tag, Value, parse};
 
     #[test]
     fn writer_round_trips_inline_and_external_values() {

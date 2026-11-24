@@ -1,8 +1,6 @@
 use fornax_tiff::constants::{PhotometricInterpretation, TiffTag};
-use fornax_tiff::{
-    Directory, ParsedTiff, Tag, Value, ValueAccessError, unsigned_scalar,
-    unsigned_vec as tiff_unsigned_vec,
-};
+use fornax_tiff::value::{ValueAccessError, unsigned_scalar, unsigned_vec as tiff_unsigned_vec};
+use fornax_tiff::{Directory, ParsedTiff, Tag, Value};
 
 use crate::dng::constants::DngPhotometricInterpretation;
 use crate::error::DecodeError;

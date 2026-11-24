@@ -5,7 +5,9 @@ use std::io::Cursor;
 use fornax_codec::{EncodeCompression, Predictor};
 use fornax_core::{MonoImage, MultiPlaneImage, RgbImage, RgbaImage, UvImage};
 use fornax_tiff::constants::PlanarConfiguration;
-use fornax_tiff::{TiffImage, TiffWriteOptions, TiffWriter, TypedTiffImage, WriteStorage, parse};
+use fornax_tiff::image::{TiffImage, TypedTiffImage};
+use fornax_tiff::parse;
+use fornax_tiff::writer::{TiffWriteOptions, TiffWriter, WriteStorage};
 
 fn assert_tiff_image_bit_eq(actual: &TiffImage, expected: &TiffImage, context: &str) {
     match (actual, expected) {

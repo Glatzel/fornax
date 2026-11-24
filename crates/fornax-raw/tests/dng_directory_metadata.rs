@@ -3,7 +3,8 @@ use std::io::Cursor;
 use fornax_raw::dng::DngTag;
 use fornax_raw::dng::dng_decoder::DngImage;
 use fornax_tiff::constants::TiffTag;
-use fornax_tiff::{Tag, TiffWriter, Value};
+use fornax_tiff::writer::TiffWriter;
+use fornax_tiff::{Tag, Value};
 
 #[test]
 fn dng_metadata_returns_directory_with_tag_keys() {

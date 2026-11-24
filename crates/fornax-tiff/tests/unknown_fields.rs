@@ -1,6 +1,7 @@
 use std::io::Cursor;
 
-use fornax_tiff::{Tag, TiffWriter, Value, parse};
+use fornax_tiff::writer::TiffWriter;
+use fornax_tiff::{Tag, Value, parse};
 
 #[test]
 fn unsupported_field_types_are_skipped_and_later_tags_still_parse() {

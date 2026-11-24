@@ -86,12 +86,15 @@ image reading and writing for all `fornax-core` image layouts (`MonoImage`,
 `UvImage`, `RgbImage`, `RgbaImage`, and `MultiPlaneImage`) across `u8`, `u16`,
 `u32`, `f32`, and `f64` samples:
 
-- `TiffImage::open`, `TiffImage::from_bytes`, `ParsedTiff::decode_image`, and
-  `ParsedTiff::decode_planes` decode strips or tiles in both chunky
-  (`PlanarConfiguration = 1`) and planar (`PlanarConfiguration = 2`) layouts.
-- `TiffImage::save`, `TiffImage::write_to`, and `TiffWriter::write_image`
-  (configured via `TiffWriteOptions` and `WriteStorage`) encode chunky or planar
-  strips and tiles with any supported compression and predictor.
+- `fornax_tiff::image::{TiffImage, TypedTiffImage, TiffIoError}` provides the
+  high-level image types, with `TiffImage::open`, `TiffImage::from_bytes`,
+  `ParsedTiff::decode_image`, and `ParsedTiff::decode_planes` decoding strips
+  or tiles in both chunky (`PlanarConfiguration = 1`) and planar
+  (`PlanarConfiguration = 2`) layouts.
+- `TiffImage::save`, `TiffImage::write_to`, and
+  `fornax_tiff::writer::TiffWriter::write_image` (configured via
+  `fornax_tiff::writer::{TiffWriteOptions, WriteStorage}`) encode chunky or
+  planar strips and tiles with any supported compression and predictor.
 
 ## References
 

@@ -15,7 +15,7 @@ Extend `fornax-tiff` (behind its `raster` feature) to support general TIFF image
   - Optional `fornax-core` and `image` dependencies gated behind `raster`.
   - `TiffTag::ExtraSamples`, `PlanarConfiguration`, `SampleFormatTag` constants, and `ParsedTiff::byte_order()`.
   - Planar-aware `RasterLayout` and TIFF 6.0 default `RowsPerStrip`.
-  - Unified image IO API across `image.rs`, `reader.rs`, and `writer.rs` (`TypedTiffImage<T>`, `TiffImage::{open, from_bytes, save, write_to}`, `TiffIoError`, `ParsedTiff::{decode_image, decode_planes}`, `TiffWriter::write_image`, `TiffWriteOptions`, `WriteStorage`).
+  - Unified image IO API exposed via submodules (`fornax_tiff::image::{TypedTiffImage, TiffImage, TiffIoError}`, `fornax_tiff::writer::{TiffWriter, TiffWriteOptions, WriteStorage}`, `fornax_tiff::raster::*`, `fornax_tiff::value::*`, plus `ParsedTiff::{decode_image, decode_planes}`).
   - Comprehensive synthetic round-trip matrix tests (`tests/image_io.rs`) and `external/libtiff-pics` corpus tests (`tests/libtiff_pics.rs`).
 - External submodule: `external/libtiff-pics` (`https://gitlab.com/libtiff/libtiff-pics.git`, shallow).
 

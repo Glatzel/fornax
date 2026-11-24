@@ -5,9 +5,10 @@ use std::path::{Path, PathBuf};
 
 use fornax_codec::EncodeCompression;
 use fornax_tiff::constants::{PlanarConfiguration, TiffTag};
-use fornax_tiff::{
-    TiffImage, TiffIoError, TiffWriteOptions, TypedTiffImage, WriteStorage, parse, unsigned_scalar,
-};
+use fornax_tiff::image::{TiffImage, TiffIoError, TypedTiffImage};
+use fornax_tiff::parse;
+use fornax_tiff::value::unsigned_scalar;
+use fornax_tiff::writer::{TiffWriteOptions, WriteStorage};
 use image::DynamicImage;
 
 fn collect_tiff_files(root: &Path) -> Vec<PathBuf> {

@@ -4,11 +4,12 @@ use fornax_codec::{ByteOrder, DecodeRequest, ICodecDecode, Predictor, SampleBuff
 use fornax_core::{MonoImage, RgbImage, RgbaImage, UvImage};
 
 use crate::constants::{PhotometricInterpretation, PlanarConfiguration, SampleFormatTag, TiffTag};
-use crate::image::{deinterleave_planes, interleave_planes};
-use crate::{
-    Directory, ParsedTiff, RasterError, RasterLayout, Tag, TiffImage, TiffIoError, TypedTiffImage,
-    resolve_tiff_compression, unsigned_scalar, unsigned_vec_lookup,
+use crate::image::{
+    TiffImage, TiffIoError, TypedTiffImage, deinterleave_planes, interleave_planes,
 };
+use crate::raster::{RasterError, RasterLayout, resolve_tiff_compression};
+use crate::value::{unsigned_scalar, unsigned_vec_lookup};
+use crate::{Directory, ParsedTiff, Tag};
 
 impl ParsedTiff {
     /// Decodes directory `directory_index` into a [`TiffImage`].
