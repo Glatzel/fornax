@@ -168,10 +168,7 @@ fn decode(
                     .map(|samples| (*tile_index, *plane_index, samples))
             })
             .collect();
-        for (tile_index, plane_index, plane) in decoded? {
-            let tile = &tiles[tile_index];
-            integrate_plane(&mut mosaic, tile, plane_index, &plane, header)?;
-        }
+        integrate_planes_parallel(&mut mosaic, &tiles, &decoded?, header)?;
     }
     SampleBuffer::from_u16(header.mosaic_width(), header.mosaic_height(), mosaic)
         .map_err(Into::into)
@@ -472,6 +469,101 @@ fn crx_sample(value: i32, median: i32, max_val: i32) -> Result<u16, CodecError> 
     .map_err(|_| invalid("Canon CRX sample exceeds u16"))
 }
 
+fn integrate_planes_parallel(
+    mosaic: &mut [u16],
+    tiles: &[Tile],
+    decoded: &[(usize, usize, Vec<u16>)],
+    header: &CanonCrxHeader,
+) -> Result<(), CodecError> {
+    let mosaic_width = usize::try_from(header.mosaic_width())
+        .map_err(|_| invalid("Canon CRX mosaic width exceeds usize"))?;
+    let mut tile_planes: Vec<[Option<&[u16]>; PLANE_COUNT]> =
+        vec![[None; PLANE_COUNT]; tiles.len()];
+    for (tile_index, plane_index, samples) in decoded {
+        let tile = tiles
+            .get(*tile_index)
+            .ok_or_else(|| invalid("Canon CRX tile index is out of bounds"))?;
+        let placement = PlanePlacement::new(tile, *plane_index, header)?;
+        if samples.len() != placement.width * placement.height {
+            return Err(invalid(
+                "Canon CRX decoded plane dimensions are inconsistent",
+            ));
+        }
+        let slot = tile_planes[*tile_index]
+            .get_mut(*plane_index)
+            .ok_or_else(|| invalid("Canon CRX plane index is out of bounds"))?;
+        if slot.is_some() {
+            return Err(invalid("Canon CRX plane index is duplicated"));
+        }
+        *slot = Some(samples.as_slice());
+    }
+    let resolved: Vec<[&[u16]; PLANE_COUNT]> = tile_planes
+        .into_iter()
+        .map(|planes| {
+            let [Some(p0), Some(p1), Some(p2), Some(p3)] = planes else {
+                return Err(invalid("Canon CRX tile is missing a Bayer plane"));
+            };
+            Ok([p0, p1, p2, p3])
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let threads = rayon::current_num_threads().max(1);
+    let tile_cols = usize::try_from(header.mosaic_width().div_ceil(header.tile_width()))
+        .map_err(|_| invalid("Canon CRX tile column count exceeds usize"))?;
+    let mut mosaic_rest = mosaic;
+    for (row_tiles, row_planes) in tiles.chunks(tile_cols).zip(resolved.chunks(tile_cols)) {
+        let row_tile_height = row_tiles[0].height;
+        let band_height_samples = row_tile_height
+            .checked_mul(mosaic_width)
+            .ok_or_else(|| invalid("Canon CRX tile row size overflow"))?;
+        let (tile_row_mosaic, tail) = mosaic_rest.split_at_mut(band_height_samples);
+        mosaic_rest = tail;
+
+        let plane_height = row_tile_height / 2;
+        let row_pair_samples = mosaic_width * 2;
+        let row_pairs_per_band = plane_height.div_ceil(threads).max(1);
+        tile_row_mosaic
+            .par_chunks_mut(row_pairs_per_band * row_pair_samples)
+            .enumerate()
+            .for_each(|(band_index, band_slice)| {
+                let band_start_plane_row = band_index * row_pairs_per_band;
+                for (local_pair, pair_rows) in
+                    band_slice.chunks_exact_mut(row_pair_samples).enumerate()
+                {
+                    let plane_row = band_start_plane_row + local_pair;
+                    let (mut even_rest, mut odd_rest) = pair_rows.split_at_mut(mosaic_width);
+                    for (tile, planes) in row_tiles.iter().zip(row_planes.iter()) {
+                        let pw = tile.width / 2;
+                        let (even_tile, even_tail) = even_rest.split_at_mut(tile.width);
+                        let (odd_tile, odd_tail) = odd_rest.split_at_mut(tile.width);
+                        even_rest = even_tail;
+                        odd_rest = odd_tail;
+
+                        let src_start = plane_row * pw;
+                        let p0 = &planes[0][src_start..src_start + pw];
+                        let p1 = &planes[1][src_start..src_start + pw];
+                        let p2 = &planes[2][src_start..src_start + pw];
+                        let p3 = &planes[3][src_start..src_start + pw];
+                        for ((dst, &a), &b) in
+                            even_tile.as_chunks_mut::<2>().0.iter_mut().zip(p0).zip(p1)
+                        {
+                            dst[0] = a;
+                            dst[1] = b;
+                        }
+                        for ((dst, &c), &d) in
+                            odd_tile.as_chunks_mut::<2>().0.iter_mut().zip(p2).zip(p3)
+                        {
+                            dst[0] = c;
+                            dst[1] = d;
+                        }
+                    }
+                }
+            });
+    }
+    Ok(())
+}
+
+#[cfg(test)]
 fn integrate_plane(
     mosaic: &mut [u16],
     tile: &Tile,
@@ -633,9 +725,10 @@ impl<'a> PlaneDecoder<'a> {
                 self.lines[1][self.line_pos] = 0;
             }
             let code = self.rice(true, PREDICT_K_MAX)?;
-            self.lines[1][self.line_pos] = self.lines[1][self.line_pos]
-                .checked_add(signed(code)?)
-                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            self.lines[1][self.line_pos] =
+                self.lines[1][self.line_pos]
+                    .checked_add(signed(code))
+                    .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
             remaining -= 1;
         }
@@ -643,7 +736,7 @@ impl<'a> PlaneDecoder<'a> {
             let code = self.rice(true, PREDICT_K_MAX)?;
             self.lines[1][self.line_pos] = self
                 .a()
-                .checked_add(signed(code)?)
+                .checked_add(signed(code))
                 .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
         }
@@ -652,6 +745,74 @@ impl<'a> PlaneDecoder<'a> {
     }
 
     fn decode_nontop_line(&mut self) -> Result<(), CodecError> {
+        let line_len = self.width + 2;
+        let [prev_vec, curr_vec] = &mut self.lines;
+        if prev_vec.len() < line_len || curr_vec.len() < line_len {
+            return Err(invalid("Canon CRX line buffer is truncated"));
+        }
+        let prev = &prev_vec[..line_len];
+        let curr = &mut curr_vec[..line_len];
+        let mut remaining = self.width;
+        let mut pos = 1_usize;
+        let mut a = prev[1];
+        curr[0] = a;
+
+        while remaining > 1 {
+            let window: [i32; 3] = prev[pos - 1..pos + 2]
+                .try_into()
+                .expect("three-element CRX context window is in bounds");
+            let [c, b, d] = window;
+            let (prediction, run_ended_midline, b_cur, d_cur) = if a == b && a == d {
+                if self.bits.read_bits(1)? == 1 {
+                    let count = run_count_bits(&mut self.bits, &mut self.s_param, remaining)?;
+                    if count > remaining {
+                        return Err(invalid("Canon CRX run exceeds line width"));
+                    }
+                    curr[pos..pos + count].fill(a);
+                    pos += count;
+                    remaining -= count;
+                    if remaining == 0 {
+                        break;
+                    }
+                }
+                (prev[pos], true, prev[pos], prev[pos + 1])
+            } else {
+                (med(a, b, c), false, b, d)
+            };
+            let _ = run_ended_midline;
+            let code = self.bits.rice_code(self.k)?;
+            let value = prediction
+                .checked_add(signed(code))
+                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            curr[pos] = value;
+            a = value;
+            if remaining > 1 {
+                let delta = d_cur.abs_diff(b_cur);
+                let combined = u32::try_from(u64::from(delta) * 2 + u64::from(code))
+                    .map_err(|_| invalid("Canon CRX K predictor overflow"))?;
+                predict_k_value(&mut self.k, combined >> 1, PREDICT_K_MAX);
+            } else {
+                predict_k_value(&mut self.k, code, PREDICT_K_MAX);
+            }
+            pos += 1;
+            remaining -= 1;
+        }
+        if remaining == 1 {
+            let prediction = med(a, prev[pos], prev[pos - 1]);
+            let code = self.bits.rice_code(self.k)?;
+            predict_k_value(&mut self.k, code, PREDICT_K_MAX);
+            curr[pos] = prediction
+                .checked_add(signed(code))
+                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            pos += 1;
+        }
+        self.line_pos = pos;
+        self.finish_line()?;
+        Ok(())
+    }
+
+    #[cfg(test)]
+    fn decode_nontop_line_oracle(&mut self) -> Result<(), CodecError> {
         let mut remaining = self.width;
         self.lines[1][0] = self.b();
         while remaining > 1 {
@@ -675,7 +836,7 @@ impl<'a> PlaneDecoder<'a> {
             if remaining > 0 {
                 let code = self.rice(false, PREDICT_K_MAX)?;
                 self.lines[1][self.line_pos] = prediction
-                    .checked_add(signed(code)?)
+                    .checked_add(signed_oracle(code)?)
                     .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
                 if remaining > 1 {
                     let delta = i64::from(self.d()) - i64::from(self.b());
@@ -702,7 +863,7 @@ impl<'a> PlaneDecoder<'a> {
             let prediction = med(self.a(), self.b(), self.c());
             let code = self.rice(true, PREDICT_K_MAX)?;
             self.lines[1][self.line_pos] = prediction
-                .checked_add(signed(code)?)
+                .checked_add(signed_oracle(code)?)
                 .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
         }
@@ -729,55 +890,70 @@ impl<'a> PlaneDecoder<'a> {
         Ok(value)
     }
 
-    fn predict_k(&mut self, value: u32, k_max: u32) {
-        let shifted = value.checked_shr(self.k).unwrap_or(0);
-        let mut next = self.k;
-        if shifted > 2 {
-            next = next.saturating_add(1);
-        }
-        if shifted > 5 {
-            next = next.saturating_add(1);
-        }
-        let half = 1_u32.checked_shl(self.k).unwrap_or(0) >> 1;
-        if value < half {
-            next = next.saturating_sub(1);
-        }
-        self.k = if k_max > 0 { next.min(k_max) } else { next };
-    }
+    fn predict_k(&mut self, value: u32, k_max: u32) { predict_k_value(&mut self.k, value, k_max); }
 
     fn run_count(&mut self, remaining: usize) -> Result<usize, CodecError> {
-        let mut count = 1_usize;
-        while count != remaining && self.bits.read_bits(1)? == 1 {
-            let shift = RUN_J[self.s_param];
-            count = count.saturating_add(1_usize.checked_shl(shift).unwrap_or(usize::MAX));
-            if count > remaining {
-                count = remaining;
-                break;
-            }
-            self.s_param = (self.s_param + 1).min(31);
-        }
-        if count < remaining {
-            let bits = RUN_J[self.s_param];
-            if bits > 0 {
-                let extra = self.bits.read_bits(
-                    u8::try_from(bits).map_err(|_| invalid("Canon CRX run bits exceed u8"))?,
-                )?;
-                count = count
-                    .checked_add(usize::try_from(extra).unwrap_or(usize::MAX))
-                    .ok_or_else(|| invalid("Canon CRX run count overflow"))?;
-            }
-            self.s_param = self.s_param.saturating_sub(1);
-            if count > remaining {
-                return Err(invalid("Canon CRX run exceeds remaining samples"));
-            }
-        }
-        Ok(count)
+        run_count_bits(&mut self.bits, &mut self.s_param, remaining)
     }
 
     fn a(&self) -> i32 { self.lines[1][self.line_pos - 1] }
+    #[cfg(test)]
     fn b(&self) -> i32 { self.lines[0][self.line_pos] }
+    #[cfg(test)]
     fn c(&self) -> i32 { self.lines[0][self.line_pos - 1] }
+    #[cfg(test)]
     fn d(&self) -> i32 { self.lines[0][self.line_pos + 1] }
+}
+
+#[inline(always)]
+fn predict_k_value(k: &mut u32, value: u32, k_max: u32) {
+    let cur = *k;
+    let shifted = value.checked_shr(cur).unwrap_or(0);
+    let mut next = cur;
+    if shifted > 2 {
+        next = next.saturating_add(1);
+    }
+    if shifted > 5 {
+        next = next.saturating_add(1);
+    }
+    let half = 1_u32.checked_shl(cur).unwrap_or(0) >> 1;
+    if value < half {
+        next = next.saturating_sub(1);
+    }
+    *k = if k_max > 0 { next.min(k_max) } else { next };
+}
+
+fn run_count_bits(
+    bits: &mut CrxBitReader<'_>,
+    s_param: &mut usize,
+    remaining: usize,
+) -> Result<usize, CodecError> {
+    let mut count = 1_usize;
+    while count != remaining && bits.read_bits(1)? == 1 {
+        let shift = RUN_J[*s_param];
+        count = count.saturating_add(1_usize.checked_shl(shift).unwrap_or(usize::MAX));
+        if count > remaining {
+            count = remaining;
+            break;
+        }
+        *s_param = (*s_param + 1).min(31);
+    }
+    if count < remaining {
+        let bit_count = RUN_J[*s_param];
+        if bit_count > 0 {
+            let extra = bits.read_bits(
+                u8::try_from(bit_count).map_err(|_| invalid("Canon CRX run bits exceed u8"))?,
+            )?;
+            count = count
+                .checked_add(usize::try_from(extra).unwrap_or(usize::MAX))
+                .ok_or_else(|| invalid("Canon CRX run count overflow"))?;
+        }
+        *s_param = s_param.saturating_sub(1);
+        if count > remaining {
+            return Err(invalid("Canon CRX run exceeds remaining samples"));
+        }
+    }
+    Ok(count)
 }
 
 struct CrxBitReader<'a> {
@@ -901,7 +1077,11 @@ impl<'a> CrxBitReader<'a> {
     }
 }
 
-fn signed(code: u32) -> Result<i32, CodecError> {
+#[inline(always)]
+const fn signed(code: u32) -> i32 { ((code >> 1) as i32) ^ -((code & 1) as i32) }
+
+#[cfg(test)]
+fn signed_oracle(code: u32) -> Result<i32, CodecError> {
     let magnitude = code >> 1;
     if magnitude > i32::MAX as u32 {
         return Err(invalid("Canon CRX signed coefficient exceeds i32"));
@@ -918,6 +1098,7 @@ fn signed(code: u32) -> Result<i32, CodecError> {
     }
 }
 
+#[inline(always)]
 fn med(a: i32, b: i32, c: i32) -> i32 {
     if c >= a.max(b) {
         a.min(b)
@@ -1209,10 +1390,49 @@ mod tests {
 
     #[test]
     fn signed_codes_match_crx_sign_mapping() {
-        assert_eq!(signed(0).unwrap(), 0);
-        assert_eq!(signed(1).unwrap(), -1);
-        assert_eq!(signed(2).unwrap(), 1);
-        assert_eq!(signed(3).unwrap(), -2);
+        for code in [0_u32, 1, 2, 3, 42, 43, u32::MAX - 1, u32::MAX] {
+            assert_eq!(signed(code), signed_oracle(code).unwrap());
+        }
+        let mut state = 0x1234_5678_u32;
+        for _ in 0..1000 {
+            next_random(&mut state);
+            assert_eq!(signed(state), signed_oracle(state).unwrap());
+        }
+    }
+
+    #[test]
+    fn nontop_line_matches_oracle_across_runs_and_truncation() {
+        let bytes = [
+            0xaa_u8, 0xff, 0x01, 0x80, 0x55, 0xc3, 0x10, 0x00, 0x7f, 0x99, 0x42, 0xef, 0x11, 0x22,
+            0x33, 0x44,
+        ];
+        let mut prev = [0_i32; 16];
+        for (i, slot) in prev.iter_mut().enumerate() {
+            *slot = ((i * 7) % 15) as i32;
+        }
+        let width = prev.len() - 2;
+        let mut fast = PlaneDecoder::new(width, 2, &bytes);
+        let mut oracle = PlaneDecoder::new(width, 2, &bytes);
+        fast.lines[0].copy_from_slice(&prev);
+        oracle.lines[0].copy_from_slice(&prev);
+        fast.line_pos = 1;
+        oracle.line_pos = 1;
+        assert_eq!(
+            fast.decode_nontop_line(),
+            oracle.decode_nontop_line_oracle()
+        );
+        assert_eq!(fast.lines, oracle.lines);
+        assert_eq!(fast.k, oracle.k);
+        assert_eq!(fast.s_param, oracle.s_param);
+
+        let mut trunc_fast = PlaneDecoder::new(width, 2, &bytes[..1]);
+        let mut trunc_oracle = PlaneDecoder::new(width, 2, &bytes[..1]);
+        trunc_fast.lines[0].copy_from_slice(&prev);
+        trunc_oracle.lines[0].copy_from_slice(&prev);
+        assert_eq!(
+            trunc_fast.decode_nontop_line().is_err(),
+            trunc_oracle.decode_nontop_line_oracle().is_err()
+        );
     }
 
     #[test]
@@ -1275,5 +1495,59 @@ mod tests {
             }
         }
         bytes
+    }
+
+    #[test]
+    fn parallel_integrate_planes_matches_serial_oracle_for_multitile_mosaic() {
+        let width = 10_u32;
+        let height = 8_u32;
+        let header = CanonCrxHeader::new(0x0100, width, height, 6, 6, 14, 0, 0, 0x70, 14).unwrap();
+        let placeholder = Band {
+            data_offset: 0,
+            data_size: 0,
+            padded_size: 0,
+        };
+        let make_plane = || Plane { band: placeholder };
+        let mut tiles = vec![
+            Tile {
+                row: 0,
+                col: 0,
+                width: 0,
+                height: 0,
+                planes: [make_plane(), make_plane(), make_plane(), make_plane()],
+            };
+            4
+        ];
+        super::assign_tile_dimensions(&mut tiles, &header).unwrap();
+
+        let mut decoded: Vec<(usize, usize, Vec<u16>)> = Vec::new();
+        for (tile_index, tile) in tiles.iter().enumerate() {
+            let pw = tile.width / 2;
+            let ph = tile.height / 2;
+            for plane_index in 0..super::PLANE_COUNT {
+                let samples: Vec<u16> = (0..pw * ph)
+                    .map(|i| {
+                        u16::try_from((tile_index * 1000 + plane_index * 100 + i) & 0x3fff).unwrap()
+                    })
+                    .collect();
+                decoded.push((tile_index, plane_index, samples));
+            }
+        }
+
+        let mut oracle = vec![0_u16; (width * height) as usize];
+        for (tile_index, plane_index, plane) in &decoded {
+            super::integrate_plane(
+                &mut oracle,
+                &tiles[*tile_index],
+                *plane_index,
+                plane,
+                &header,
+            )
+            .unwrap();
+        }
+
+        let mut parallel = vec![0_u16; (width * height) as usize];
+        super::integrate_planes_parallel(&mut parallel, &tiles, &decoded, &header).unwrap();
+        assert_eq!(parallel, oracle);
     }
 }

@@ -213,13 +213,13 @@ fn decode_float(
     }
     match (bits, byte_order) {
         (16, ByteOrder::Little) => {
-            go!(|b| extend_float(u32::from(read_u16(b, ByteOrder::Little)), 10, 5));
+            go!(|b| extend_fp16(u32::from(read_u16(b, ByteOrder::Little))));
         }
         (16, ByteOrder::Big) => {
-            go!(|b| extend_float(u32::from(read_u16(b, ByteOrder::Big)), 10, 5));
+            go!(|b| extend_fp16(u32::from(read_u16(b, ByteOrder::Big))));
         }
-        (24, ByteOrder::Little) => go!(|b| extend_float(read_u24(b, ByteOrder::Little), 16, 7)),
-        (24, ByteOrder::Big) => go!(|b| extend_float(read_u24(b, ByteOrder::Big), 16, 7)),
+        (24, ByteOrder::Little) => go!(|b| extend_fp24(read_u24(b, ByteOrder::Little))),
+        (24, ByteOrder::Big) => go!(|b| extend_fp24(read_u24(b, ByteOrder::Big))),
         (32, ByteOrder::Little) => go!(|b| f32::from_bits(read_u32(b, ByteOrder::Little))),
         (32, ByteOrder::Big) => go!(|b| f32::from_bits(read_u32(b, ByteOrder::Big))),
         _ => unreachable!("the sample width is validated above"),
@@ -438,9 +438,9 @@ where
             .ok_or_else(|| invalid("packed-row source offset overflow"))?;
         unpack_row(&payloads[chunk][start..start + row_bytes], target)
     };
-    let threads = rayon::current_num_threads();
+    let threads = rayon::current_num_threads().max(1);
     if should_parallelize_word_rows(output.len(), threads) {
-        let rows_per_item = geometry.height.div_ceil(threads * 4).max(1);
+        let rows_per_item = geometry.height.div_ceil(threads).max(1);
         let samples_per_item = geometry
             .width
             .checked_mul(rows_per_item)
@@ -998,6 +998,32 @@ pub fn extend_float(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
     f32::from_bits((sign << 31) | (wide_exponent << 23) | wide_fraction)
 }
 
+#[inline(always)]
+pub fn extend_fp16(raw: u32) -> f32 {
+    let exponent = (raw >> 10) & 0x1f;
+    if exponent != 0 && exponent != 0x1f {
+        f32::from_bits(((raw & 0x8000) << 16) | (((raw & 0x7fff) + (112 << 10)) << 13))
+    } else {
+        extend_float_special(raw, 10, 5)
+    }
+}
+
+#[inline(always)]
+pub fn extend_fp24(raw: u32) -> f32 {
+    let exponent = (raw >> 16) & 0x7f;
+    if exponent != 0 && exponent != 0x7f {
+        f32::from_bits(((raw & 0x80_0000) << 8) | (((raw & 0x7f_ffff) + (64 << 16)) << 7))
+    } else {
+        extend_float_special(raw, 16, 7)
+    }
+}
+
+#[cold]
+#[inline(never)]
+fn extend_float_special(raw: u32, fraction_bits: u32, exponent_bits: u32) -> f32 {
+    extend_float(raw, fraction_bits, exponent_bits)
+}
+
 fn dimensions(width: usize, height: usize) -> Result<(u32, u32), CodecError> {
     let width = u32::try_from(width).map_err(|_| invalid("image width exceeds u32"))?;
     let height = u32::try_from(height).map_err(|_| invalid("image height exceeds u32"))?;
@@ -1356,5 +1382,23 @@ mod tests {
             }
         }
         bytes
+    }
+
+    #[test]
+    fn fast_fp16_and_fp24_widening_are_bit_identical_to_extend_float_for_every_pattern() {
+        for raw in 0..=0xffff_u32 {
+            assert_eq!(
+                super::extend_fp16(raw).to_bits(),
+                super::extend_float(raw, 10, 5).to_bits(),
+                "fp16 raw=0x{raw:04x}"
+            );
+        }
+        for raw in 0..=0x00ff_ffff_u32 {
+            assert_eq!(
+                super::extend_fp24(raw).to_bits(),
+                super::extend_float(raw, 16, 7).to_bits(),
+                "fp24 raw=0x{raw:06x}"
+            );
+        }
     }
 }

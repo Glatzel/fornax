@@ -74,6 +74,18 @@ enum Opcode {
     },
 }
 
+#[derive(Debug, Clone, Copy)]
+pub(super) enum SampleDomain {
+    /// Exact integer samples in `0..=max_sample` (`max_sample <= 1 << 24`).
+    Integer { max_sample: u32 },
+    /// Floating-point samples (may include `-0.0`, subnormals, or `NaN`).
+    Float,
+}
+
+impl SampleDomain {
+    const fn is_integer(self) -> bool { matches!(self, Self::Integer { .. }) }
+}
+
 impl Opcode {
     const fn unsupported_name(&self) -> Option<&'static str> {
         match self {
@@ -88,6 +100,104 @@ impl Opcode {
             Self::FixBadPixelsConstant { .. } | Self::FixBadPixelsList { .. }
         )
     }
+
+    /// Returns `true` only when applying this opcode in `f32` (with round-trip
+    /// back to the stored domain) is guaranteed to leave every sample
+    /// bit-identical.
+    fn is_exact_identity(&self, domain: SampleDomain, width: usize, height: usize) -> bool {
+        let integer = domain.is_integer();
+        match self {
+            Self::Unsupported(_) => false,
+            Self::FixVignetteRadial {
+                coefficients,
+                center_x,
+                center_y,
+            } => {
+                integer
+                    && center_x.is_finite()
+                    && center_y.is_finite()
+                    && coefficients.iter().all(|&c| c == 0.0)
+            }
+            Self::FixBadPixelsConstant { .. } => false,
+            Self::FixBadPixelsList { points, rectangles } => {
+                let has_point = points
+                    .iter()
+                    .any(|&(row, col)| (row as usize) < height && (col as usize) < width);
+                let has_rect = rectangles.iter().any(|&(top, left, bottom, right)| {
+                    (top as usize) < (bottom as usize).min(height)
+                        && (left as usize) < (right as usize).min(width)
+                });
+                !has_point && !has_rect
+            }
+            Self::MapTable { region, table } => {
+                if region.is_empty(width, height) || table.is_empty() {
+                    return true;
+                }
+                let SampleDomain::Integer { max_sample } = domain else {
+                    return false;
+                };
+                let max_index = usize::try_from(max_sample).unwrap_or(usize::MAX);
+                table.len() > max_index
+                    && table[..=max_index]
+                        .iter()
+                        .enumerate()
+                        .all(|(index, &value)| usize::from(value) == index)
+            }
+            Self::MapPolynomial { .. } => false,
+            Self::GainMap {
+                region,
+                points_v,
+                points_h,
+                spacing_v,
+                spacing_h,
+                origin_v,
+                origin_h,
+                map_planes,
+                gains,
+            } => {
+                if region.is_empty(width, height) {
+                    return true;
+                }
+                let pv = *points_v as usize;
+                let ph = *points_h as usize;
+                let mp = *map_planes as usize;
+                if pv == 0 || ph == 0 || mp == 0 || gains.len() < pv * ph * mp {
+                    return true;
+                }
+                integer
+                    && spacing_v.is_finite()
+                    && spacing_h.is_finite()
+                    && origin_v.is_finite()
+                    && origin_h.is_finite()
+                    && gains.iter().step_by(mp).take(pv * ph).all(|&g| g == 1.0)
+            }
+            Self::DeltaPerRow { region, values } | Self::DeltaPerColumn { region, values } => {
+                if region.is_empty(width, height) {
+                    return true;
+                }
+                integer && values.iter().all(|&v| v == 0.0)
+            }
+            Self::ScalePerRow { region, values } | Self::ScalePerColumn { region, values } => {
+                if region.is_empty(width, height) {
+                    return true;
+                }
+                integer && values.iter().all(|&v| v == 1.0)
+            }
+        }
+    }
+}
+
+impl Region {
+    fn is_empty(self, width: usize, height: usize) -> bool {
+        if self.plane != 0 || self.planes == 0 {
+            return true;
+        }
+        let top = self.top as usize;
+        let bottom = (self.bottom as usize).min(height);
+        let left = self.left as usize;
+        let right = (self.right as usize).min(width);
+        top >= bottom || left >= right
+    }
 }
 
 pub(super) struct OpcodeList {
@@ -95,6 +205,17 @@ pub(super) struct OpcodeList {
 }
 
 impl OpcodeList {
+    pub(super) fn is_exact_identity(
+        &self,
+        domain: SampleDomain,
+        width: usize,
+        height: usize,
+    ) -> bool {
+        self.opcodes
+            .iter()
+            .all(|opcode| opcode.is_exact_identity(domain, width, height))
+    }
+
     pub(super) fn neighborhood_barriers(&self) -> usize {
         self.opcodes
             .iter()
@@ -102,11 +223,11 @@ impl OpcodeList {
             .count()
     }
 
-    pub(super) const fn is_single_bad_pixels_constant(&self, value: u32) -> bool {
-        matches!(
-            self.opcodes.as_slice(),
-            [Opcode::FixBadPixelsConstant { constant }] if *constant == value
-        )
+    pub(super) const fn single_bad_pixels_constant(&self) -> Option<u32> {
+        match self.opcodes.as_slice() {
+            [Opcode::FixBadPixelsConstant { constant }] => Some(*constant),
+            _ => None,
+        }
     }
 
     pub(super) fn apply_full(&self, samples: &mut [f32], width: usize, height: usize) {
@@ -962,5 +1083,73 @@ mod tests {
         }
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn identity_predicate_is_conservative_for_nan_region_and_bounds() {
+        use super::SampleDomain;
+
+        // Delta 0.0 is identity on integers, never on Float (-0.0 + 0.0 = +0.0)
+        // or NaN.
+        let mut delta_zero = all_region();
+        delta_zero.extend_from_slice(&1_u32.to_be_bytes());
+        delta_zero.extend_from_slice(&0.0_f32.to_bits().to_be_bytes());
+        let parsed = parse(&list(&[opcode(10, &delta_zero)])).unwrap();
+        assert!(parsed.is_exact_identity(SampleDomain::Integer { max_sample: 65535 }, 4, 4));
+        assert!(!parsed.is_exact_identity(SampleDomain::Float, 4, 4));
+
+        // NaN delta is never identity.
+        let mut delta_nan = all_region();
+        delta_nan.extend_from_slice(&1_u32.to_be_bytes());
+        delta_nan.extend_from_slice(&f32::NAN.to_bits().to_be_bytes());
+        let parsed = parse(&list(&[opcode(10, &delta_nan)])).unwrap();
+        assert!(!parsed.is_exact_identity(SampleDomain::Integer { max_sample: 255 }, 4, 4));
+
+        // Out-of-bounds region is identity even for non-1.0 scale.
+        let mut empty_scale = region(10, 0, 20, 4, 1);
+        empty_scale.extend_from_slice(&1_u32.to_be_bytes());
+        empty_scale.extend_from_slice(&2.5_f32.to_bits().to_be_bytes());
+        let parsed = parse(&list(&[opcode(12, &empty_scale)])).unwrap();
+        assert!(parsed.is_exact_identity(SampleDomain::Integer { max_sample: 65535 }, 4, 4));
+
+        // Vignette with zero coefficients and finite center is identity; NaN
+        // center is not.
+        let mut vig_ok = Vec::new();
+        for v in [0.0_f64, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5] {
+            vig_ok.extend_from_slice(&v.to_bits().to_be_bytes());
+        }
+        let parsed = parse(&list(&[opcode(3, &vig_ok)])).unwrap();
+        assert!(parsed.is_exact_identity(SampleDomain::Integer { max_sample: 65535 }, 4, 4));
+
+        let mut vig_nan = Vec::new();
+        for v in [0.0_f64, 0.0, 0.0, 0.0, 0.0, f64::NAN, 0.5] {
+            vig_nan.extend_from_slice(&v.to_bits().to_be_bytes());
+        }
+        let parsed = parse(&list(&[opcode(3, &vig_nan)])).unwrap();
+        assert!(!parsed.is_exact_identity(SampleDomain::Integer { max_sample: 65535 }, 4, 4));
+
+        // GainMap all 1.0 across plane 0 is identity; non-1.0 is not.
+        let mut gain = all_region();
+        gain.extend_from_slice(&2_u32.to_be_bytes());
+        gain.extend_from_slice(&2_u32.to_be_bytes());
+        for v in [1.0_f64, 1.0, 0.0, 0.0] {
+            gain.extend_from_slice(&v.to_bits().to_be_bytes());
+        }
+        gain.extend_from_slice(&2_u32.to_be_bytes());
+        for v in [1.0_f32, 9.0, 1.0, 9.0, 1.0, 9.0, 1.0, 9.0] {
+            gain.extend_from_slice(&v.to_bits().to_be_bytes());
+        }
+        let parsed = parse(&list(&[opcode(9, &gain)])).unwrap();
+        assert!(parsed.is_exact_identity(SampleDomain::Integer { max_sample: 16383 }, 4, 4));
+
+        // FixBadPixelsList outside image is identity; inside is not.
+        let mut bad_out = 0_u32.to_be_bytes().to_vec();
+        bad_out.extend_from_slice(&1_u32.to_be_bytes());
+        bad_out.extend_from_slice(&0_u32.to_be_bytes());
+        bad_out.extend_from_slice(&10_u32.to_be_bytes());
+        bad_out.extend_from_slice(&0_u32.to_be_bytes());
+        let parsed = parse(&list(&[opcode(5, &bad_out)])).unwrap();
+        assert!(parsed.is_exact_identity(SampleDomain::Integer { max_sample: 16383 }, 4, 4));
+        assert!(!parsed.is_exact_identity(SampleDomain::Integer { max_sample: 16383 }, 4, 11));
     }
 }

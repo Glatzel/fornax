@@ -13,9 +13,10 @@ use flashraw::{
     Backend, CorruptionPolicy, DecodeOptions, FlashRaw, OutputFormat, RawFrame, RawPixelData,
     SampleFormat,
 };
+use fornax_raw::RawMosaic;
+use fornax_raw::decoder::Decoder;
 use fornax_raw::error::DecodeError;
 use fornax_raw::protocol::IDecoder;
-use fornax_raw::{Decoder, RawMosaic};
 use sha2::{Digest, Sha256};
 
 const DEFAULT_BASELINE: &str = "crates/decoder-tracker/data/baseline.csv";
@@ -52,6 +53,7 @@ struct SourceMetadata {
 struct ProbeConfig {
     backend: Backend,
     flashraw_threads: Option<usize>,
+    apply_opcodes: bool,
     threads_label: usize,
 }
 
@@ -59,6 +61,9 @@ struct ProbeConfig {
 struct Usage {
     minor_faults: i64,
     major_faults: i64,
+    user_us: i64,
+    sys_us: i64,
+    max_rss_kb: i64,
 }
 
 struct StageTiming {
@@ -129,6 +134,9 @@ struct RoundResult {
     total_ns: u64,
     minor_faults: i64,
     major_faults: i64,
+    user_us: i64,
+    sys_us: i64,
+    max_rss_kb: i64,
 }
 
 pub(super) fn main() {
@@ -160,8 +168,9 @@ pub(super) fn main() {
     };
 
     eprintln!(
-        "probe configuration: decoder={} backend={backend} threads={} flashraw_threads={:?} rayon_threads={}",
+        "probe configuration: decoder={} backend={backend} opcodes={} threads={} flashraw_threads={:?} rayon_threads={}",
         decoder.name(),
+        config.apply_opcodes,
         config.threads_label,
         config.flashraw_threads,
         rayon::current_num_threads()
@@ -209,6 +218,10 @@ pub(super) fn main() {
             "width",
             "height",
             "bits_per_sample",
+            "opcodes",
+            "user_ms",
+            "sys_ms",
+            "max_rss_kb",
         ])
         .expect("writing probe header");
 
@@ -260,6 +273,11 @@ fn probe_config(decoder: ProbeDecoder) -> Result<ProbeConfig, String> {
     } else {
         None
     };
+    let apply_opcodes = if decoder == ProbeDecoder::FlashRaw {
+        decode_opcodes()?
+    } else {
+        true
+    };
     let threads_label = match decoder {
         ProbeDecoder::Fornax => rayon::current_num_threads(),
         ProbeDecoder::FlashRaw => flashraw_threads.unwrap_or_else(rayon::current_num_threads),
@@ -267,8 +285,25 @@ fn probe_config(decoder: ProbeDecoder) -> Result<ProbeConfig, String> {
     Ok(ProbeConfig {
         backend,
         flashraw_threads,
+        apply_opcodes,
         threads_label,
     })
+}
+
+fn decode_opcodes() -> Result<bool, String> {
+    let Some(value) = env::var_os("FORNAX_FLASHRAW_OPCODES") else {
+        return Ok(false);
+    };
+    let value = value
+        .to_str()
+        .ok_or_else(|| "FORNAX_FLASHRAW_OPCODES is not UTF-8".to_owned())?;
+    match value.trim().to_ascii_lowercase().as_str() {
+        "1" | "true" | "yes" => Ok(true),
+        "0" | "false" | "no" => Ok(false),
+        other => Err(format!(
+            "invalid FORNAX_FLASHRAW_OPCODES {other:?}; expected true or false"
+        )),
+    }
 }
 
 fn decode_backend() -> Result<Backend, String> {
@@ -431,6 +466,9 @@ fn probe_sample(
                     total_ns: duration_ns(timed.timing.total),
                     minor_faults: timed.timing.usage.minor_faults,
                     major_faults: timed.timing.usage.major_faults,
+                    user_us: timed.timing.usage.user_us,
+                    sys_us: timed.timing.usage.sys_us,
+                    max_rss_kb: timed.timing.usage.max_rss_kb,
                 });
                 drop(timed.raw);
             }
@@ -480,6 +518,10 @@ fn probe_sample(
                 &width.to_string(),
                 &height.to_string(),
                 source.bits_per_sample.as_str(),
+                if config.apply_opcodes { "1" } else { "0" },
+                &microseconds_to_ms(result.user_us),
+                &microseconds_to_ms(result.sys_us),
+                &result.max_rss_kb.to_string(),
             ])
             .expect("writing probe row");
     }
@@ -542,7 +584,7 @@ fn measure_flashraw(path: &Path, config: ProbeConfig) -> Result<TimedRaw, ProbeF
             output,
             threads: config.flashraw_threads,
             crop: false,
-            apply_opcodes: false,
+            apply_opcodes: config.apply_opcodes,
             corruption_policy: CorruptionPolicy::Strict,
             ..DecodeOptions::default()
         })
@@ -577,6 +619,9 @@ fn subtract_usage(after: Usage, before: Usage) -> Usage {
     Usage {
         minor_faults: after.minor_faults - before.minor_faults,
         major_faults: after.major_faults - before.major_faults,
+        user_us: after.user_us - before.user_us,
+        sys_us: after.sys_us - before.sys_us,
+        max_rss_kb: after.max_rss_kb,
     }
 }
 
@@ -619,12 +664,20 @@ fn write_failure(
             "",
             "",
             source.bits_per_sample.as_str(),
+            if config.apply_opcodes { "1" } else { "0" },
+            "",
+            "",
+            "",
         ])
         .expect("writing probe failure row");
 }
 
 fn duration_ns(duration: Duration) -> u64 {
     u64::try_from(duration.as_nanos()).expect("duration fits u64 nanoseconds")
+}
+
+fn microseconds_to_ms(microseconds: i64) -> String {
+    format!("{:.6}", microseconds as f64 / 1_000.0)
 }
 
 fn nanoseconds_to_ms(nanoseconds: u64) -> String {
@@ -643,6 +696,9 @@ fn usage() -> Usage {
     Usage {
         minor_faults: usage.ru_minflt,
         major_faults: usage.ru_majflt,
+        user_us: usage.ru_utime.tv_sec * 1_000_000 + usage.ru_utime.tv_usec,
+        sys_us: usage.ru_stime.tv_sec * 1_000_000 + usage.ru_stime.tv_usec,
+        max_rss_kb: usage.ru_maxrss,
     }
 }
 

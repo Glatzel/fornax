@@ -2,7 +2,7 @@ use fornax_codec::SampleFormat;
 use rayon::prelude::*;
 
 use crate::decoder::sony::error::{invalid, unsupported};
-use crate::decoder::sony::ljpeg::{decode_interleaved, decode_interleaved_rows};
+use crate::decoder::sony::ljpeg::{decode_interleaved, decode_interleaved_four_into_rows};
 use crate::decoder::sony::samples::{Geometry, buffer_u16, chunk};
 use crate::decoder::sony::{CodecError, DecodeRequest, Predictor, SampleBuffer};
 
@@ -52,34 +52,12 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
                 .map(|row| row.len())
                 .ok_or_else(|| invalid("Sony LJPEG output tile is empty"))?;
             let encoded = chunk(request.source, request.chunks[index])?;
-            let decoded_directly = decode_interleaved_rows(
+            let decoded_directly = decode_interleaved_four_into_rows(
                 encoded,
                 precision,
                 geometry.chunk_width,
                 geometry.chunk_height,
-                |row, samples| {
-                    if samples.len() != geometry.chunk_width * 2 {
-                        return Err("Sony four-component LJPEG row has the wrong width".into());
-                    }
-                    for (output_row, components) in [0, 2].into_iter().enumerate() {
-                        let output_row = row * 2 + output_row;
-                        let Some(target) = tile_rows.get_mut(output_row) else {
-                            return Ok(());
-                        };
-                        let pixels = samples.as_chunks::<4>().0;
-                        let (pairs, tail) = target.as_chunks_mut::<2>();
-                        for (pair, pixel) in pairs.iter_mut().zip(pixels) {
-                            pair[0] = pixel[components];
-                            pair[1] = pixel[components + 1];
-                        }
-                        if let (Some(value), Some(pixel)) =
-                            (tail.first_mut(), pixels.get(pairs.len()))
-                        {
-                            *value = pixel[components];
-                        }
-                    }
-                    Ok(())
-                },
+                tile_rows,
             )
             .map_err(|detail| ljpeg_error(index, detail))?;
             if decoded_directly {

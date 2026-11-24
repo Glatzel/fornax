@@ -5,8 +5,10 @@ use fornax_tiff::{DirectoryLookup, Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 
+use super::opcodes::SampleDomain;
 use super::{corrupt, unsigned_vec};
 use crate::RawMosaic;
+use crate::dng::constants::DngCompressionMethod;
 use crate::dng::metadata::DngTag;
 use crate::error::DecodeError;
 
@@ -147,6 +149,10 @@ where
         RawMosaic::F32(_) => SampleKind::F32,
     };
     let opcodes = super::opcodes::parse(&bytes)?;
+    let domain = sample_domain(kind, metadata);
+    if opcodes.is_exact_identity(domain, width, height) {
+        return Ok(pixels);
+    }
     match (kind, pixels) {
         (SampleKind::U8, RawMosaic::U8(image)) => {
             let source = image.into_raw();
@@ -160,8 +166,11 @@ where
         }
         (SampleKind::U16, RawMosaic::U16(image)) => {
             let source = image.into_raw();
-            let converted = if opcodes.is_single_bad_pixels_constant(0) {
-                apply_zero_bad_pixels_constant(&source, width, height)?
+            let converted = if let Some(constant) = opcodes
+                .single_bad_pixels_constant()
+                .and_then(|value| u16::try_from(value).ok())
+            {
+                apply_bad_pixels_constant_u16(source, width, height, constant)?
             } else {
                 apply_opcode_bands(&source, width, height, &opcodes, f32::from, |value| {
                     convert_sample(value, u16::MAX)
@@ -202,11 +211,49 @@ where
     }
 }
 
+#[derive(Clone, Copy)]
 enum SampleKind {
     U8,
     U16,
     U32,
     F32,
+}
+
+fn sample_domain<D>(kind: SampleKind, metadata: &D) -> SampleDomain
+where
+    D: DirectoryLookup + ?Sized,
+{
+    let bits = unsigned_scalar(metadata.get(&Tag::from(TiffTag::BitsPerSample)));
+    let compression = unsigned_scalar(metadata.get(&Tag::from(TiffTag::Compression)));
+    // Only codecs that mask/unpack strictly to `bits` without post-mask point
+    // shifts guarantee `sample < (1 << bits)`. For JPEG XL, only `decode_u16`
+    // right-shifts values back down to `bits`; `decode_u8` does not shift.
+    let integer_bit_bounded =
+        compression.is_some_and(|id| matches!(id, 1 | 5 | 8 | 32_773 | 32_946 | 50_000));
+    match kind {
+        SampleKind::U8 => {
+            let max_sample = match bits {
+                Some(b) if integer_bit_bounded && (1..=8).contains(&b) => (1_u32 << b) - 1,
+                _ => u32::from(u8::MAX),
+            };
+            SampleDomain::Integer { max_sample }
+        }
+        SampleKind::U16 => {
+            let jxl_bounded =
+                compression == Some(u64::from(u16::from(DngCompressionMethod::JpegXl)));
+            let max_sample = match bits {
+                Some(b) if (integer_bit_bounded || jxl_bounded) && (1..=16).contains(&b) => {
+                    (1_u32 << b) - 1
+                }
+                _ => u32::from(u16::MAX),
+            };
+            SampleDomain::Integer { max_sample }
+        }
+        SampleKind::U32 => SampleDomain::Integer {
+            max_sample: MAX_EXACT_F32_INTEGER,
+        },
+        SampleKind::F32 => SampleDomain::Float,
+    }
 }
 
 fn convert_sample<T>(value: f32, maximum: T) -> Result<T, DecodeError>
@@ -303,6 +350,139 @@ where
     Ok(output)
 }
 
+fn repair_constant_sample(
+    source: &[u16],
+    width: usize,
+    height: usize,
+    row: usize,
+    column: usize,
+    constant: u16,
+) -> Option<u16> {
+    let mut sum = 0.0_f32;
+    let mut count = 0.0_f32;
+    for (dx, dy) in [
+        (-2_isize, 0_isize),
+        (2, 0),
+        (0, -2),
+        (0, 2),
+        (-2, -2),
+        (2, 2),
+        (-2, 2),
+        (2, -2),
+    ] {
+        let Some(neighbor_row) = row.checked_add_signed(dy) else {
+            continue;
+        };
+        let Some(neighbor_column) = column.checked_add_signed(dx) else {
+            continue;
+        };
+        if neighbor_row >= height || neighbor_column >= width {
+            continue;
+        }
+        let value = source[neighbor_row * width + neighbor_column];
+        if value != constant {
+            sum += f32::from(value);
+            count += 1.0;
+        }
+    }
+    (count > 0.0).then(|| (sum / count).round() as u16)
+}
+
+enum ConstantBandScan {
+    Sparse(Vec<(usize, u16)>),
+    Dense,
+}
+
+fn apply_bad_pixels_constant_u16(
+    mut source: Vec<u16>,
+    width: usize,
+    height: usize,
+    constant: u16,
+) -> Result<Vec<u16>, DecodeError> {
+    let expected = width
+        .checked_mul(height)
+        .ok_or_else(|| corrupt("opcode image sample count overflows"))?;
+    if width == 0 || height == 0 || source.len() != expected {
+        return Err(corrupt("opcode image sample count is invalid"));
+    }
+
+    let threads = rayon::current_num_threads().max(1);
+    let band_rows = height.div_ceil(threads).max(1);
+    let band_len = band_rows * width;
+
+    let band_scans: Vec<ConstantBandScan> = source
+        .par_chunks(band_len)
+        .enumerate()
+        .map(|(band_index, band_slice)| {
+            let start_row = band_index * band_rows;
+            let sparse_cap = (band_slice.len() / 16).max(1);
+            let mut fixes = Vec::new();
+            for (local_row, row_slice) in band_slice.chunks_exact(width).enumerate() {
+                if !row_slice.contains(&constant) {
+                    continue;
+                }
+                let row = start_row + local_row;
+                for (column, &sample) in row_slice.iter().enumerate() {
+                    if sample != constant {
+                        continue;
+                    }
+                    if let Some(replacement) =
+                        repair_constant_sample(&source, width, height, row, column, constant)
+                    {
+                        if fixes.len() >= sparse_cap {
+                            return ConstantBandScan::Dense;
+                        }
+                        fixes.push((row * width + column, replacement));
+                    }
+                }
+            }
+            ConstantBandScan::Sparse(fixes)
+        })
+        .collect();
+
+    if band_scans
+        .iter()
+        .any(|scan| matches!(scan, ConstantBandScan::Dense))
+    {
+        let mut output = vec![0_u16; expected];
+        output
+            .par_chunks_mut(band_len)
+            .enumerate()
+            .for_each(|(band_index, output_band)| {
+                let start_row = band_index * band_rows;
+                for (local_row, output_row) in output_band.chunks_exact_mut(width).enumerate() {
+                    let row = start_row + local_row;
+                    let source_row = &source[row * width..][..width];
+                    output_row.copy_from_slice(source_row);
+                    if !source_row.contains(&constant) {
+                        continue;
+                    }
+                    for (column, &sample) in source_row.iter().enumerate() {
+                        if sample == constant
+                            && let Some(replacement) = repair_constant_sample(
+                                &source, width, height, row, column, constant,
+                            )
+                        {
+                            output_row[column] = replacement;
+                        }
+                    }
+                }
+            });
+        return Ok(output);
+    }
+
+    for scan in band_scans {
+        let ConstantBandScan::Sparse(fixes) = scan else {
+            unreachable!("dense scans handled above");
+        };
+        for (index, replacement) in fixes {
+            source[index] = replacement;
+        }
+    }
+    Ok(source)
+}
+
+#[cfg(test)]
 fn apply_zero_bad_pixels_constant(
     source: &[u16],
     width: usize,
@@ -575,5 +755,215 @@ mod tests {
         let actual = super::apply_zero_bad_pixels_constant(&source, width, height).unwrap();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn identity_opcode_elision_matches_full_apply_and_preserves_errors() {
+        use fornax_core::MonoImage;
+        use fornax_tiff::constants::TiffTag;
+        use fornax_tiff::{Directory, Tag, Value};
+
+        use super::{apply_opcode_bands, apply_opcode_list1, convert_sample};
+        use crate::RawMosaic;
+
+        let mut table_bytes = Vec::new();
+        let table = (0_u16..1024).flat_map(u16::to_be_bytes).collect::<Vec<_>>();
+        table_bytes.extend_from_slice(&4_u32.to_be_bytes());
+        for (top, left) in [(0_u32, 0_u32), (0, 1), (1, 0), (1, 1)] {
+            table_bytes.extend_from_slice(&7_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&0x0103_0000_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&0_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&u32::try_from(36 + table.len()).unwrap().to_be_bytes());
+            for v in [top, left, 8, 8, 0, 1, 2, 2, 1024] {
+                table_bytes.extend_from_slice(&v.to_be_bytes());
+            }
+            table_bytes.extend_from_slice(&table);
+        }
+
+        let mut metadata = Directory::default();
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(1));
+        metadata.insert(Tag::from(TiffTag::BitsPerSample), Value::Short(10));
+        metadata.insert(
+            Tag::from(crate::dng::metadata::DngTag::OpcodeList1),
+            Value::Bytes(table_bytes.clone()),
+        );
+
+        let samples: Vec<u16> = (0..64).map(|i| (i * 17) & 0x3ff).collect();
+        let parsed = opcodes::parse(&table_bytes).unwrap();
+        assert!(parsed.is_exact_identity(
+            opcodes::SampleDomain::Integer { max_sample: 1023 },
+            8,
+            8
+        ));
+        // If samples could exceed table length (e.g. 16-bit container), it is
+        // NOT identity.
+        assert!(!parsed.is_exact_identity(
+            opcodes::SampleDomain::Integer { max_sample: 65535 },
+            8,
+            8
+        ));
+        assert!(!parsed.is_exact_identity(opcodes::SampleDomain::Float, 8, 8));
+
+        let expected = apply_opcode_bands(&samples, 8, 8, &parsed, f32::from, |v| {
+            convert_sample(v, u16::MAX)
+        })
+        .unwrap();
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(8, 8, samples).unwrap());
+        let RawMosaic::U16(actual) = apply_opcode_list1(mosaic, &metadata).unwrap() else {
+            panic!("expected U16 mosaic");
+        };
+        assert_eq!(actual.into_raw(), expected);
+
+        // U32 > 2^24 must still error even when the opcode list is an identity.
+        let mut scale_one = Vec::new();
+        scale_one.extend_from_slice(&1_u32.to_be_bytes());
+        scale_one.extend_from_slice(&12_u32.to_be_bytes());
+        scale_one.extend_from_slice(&0x0103_0000_u32.to_be_bytes());
+        scale_one.extend_from_slice(&0_u32.to_be_bytes());
+        scale_one.extend_from_slice(&40_u32.to_be_bytes());
+        for v in [0_u32, 0, u32::MAX, u32::MAX, 0, 1, 1, 1, 1] {
+            scale_one.extend_from_slice(&v.to_be_bytes());
+        }
+        scale_one.extend_from_slice(&1.0_f32.to_bits().to_be_bytes());
+        metadata.insert(
+            Tag::from(crate::dng::metadata::DngTag::OpcodeList1),
+            Value::Bytes(scale_one),
+        );
+        let oversized = RawMosaic::U32(MonoImage::from_raw(1, 1, vec![(1 << 24) + 1]).unwrap());
+        assert!(apply_opcode_list1(oversized, &metadata).is_err());
+
+        // Float edge cases (-0.0, subnormals, NaN) must stay conservative and
+        // preserve full-apply behavior.
+        let f32_samples = [-0.0_f32, f32::from_bits(1), f32::NAN, 42.5];
+        let f32_mosaic = RawMosaic::F32(MonoImage::from_raw(4, 1, f32_samples.to_vec()).unwrap());
+        let RawMosaic::F32(f32_out) = apply_opcode_list1(f32_mosaic, &metadata).unwrap() else {
+            panic!("expected F32 mosaic");
+        };
+        assert!(f32_out.as_raw()[0].is_sign_negative());
+        assert_eq!(f32_out.as_raw()[1].to_bits(), 1);
+        assert!(f32_out.as_raw()[2].is_nan());
+        assert_eq!(f32_out.as_raw()[3], 42.5);
+    }
+
+    #[test]
+    fn bad_pixels_constant_in_place_matches_oracle() {
+        use fornax_core::MonoImage;
+        use fornax_tiff::{Directory, Tag, Value};
+
+        use super::{apply_bad_pixels_constant_u16, apply_opcode_list1, convert_sample};
+        use crate::RawMosaic;
+
+        let make_opcode = |constant: u32| {
+            let mut list = Vec::new();
+            for value in [1_u32, 4, 1, 0, 4] {
+                list.extend_from_slice(&value.to_be_bytes());
+            }
+            list.extend_from_slice(&constant.to_be_bytes());
+            list
+        };
+
+        let width = 37;
+        let height = 29;
+        let base: Vec<u16> = (0..width * height)
+            .map(|i| u16::try_from((i * 13) % 1000 + 1).unwrap())
+            .collect();
+
+        // Case 1: 0 bad pixels.
+        let op_zero = opcodes::parse(&make_opcode(0)).unwrap();
+        let oracle_zero = apply_opcode_bands(&base, width, height, &op_zero, f32::from, |v| {
+            convert_sample(v, u16::MAX)
+        })
+        .unwrap();
+        assert_eq!(
+            apply_bad_pixels_constant_u16(base.clone(), width, height, 0).unwrap(),
+            oracle_zero
+        );
+
+        // Case 2: isolated, distance-1, distance-2 adjacent, edges and corners.
+        let mut sparse = base.clone();
+        for (r, c) in [
+            (0, 0),
+            (0, 1),
+            (0, width - 1),
+            (height - 1, 0),
+            (height - 1, width - 1),
+            (10, 10),
+            (10, 12),
+            (12, 10),
+            (12, 12),
+            (11, 10),
+        ] {
+            sparse[r * width + c] = 0;
+        }
+        let oracle_sparse = super::apply_zero_bad_pixels_constant(&sparse, width, height).unwrap();
+        let oracle_bands = apply_opcode_bands(&sparse, width, height, &op_zero, f32::from, |v| {
+            convert_sample(v, u16::MAX)
+        })
+        .unwrap();
+        assert_eq!(oracle_sparse, oracle_bands);
+        assert_eq!(
+            apply_bad_pixels_constant_u16(sparse, width, height, 0).unwrap(),
+            oracle_sparse
+        );
+
+        // Case 3: dense (> 1/16) fallback trigger.
+        let mut dense = base;
+        for r in 0..height {
+            for c in (0..width).step_by(4) {
+                dense[r * width + c] = 0;
+            }
+        }
+        let oracle_dense = super::apply_zero_bad_pixels_constant(&dense, width, height).unwrap();
+        assert_eq!(
+            apply_bad_pixels_constant_u16(dense, width, height, 0).unwrap(),
+            oracle_dense
+        );
+
+        // Case 4: all-constant corner / all-constant image (count == 0).
+        let all_const = vec![42_u16; width * height];
+        let op_42 = opcodes::parse(&make_opcode(42)).unwrap();
+        let oracle_all = apply_opcode_bands(&all_const, width, height, &op_42, f32::from, |v| {
+            convert_sample(v, u16::MAX)
+        })
+        .unwrap();
+        assert_eq!(
+            apply_bad_pixels_constant_u16(all_const, width, height, 42).unwrap(),
+            oracle_all
+        );
+
+        // Case 5: non-zero constants (42 and 65535) via full
+        // apply_opcode_list1.
+        for constant in [42_u16, 65535_u16] {
+            let mut img: Vec<u16> = (0..width * height)
+                .map(|i| u16::try_from((i * 19) % 40 + 100).unwrap())
+                .collect();
+            img[0] = constant;
+            img[5 * width + 7] = constant;
+            img[5 * width + 9] = constant;
+            img[7 * width + 7] = constant;
+            let op_bytes = make_opcode(u32::from(constant));
+            let parsed = opcodes::parse(&op_bytes).unwrap();
+            let expected = apply_opcode_bands(&img, width, height, &parsed, f32::from, |v| {
+                convert_sample(v, u16::MAX)
+            })
+            .unwrap();
+            let mut metadata = Directory::default();
+            metadata.insert(
+                Tag::from(crate::dng::metadata::DngTag::OpcodeList1),
+                Value::Bytes(op_bytes),
+            );
+            let mosaic = RawMosaic::U16(
+                MonoImage::from_raw(
+                    u32::try_from(width).unwrap(),
+                    u32::try_from(height).unwrap(),
+                    img,
+                )
+                .unwrap(),
+            );
+            let RawMosaic::U16(actual) = apply_opcode_list1(mosaic, &metadata).unwrap() else {
+                panic!("expected U16 mosaic");
+            };
+            assert_eq!(actual.into_raw(), expected);
+        }
     }
 }
