@@ -62,6 +62,13 @@ if [[ "$docs_only" == false ]]; then
     if [[ ! -f external/raw-images/images/colorchart-5D2-6000K.dng ]]; then
         bash scripts/setup.sh
     fi
+    if [[ ! -f external/libtiff-pics/README.md ]]; then
+        git submodule update --init external/libtiff-pics
+    fi
+    if [[ -f external/libtiff-pics/caspian.tif && $(wc -c < external/libtiff-pics/caspian.tif) -lt 1024 ]]; then
+        git -C external/libtiff-pics lfs install --local
+        git -C external/libtiff-pics lfs pull
+    fi
     if [[ ! -f external/raw.pixls.us/filelist.sha256 ]]; then
         GIT_LFS_SKIP_SMUDGE=1 \
             git -c filter.lfs.required=false \

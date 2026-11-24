@@ -28,7 +28,7 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
             &mut payload,
             request.predictor,
             request.chunk_width,
-            request.chunk_height,
+            geometry.actual_chunk_height(index),
             request.bits_per_sample,
             request.sample_format,
             request.byte_order,
@@ -47,19 +47,30 @@ pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
 }
 
 pub fn encode(request: &EncodeRequest<'_>, level: i32) -> Result<EncodedChunks, CodecError> {
+    let width =
+        usize::try_from(request.image.width()).map_err(|_| invalid("image width exceeds usize"))?;
+    let height = usize::try_from(request.image.height())
+        .map_err(|_| invalid("image height exceeds usize"))?;
     let mut encoded = encode_image(
         request.image,
         request.chunk_width,
         request.chunk_height,
         request.byte_order,
     )?;
+    let geometry = Geometry::new(
+        width,
+        height,
+        request.chunk_width,
+        request.chunk_height,
+        encoded.chunks.len(),
+    )?;
     let mut chunks = Vec::with_capacity(encoded.chunks.len());
-    for chunk in &mut encoded.chunks {
+    for (index, chunk) in encoded.chunks.iter_mut().enumerate() {
         predictor::apply(
             chunk,
             request.predictor,
             request.chunk_width,
-            request.chunk_height,
+            geometry.actual_chunk_height(index),
             encoded.bits_per_sample,
             encoded.sample_format,
             request.byte_order,

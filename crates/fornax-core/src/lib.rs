@@ -1,2 +1,2 @@
 mod alias;
-pub use alias::{MonoImage, MultiLayerImage, RgbImage, RgbaImage, UvImage};
+pub use alias::{MonoImage, MultiPlaneImage, RgbImage, RgbaImage, UvImage};

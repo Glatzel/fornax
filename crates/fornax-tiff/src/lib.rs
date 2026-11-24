@@ -10,12 +10,19 @@ use std::sync::Arc;
 use memmap2::Mmap;
 
 pub mod constants;
+#[cfg(feature = "raster")]
+mod io;
 mod parser;
 #[cfg(feature = "raster")]
 mod raster;
 mod value;
 mod writer;
 
+#[cfg(feature = "raster")]
+pub use io::{
+    TiffImage, TiffIoError, TiffWriteOptions, TypedTiffImage, WriteStorage, read_directory_image,
+    read_directory_planes, read_tiff, read_tiff_file, write_tiff, write_tiff_file,
+};
 #[cfg(feature = "raster")]
 pub use raster::{
     RasterError, RasterLayout, RasterRequest, RasterStorage, TiffCompressionError,
@@ -119,6 +126,14 @@ pub struct ParsedTiff {
 impl ParsedTiff {
     /// Returns the first TIFF image file directory.
     pub fn root(&self) -> &Directory { &self.directories[0] }
+
+    /// Returns the TIFF container byte order declared in the file header.
+    pub fn byte_order(&self) -> ByteOrder {
+        match self.source.get(..2) {
+            Some(b"MM") => ByteOrder::Big,
+            _ => ByteOrder::Little,
+        }
+    }
 }
 
 /// TIFF header byte order.

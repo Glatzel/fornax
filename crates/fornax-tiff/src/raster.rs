@@ -4,7 +4,7 @@ use std::fmt;
 
 use fornax_codec::{ByteOrder, Chunk, DecodeCompression, DecodeRequest, Predictor, SampleFormat};
 
-use crate::constants::TiffTag;
+use crate::constants::{PlanarConfiguration, TiffTag};
 use crate::{Directory, DirectoryLookup, Tag, ValueAccessError, unsigned_vec_lookup};
 
 /// TIFF raster storage organization.
@@ -57,6 +57,8 @@ pub struct RasterLayout {
     height: usize,
     chunk_width: usize,
     chunk_height: usize,
+    planes: usize,
+    chunks_per_plane: usize,
     chunks: Vec<Chunk>,
 }
 
@@ -103,6 +105,40 @@ impl RasterLayout {
     where
         D: DirectoryLookup + ?Sized,
     {
+        Self::from_lookup_with_planes_internal(directory, 1, PlanarConfiguration::Chunky, false)
+    }
+
+    /// Reads image, strip/tile, and planar chunk geometry through a metadata
+    /// lookup.
+    ///
+    /// When `RowsPerStrip` is absent in a strip-organized directory, TIFF 6.0
+    /// defaults it to `height` (a single strip for the entire image).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RasterError`] when a required tag is missing or invalid, a
+    /// dimension or plane count is zero, chunk lists do not match the image
+    /// geometry, or geometry arithmetic overflows.
+    pub fn from_lookup_with_planes<D>(
+        directory: &D,
+        samples_per_pixel: usize,
+        planar: PlanarConfiguration,
+    ) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
+        Self::from_lookup_with_planes_internal(directory, samples_per_pixel, planar, true)
+    }
+
+    fn from_lookup_with_planes_internal<D>(
+        directory: &D,
+        samples_per_pixel: usize,
+        planar: PlanarConfiguration,
+        default_rows_per_strip: bool,
+    ) -> Result<Self, RasterError>
+    where
+        D: DirectoryLookup + ?Sized,
+    {
         let width = required_usize(directory, TiffTag::ImageWidth)?;
         let height = required_usize(directory, TiffTag::ImageLength)?;
         if width == 0 {
@@ -111,6 +147,15 @@ impl RasterLayout {
         if height == 0 {
             return Err(RasterError::ZeroDimension(TiffTag::ImageLength.into()));
         }
+        let planes = match planar {
+            PlanarConfiguration::Planar => {
+                if samples_per_pixel == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::SamplesPerPixel.into()));
+                }
+                samples_per_pixel
+            }
+            PlanarConfiguration::Chunky | PlanarConfiguration::Unknown(_) => 1,
+        };
 
         let (storage, chunk_width, chunk_height, offsets, byte_counts) =
             if directory.contains_key(&Tag::from(TiffTag::TileOffsets)) {
@@ -129,8 +174,33 @@ impl RasterLayout {
                     unsigned_usizes(directory, TiffTag::TileOffsets)?,
                     unsigned_usizes(directory, TiffTag::TileByteCounts)?,
                 )
+            } else if directory.contains_key(&Tag::from(TiffTag::TileWidth))
+                && directory.contains_key(&Tag::from(TiffTag::TileLength))
+                && directory.contains_key(&Tag::from(TiffTag::StripOffsets))
+            {
+                let chunk_width = required_usize(directory, TiffTag::TileWidth)?;
+                let chunk_height = required_usize(directory, TiffTag::TileLength)?;
+                if chunk_width == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::TileWidth.into()));
+                }
+                if chunk_height == 0 {
+                    return Err(RasterError::ZeroDimension(TiffTag::TileLength.into()));
+                }
+                (
+                    RasterStorage::Tiles,
+                    chunk_width,
+                    chunk_height,
+                    unsigned_usizes(directory, TiffTag::StripOffsets)?,
+                    unsigned_usizes(directory, TiffTag::StripByteCounts)?,
+                )
             } else {
-                let chunk_height = required_usize(directory, TiffTag::RowsPerStrip)?;
+                let chunk_height = if default_rows_per_strip
+                    && !directory.contains_key(&Tag::from(TiffTag::RowsPerStrip))
+                {
+                    height
+                } else {
+                    required_usize(directory, TiffTag::RowsPerStrip)?
+                };
                 if chunk_height == 0 {
                     return Err(RasterError::ZeroDimension(TiffTag::RowsPerStrip.into()));
                 }
@@ -151,8 +221,11 @@ impl RasterLayout {
         }
         let across = width.div_ceil(chunk_width);
         let down = height.div_ceil(chunk_height);
-        let expected = across
+        let chunks_per_plane = across
             .checked_mul(down)
+            .ok_or(RasterError::ChunkCountOverflow)?;
+        let expected = chunks_per_plane
+            .checked_mul(planes)
             .ok_or(RasterError::ChunkCountOverflow)?;
         if offsets.len() != expected {
             return Err(RasterError::ChunkCountMismatch {
@@ -171,6 +244,8 @@ impl RasterLayout {
             height,
             chunk_width,
             chunk_height,
+            planes,
+            chunks_per_plane,
             chunks,
         })
     }
@@ -296,6 +371,22 @@ impl RasterLayout {
     /// # Ok::<(), fornax_tiff::RasterError>(())
     /// ```
     pub fn chunks(&self) -> &[Chunk] { &self.chunks }
+
+    /// Returns the number of separate planes in this layout.
+    pub const fn planes(&self) -> usize { self.planes }
+
+    /// Returns the number of chunks per plane.
+    pub const fn chunks_per_plane(&self) -> usize { self.chunks_per_plane }
+
+    /// Returns the chunk slice for `plane` (`0..self.planes()`).
+    pub fn plane_chunks(&self, plane: usize) -> Option<&[Chunk]> {
+        if plane >= self.planes {
+            return None;
+        }
+        let start = plane.checked_mul(self.chunks_per_plane)?;
+        let end = start.checked_add(self.chunks_per_plane)?;
+        self.chunks.get(start..end)
+    }
 }
 
 /// A decoded TIFF raster request with a resolved codec compression.

@@ -79,6 +79,20 @@ is recorded in
 The crate intentionally owns container mechanics only. DNG-only tag semantics
 belong to `fornax-raw`; format-neutral raw codecs belong to `fornax-codec`.
 
+## Image IO (`raster` feature)
+
+When the `raster` feature is enabled, `fornax-tiff` provides high-level TIFF
+image reading and writing for all `fornax-core` image layouts (`MonoImage`,
+`UvImage`, `RgbImage`, `RgbaImage`, and `MultiPlaneImage`) across `u8`, `u16`,
+`u32`, `f32`, and `f64` samples:
+
+- `read_tiff`, `read_tiff_file`, `read_directory_image`, and
+  `read_directory_planes` decode strips or tiles in both chunky
+  (`PlanarConfiguration = 1`) and planar (`PlanarConfiguration = 2`) layouts.
+- `write_tiff` and `write_tiff_file` (configured via `TiffWriteOptions` and
+  `WriteStorage`) encode chunky or planar strips and tiles with any supported
+  compression and predictor.
+
 ## References
 
 - [TIFF 6.0 Specification](https://www.adobe.io/open/standards/TIFF.html) — Adobe TIFF 6.0 specification.
