@@ -168,10 +168,7 @@ fn decode(
                     .map(|samples| (*tile_index, *plane_index, samples))
             })
             .collect();
-        for (tile_index, plane_index, plane) in decoded? {
-            let tile = &tiles[tile_index];
-            integrate_plane(&mut mosaic, tile, plane_index, &plane, header)?;
-        }
+        integrate_planes_parallel(&mut mosaic, &tiles, &decoded?, header)?;
     }
     SampleBuffer::from_u16(header.mosaic_width(), header.mosaic_height(), mosaic)
         .map_err(Into::into)
@@ -472,6 +469,101 @@ fn crx_sample(value: i32, median: i32, max_val: i32) -> Result<u16, CodecError> 
     .map_err(|_| invalid("Canon CRX sample exceeds u16"))
 }
 
+fn integrate_planes_parallel(
+    mosaic: &mut [u16],
+    tiles: &[Tile],
+    decoded: &[(usize, usize, Vec<u16>)],
+    header: &CanonCrxHeader,
+) -> Result<(), CodecError> {
+    let mosaic_width = usize::try_from(header.mosaic_width())
+        .map_err(|_| invalid("Canon CRX mosaic width exceeds usize"))?;
+    let mut tile_planes: Vec<[Option<&[u16]>; PLANE_COUNT]> =
+        vec![[None; PLANE_COUNT]; tiles.len()];
+    for (tile_index, plane_index, samples) in decoded {
+        let tile = tiles
+            .get(*tile_index)
+            .ok_or_else(|| invalid("Canon CRX tile index is out of bounds"))?;
+        let placement = PlanePlacement::new(tile, *plane_index, header)?;
+        if samples.len() != placement.width * placement.height {
+            return Err(invalid(
+                "Canon CRX decoded plane dimensions are inconsistent",
+            ));
+        }
+        let slot = tile_planes[*tile_index]
+            .get_mut(*plane_index)
+            .ok_or_else(|| invalid("Canon CRX plane index is out of bounds"))?;
+        if slot.is_some() {
+            return Err(invalid("Canon CRX plane index is duplicated"));
+        }
+        *slot = Some(samples.as_slice());
+    }
+    let resolved: Vec<[&[u16]; PLANE_COUNT]> = tile_planes
+        .into_iter()
+        .map(|planes| {
+            let [Some(p0), Some(p1), Some(p2), Some(p3)] = planes else {
+                return Err(invalid("Canon CRX tile is missing a Bayer plane"));
+            };
+            Ok([p0, p1, p2, p3])
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let threads = rayon::current_num_threads().max(1);
+    let tile_cols = usize::try_from(header.mosaic_width().div_ceil(header.tile_width()))
+        .map_err(|_| invalid("Canon CRX tile column count exceeds usize"))?;
+    let mut mosaic_rest = mosaic;
+    for (row_tiles, row_planes) in tiles.chunks(tile_cols).zip(resolved.chunks(tile_cols)) {
+        let row_tile_height = row_tiles[0].height;
+        let band_height_samples = row_tile_height
+            .checked_mul(mosaic_width)
+            .ok_or_else(|| invalid("Canon CRX tile row size overflow"))?;
+        let (tile_row_mosaic, tail) = mosaic_rest.split_at_mut(band_height_samples);
+        mosaic_rest = tail;
+
+        let plane_height = row_tile_height / 2;
+        let row_pair_samples = mosaic_width * 2;
+        let row_pairs_per_band = plane_height.div_ceil(threads).max(1);
+        tile_row_mosaic
+            .par_chunks_mut(row_pairs_per_band * row_pair_samples)
+            .enumerate()
+            .for_each(|(band_index, band_slice)| {
+                let band_start_plane_row = band_index * row_pairs_per_band;
+                for (local_pair, pair_rows) in
+                    band_slice.chunks_exact_mut(row_pair_samples).enumerate()
+                {
+                    let plane_row = band_start_plane_row + local_pair;
+                    let (mut even_rest, mut odd_rest) = pair_rows.split_at_mut(mosaic_width);
+                    for (tile, planes) in row_tiles.iter().zip(row_planes.iter()) {
+                        let pw = tile.width / 2;
+                        let (even_tile, even_tail) = even_rest.split_at_mut(tile.width);
+                        let (odd_tile, odd_tail) = odd_rest.split_at_mut(tile.width);
+                        even_rest = even_tail;
+                        odd_rest = odd_tail;
+
+                        let src_start = plane_row * pw;
+                        let p0 = &planes[0][src_start..src_start + pw];
+                        let p1 = &planes[1][src_start..src_start + pw];
+                        let p2 = &planes[2][src_start..src_start + pw];
+                        let p3 = &planes[3][src_start..src_start + pw];
+                        for ((dst, &a), &b) in
+                            even_tile.as_chunks_mut::<2>().0.iter_mut().zip(p0).zip(p1)
+                        {
+                            dst[0] = a;
+                            dst[1] = b;
+                        }
+                        for ((dst, &c), &d) in
+                            odd_tile.as_chunks_mut::<2>().0.iter_mut().zip(p2).zip(p3)
+                        {
+                            dst[0] = c;
+                            dst[1] = d;
+                        }
+                    }
+                }
+            });
+    }
+    Ok(())
+}
+
+#[cfg(test)]
 fn integrate_plane(
     mosaic: &mut [u16],
     tile: &Tile,
@@ -1275,5 +1367,59 @@ mod tests {
             }
         }
         bytes
+    }
+
+    #[test]
+    fn parallel_integrate_planes_matches_serial_oracle_for_multitile_mosaic() {
+        let width = 10_u32;
+        let height = 8_u32;
+        let header = CanonCrxHeader::new(0x0100, width, height, 6, 6, 14, 0, 0, 0x70, 14).unwrap();
+        let placeholder = Band {
+            data_offset: 0,
+            data_size: 0,
+            padded_size: 0,
+        };
+        let make_plane = || Plane { band: placeholder };
+        let mut tiles = vec![
+            Tile {
+                row: 0,
+                col: 0,
+                width: 0,
+                height: 0,
+                planes: [make_plane(), make_plane(), make_plane(), make_plane()],
+            };
+            4
+        ];
+        super::assign_tile_dimensions(&mut tiles, &header).unwrap();
+
+        let mut decoded: Vec<(usize, usize, Vec<u16>)> = Vec::new();
+        for (tile_index, tile) in tiles.iter().enumerate() {
+            let pw = tile.width / 2;
+            let ph = tile.height / 2;
+            for plane_index in 0..super::PLANE_COUNT {
+                let samples: Vec<u16> = (0..pw * ph)
+                    .map(|i| {
+                        u16::try_from((tile_index * 1000 + plane_index * 100 + i) & 0x3fff).unwrap()
+                    })
+                    .collect();
+                decoded.push((tile_index, plane_index, samples));
+            }
+        }
+
+        let mut oracle = vec![0_u16; (width * height) as usize];
+        for (tile_index, plane_index, plane) in &decoded {
+            super::integrate_plane(
+                &mut oracle,
+                &tiles[*tile_index],
+                *plane_index,
+                plane,
+                &header,
+            )
+            .unwrap();
+        }
+
+        let mut parallel = vec![0_u16; (width * height) as usize];
+        super::integrate_planes_parallel(&mut parallel, &tiles, &decoded, &header).unwrap();
+        assert_eq!(parallel, oracle);
     }
 }
