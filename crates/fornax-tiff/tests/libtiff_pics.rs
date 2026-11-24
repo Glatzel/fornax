@@ -6,8 +6,7 @@ use std::path::{Path, PathBuf};
 use fornax_codec::EncodeCompression;
 use fornax_tiff::constants::{PlanarConfiguration, TiffTag};
 use fornax_tiff::{
-    TiffImage, TiffIoError, TiffWriteOptions, TypedTiffImage, WriteStorage, parse, read_tiff,
-    read_tiff_file, unsigned_scalar, write_tiff,
+    TiffImage, TiffIoError, TiffWriteOptions, TypedTiffImage, WriteStorage, parse, unsigned_scalar,
 };
 use image::DynamicImage;
 
@@ -150,7 +149,7 @@ fn libtiff_pics_corpus_decode_oracle_and_roundtrip() {
             meta.len()
         );
 
-        match read_tiff_file(path) {
+        match TiffImage::open(path) {
             Ok(img) => {
                 decoded_count += 1;
                 assert!(img.width() > 0 && img.height() > 0, "{rel}");
@@ -180,9 +179,9 @@ fn libtiff_pics_corpus_decode_oracle_and_roundtrip() {
                         .with_planar_configuration(PlanarConfiguration::Planar),
                 ] {
                     let mut buf = Cursor::new(Vec::new());
-                    write_tiff(&mut buf, &img, &options)
+                    img.write_to(&mut buf, &options)
                         .unwrap_or_else(|e| panic!("roundtrip write failed for {rel}: {e}"));
-                    let redecoded = read_tiff(buf.get_ref())
+                    let redecoded = TiffImage::from_bytes(buf.get_ref())
                         .unwrap_or_else(|e| panic!("roundtrip read failed for {rel}: {e}"));
                     assert_eq!(redecoded, img, "roundtrip mismatch for {rel}");
                 }

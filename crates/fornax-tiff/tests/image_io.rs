@@ -5,10 +5,7 @@ use std::io::Cursor;
 use fornax_codec::{EncodeCompression, Predictor};
 use fornax_core::{MonoImage, MultiPlaneImage, RgbImage, RgbaImage, UvImage};
 use fornax_tiff::constants::PlanarConfiguration;
-use fornax_tiff::{
-    TiffImage, TiffWriteOptions, TypedTiffImage, WriteStorage, parse, read_directory_planes,
-    read_tiff, write_tiff,
-};
+use fornax_tiff::{TiffImage, TiffWriteOptions, TiffWriter, TypedTiffImage, WriteStorage, parse};
 
 fn assert_tiff_image_bit_eq(actual: &TiffImage, expected: &TiffImage, context: &str) {
     match (actual, expected) {
@@ -186,10 +183,11 @@ fn full_matrix_round_trip_all_layouts_types_storages_and_codecs() {
                             .with_predictor(*predictor);
 
                         let mut buf = Cursor::new(Vec::new());
-                        write_tiff(&mut buf, image, &options)
+                        image
+                            .write_to(&mut buf, &options)
                             .unwrap_or_else(|e| panic!("write failed for {case}: {e}"));
 
-                        let decoded = read_tiff(buf.get_ref())
+                        let decoded = TiffImage::from_bytes(buf.get_ref())
                             .unwrap_or_else(|e| panic!("read failed for {case}: {e}"));
                         assert_tiff_image_bit_eq(&decoded, image, &case);
                     }
@@ -200,14 +198,17 @@ fn full_matrix_round_trip_all_layouts_types_storages_and_codecs() {
 }
 
 #[test]
-fn read_directory_planes_always_returns_multiplane() {
+fn decode_planes_and_writer_write_image_work() {
     let rgb = RgbImage::from_raw(3, 2, (0_u8..18).collect()).unwrap();
     let image = TiffImage::from(rgb);
     let mut buf = Cursor::new(Vec::new());
-    write_tiff(&mut buf, &image, &TiffWriteOptions::default()).unwrap();
+    TiffWriter::new(&mut buf)
+        .unwrap()
+        .write_image(&image, &TiffWriteOptions::default())
+        .unwrap();
 
     let parsed = parse(buf.get_ref()).unwrap();
-    let planes_img = read_directory_planes(&parsed, 0).unwrap();
+    let planes_img = parsed.decode_planes(0).unwrap();
     let TiffImage::U8(TypedTiffImage::MultiPlane(planes)) = planes_img else {
         panic!("expected U8 MultiPlane");
     };

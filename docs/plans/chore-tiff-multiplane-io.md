@@ -12,10 +12,10 @@ Extend `fornax-tiff` (behind its `raster` feature) to support general TIFF image
   - Arbitrary `byte_stride >= 1` for `Predictor::FloatingPoint` (e.g., `byte_stride = 3` for chunky RGB).
   - Fix partial final strip height in `deflate`, `lzw`, `packbits`, `zstd` decode and `encode_image` so partial final strips match TIFF 6.0 without padding errors.
 - `fornax-tiff`:
-  - Optional `fornax-core` dependency gated behind `raster`.
+  - Optional `fornax-core` and `image` dependencies gated behind `raster`.
   - `TiffTag::ExtraSamples`, `PlanarConfiguration`, `SampleFormatTag` constants, and `ParsedTiff::byte_order()`.
   - Planar-aware `RasterLayout` and TIFF 6.0 default `RowsPerStrip`.
-  - `io` module (`TypedTiffImage<T>`, `TiffImage`, `TiffIoError`, `TiffWriteOptions`, `WriteStorage`, `read_tiff`, `read_tiff_file`, `read_directory_image`, `read_directory_planes`, `write_tiff`, `write_tiff_file`).
+  - Unified image IO API across `image.rs`, `reader.rs`, and `writer.rs` (`TypedTiffImage<T>`, `TiffImage::{open, from_bytes, save, write_to}`, `TiffIoError`, `ParsedTiff::{decode_image, decode_planes}`, `TiffWriter::write_image`, `TiffWriteOptions`, `WriteStorage`).
   - Comprehensive synthetic round-trip matrix tests (`tests/image_io.rs`) and `external/libtiff-pics` corpus tests (`tests/libtiff_pics.rs`).
 - External submodule: `external/libtiff-pics` (`https://gitlab.com/libtiff/libtiff-pics.git`, shallow).
 

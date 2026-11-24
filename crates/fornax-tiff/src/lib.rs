@@ -11,18 +11,17 @@ use memmap2::Mmap;
 
 pub mod constants;
 #[cfg(feature = "raster")]
-mod io;
+mod image;
 mod parser;
 #[cfg(feature = "raster")]
 mod raster;
+#[cfg(feature = "raster")]
+mod reader;
 mod value;
 mod writer;
 
 #[cfg(feature = "raster")]
-pub use io::{
-    TiffImage, TiffIoError, TiffWriteOptions, TypedTiffImage, WriteStorage, read_directory_image,
-    read_directory_planes, read_tiff, read_tiff_file, write_tiff, write_tiff_file,
-};
+pub use image::{TiffImage, TiffIoError, TypedTiffImage};
 #[cfg(feature = "raster")]
 pub use raster::{
     RasterError, RasterLayout, RasterRequest, RasterStorage, TiffCompressionError,
@@ -33,6 +32,8 @@ pub use value::{
     unsigned_scalar, unsigned_vec, unsigned_vec_lookup,
 };
 pub use writer::{IntoValue, TiffDirectory, TiffWriter};
+#[cfg(feature = "raster")]
+pub use writer::{TiffWriteOptions, WriteStorage};
 
 /// A TIFF image file directory.
 pub type Directory = BTreeMap<Tag, Value>;
