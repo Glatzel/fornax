@@ -61,11 +61,11 @@ fn f64_bits(img: &TypedTiffImage<f64>) -> Vec<u64> {
     }
 }
 
-fn make_images_for_type<T: image::Primitive + Copy>(
+fn make_images_for_type<T>(
     w: u32,
     h: u32,
     make: impl Fn(usize) -> T,
-) -> Vec<(&'static str, TypedTiffImage<T>)> {
+) -> Vec<(&'static str, TypedTiffImage<T>)> where T: image::Primitive + Copy {
     let pixels = (w as usize) * (h as usize);
     let mono = MonoImage::from_raw(w, h, (0..pixels).map(&make).collect()).unwrap();
     let uv = UvImage::from_raw(w, h, (0..pixels * 2).map(&make).collect()).unwrap();
@@ -104,10 +104,10 @@ fn all_test_images(w: u32, h: u32) -> Vec<(String, TiffImage, bool)> {
     {
         out.push((format!("u32/{name}"), TiffImage::U32(img), false));
     }
-    for (name, img) in make_images_for_type(w, h, |i| (i as f32) * 0.125 - 3.5) {
+    for (name, img) in make_images_for_type(w, h, |i| (i as f32).mul_add(0.125, -3.5)) {
         out.push((format!("f32/{name}"), TiffImage::F32(img), true));
     }
-    for (name, img) in make_images_for_type(w, h, |i| (i as f64) * 0.0625 - 7.25) {
+    for (name, img) in make_images_for_type(w, h, |i| (i as f64).mul_add(0.0625, -7.25)) {
         out.push((format!("f64/{name}"), TiffImage::F64(img), true));
     }
     out

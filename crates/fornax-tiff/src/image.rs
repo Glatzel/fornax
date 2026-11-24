@@ -51,7 +51,7 @@ impl<T: image::Primitive> TypedTiffImage<T> {
     }
 
     /// Returns the number of channels (samples per pixel).
-    pub fn samples_per_pixel(&self) -> usize {
+    pub const fn samples_per_pixel(&self) -> usize {
         match self {
             Self::Mono(_) => 1,
             Self::Uv(_) => 2,
@@ -119,11 +119,11 @@ impl TiffImage {
     }
 
     /// Writes this image to a seekable writer using `options`.
-    pub fn write_to<W: Write + Seek>(
+    pub fn write_to<W>(
         &self,
         writer: W,
         options: &TiffWriteOptions,
-    ) -> Result<(), TiffIoError> {
+    ) -> Result<(), TiffIoError> where W: Write + Seek {
         TiffWriter::new(writer)?.write_image(self, options)
     }
 
@@ -160,7 +160,7 @@ impl TiffImage {
     }
 
     /// Returns the number of channels (samples per pixel).
-    pub fn samples_per_pixel(&self) -> usize {
+    pub const fn samples_per_pixel(&self) -> usize {
         match self {
             Self::U8(image) => image.samples_per_pixel(),
             Self::U16(image) => image.samples_per_pixel(),
@@ -269,15 +269,18 @@ impl From<std::io::Error> for TiffIoError {
     fn from(error: std::io::Error) -> Self { Self::Io(error) }
 }
 
-pub(crate) fn deinterleave_planes<T: image::Primitive>(
+pub fn deinterleave_planes<T>(
     width: u32,
     height: u32,
     samples_per_pixel: usize,
     interleaved: &[T],
-) -> Result<MultiPlaneImage<T>, TiffIoError> {
+) -> Result<MultiPlaneImage<T>, TiffIoError> where T: image::Primitive {
     let pixel_count = usize::try_from(width)
         .ok()
-        .and_then(|w| usize::try_from(height).ok().and_then(|h| w.checked_mul(h)))
+        .and_then(|w| {
+            let h = usize::try_from(height).ok()?;
+            w.checked_mul(h)
+        })
         .ok_or_else(|| TiffIoError::Invalid("pixel count overflow".into()))?;
     let mut planes = (0..samples_per_pixel)
         .map(|_| Vec::with_capacity(pixel_count))
@@ -296,7 +299,7 @@ pub(crate) fn deinterleave_planes<T: image::Primitive>(
         .collect()
 }
 
-pub(crate) fn interleave_planes<T: image::Primitive>(planes: &[MonoImage<T>]) -> Vec<T> {
+pub fn interleave_planes<T>(planes: &[MonoImage<T>]) -> Vec<T> where T: image::Primitive {
     let pixel_count = planes.first().map_or(0, |p| p.as_raw().len());
     let mut interleaved = Vec::with_capacity(pixel_count * planes.len());
     for idx in 0..pixel_count {

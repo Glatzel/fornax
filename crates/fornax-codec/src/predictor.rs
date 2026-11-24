@@ -602,7 +602,7 @@ mod tests {
             width as u32,
             height as u32,
             (0..width * height)
-                .map(|index| (index as f32) * 0.25 - 2.5)
+                .map(|index| (index as f32).mul_add(0.25, -2.5))
                 .collect(),
         )
         .unwrap();
