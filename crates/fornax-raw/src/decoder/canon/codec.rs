@@ -725,9 +725,10 @@ impl<'a> PlaneDecoder<'a> {
                 self.lines[1][self.line_pos] = 0;
             }
             let code = self.rice(true, PREDICT_K_MAX)?;
-            self.lines[1][self.line_pos] = self.lines[1][self.line_pos]
-                .checked_add(signed(code)?)
-                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            self.lines[1][self.line_pos] =
+                self.lines[1][self.line_pos]
+                    .checked_add(signed(code))
+                    .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
             remaining -= 1;
         }
@@ -735,7 +736,7 @@ impl<'a> PlaneDecoder<'a> {
             let code = self.rice(true, PREDICT_K_MAX)?;
             self.lines[1][self.line_pos] = self
                 .a()
-                .checked_add(signed(code)?)
+                .checked_add(signed(code))
                 .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
         }
@@ -744,6 +745,74 @@ impl<'a> PlaneDecoder<'a> {
     }
 
     fn decode_nontop_line(&mut self) -> Result<(), CodecError> {
+        let line_len = self.width + 2;
+        let [prev_vec, curr_vec] = &mut self.lines;
+        if prev_vec.len() < line_len || curr_vec.len() < line_len {
+            return Err(invalid("Canon CRX line buffer is truncated"));
+        }
+        let prev = &prev_vec[..line_len];
+        let curr = &mut curr_vec[..line_len];
+        let mut remaining = self.width;
+        let mut pos = 1_usize;
+        let mut a = prev[1];
+        curr[0] = a;
+
+        while remaining > 1 {
+            let window: [i32; 3] = prev[pos - 1..pos + 2]
+                .try_into()
+                .expect("three-element CRX context window is in bounds");
+            let [c, b, d] = window;
+            let (prediction, run_ended_midline, b_cur, d_cur) = if a == b && a == d {
+                if self.bits.read_bits(1)? == 1 {
+                    let count = run_count_bits(&mut self.bits, &mut self.s_param, remaining)?;
+                    if count > remaining {
+                        return Err(invalid("Canon CRX run exceeds line width"));
+                    }
+                    curr[pos..pos + count].fill(a);
+                    pos += count;
+                    remaining -= count;
+                    if remaining == 0 {
+                        break;
+                    }
+                }
+                (prev[pos], true, prev[pos], prev[pos + 1])
+            } else {
+                (med(a, b, c), false, b, d)
+            };
+            let _ = run_ended_midline;
+            let code = self.bits.rice_code(self.k)?;
+            let value = prediction
+                .checked_add(signed(code))
+                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            curr[pos] = value;
+            a = value;
+            if remaining > 1 {
+                let delta = d_cur.abs_diff(b_cur);
+                let combined = u32::try_from(u64::from(delta) * 2 + u64::from(code))
+                    .map_err(|_| invalid("Canon CRX K predictor overflow"))?;
+                predict_k_value(&mut self.k, combined >> 1, PREDICT_K_MAX);
+            } else {
+                predict_k_value(&mut self.k, code, PREDICT_K_MAX);
+            }
+            pos += 1;
+            remaining -= 1;
+        }
+        if remaining == 1 {
+            let prediction = med(a, prev[pos], prev[pos - 1]);
+            let code = self.bits.rice_code(self.k)?;
+            predict_k_value(&mut self.k, code, PREDICT_K_MAX);
+            curr[pos] = prediction
+                .checked_add(signed(code))
+                .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
+            pos += 1;
+        }
+        self.line_pos = pos;
+        self.finish_line()?;
+        Ok(())
+    }
+
+    #[cfg(test)]
+    fn decode_nontop_line_oracle(&mut self) -> Result<(), CodecError> {
         let mut remaining = self.width;
         self.lines[1][0] = self.b();
         while remaining > 1 {
@@ -767,7 +836,7 @@ impl<'a> PlaneDecoder<'a> {
             if remaining > 0 {
                 let code = self.rice(false, PREDICT_K_MAX)?;
                 self.lines[1][self.line_pos] = prediction
-                    .checked_add(signed(code)?)
+                    .checked_add(signed_oracle(code)?)
                     .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
                 if remaining > 1 {
                     let delta = i64::from(self.d()) - i64::from(self.b());
@@ -794,7 +863,7 @@ impl<'a> PlaneDecoder<'a> {
             let prediction = med(self.a(), self.b(), self.c());
             let code = self.rice(true, PREDICT_K_MAX)?;
             self.lines[1][self.line_pos] = prediction
-                .checked_add(signed(code)?)
+                .checked_add(signed_oracle(code)?)
                 .ok_or_else(|| invalid("Canon CRX line prediction overflow"))?;
             self.line_pos += 1;
         }
@@ -821,55 +890,70 @@ impl<'a> PlaneDecoder<'a> {
         Ok(value)
     }
 
-    fn predict_k(&mut self, value: u32, k_max: u32) {
-        let shifted = value.checked_shr(self.k).unwrap_or(0);
-        let mut next = self.k;
-        if shifted > 2 {
-            next = next.saturating_add(1);
-        }
-        if shifted > 5 {
-            next = next.saturating_add(1);
-        }
-        let half = 1_u32.checked_shl(self.k).unwrap_or(0) >> 1;
-        if value < half {
-            next = next.saturating_sub(1);
-        }
-        self.k = if k_max > 0 { next.min(k_max) } else { next };
-    }
+    fn predict_k(&mut self, value: u32, k_max: u32) { predict_k_value(&mut self.k, value, k_max); }
 
     fn run_count(&mut self, remaining: usize) -> Result<usize, CodecError> {
-        let mut count = 1_usize;
-        while count != remaining && self.bits.read_bits(1)? == 1 {
-            let shift = RUN_J[self.s_param];
-            count = count.saturating_add(1_usize.checked_shl(shift).unwrap_or(usize::MAX));
-            if count > remaining {
-                count = remaining;
-                break;
-            }
-            self.s_param = (self.s_param + 1).min(31);
-        }
-        if count < remaining {
-            let bits = RUN_J[self.s_param];
-            if bits > 0 {
-                let extra = self.bits.read_bits(
-                    u8::try_from(bits).map_err(|_| invalid("Canon CRX run bits exceed u8"))?,
-                )?;
-                count = count
-                    .checked_add(usize::try_from(extra).unwrap_or(usize::MAX))
-                    .ok_or_else(|| invalid("Canon CRX run count overflow"))?;
-            }
-            self.s_param = self.s_param.saturating_sub(1);
-            if count > remaining {
-                return Err(invalid("Canon CRX run exceeds remaining samples"));
-            }
-        }
-        Ok(count)
+        run_count_bits(&mut self.bits, &mut self.s_param, remaining)
     }
 
     fn a(&self) -> i32 { self.lines[1][self.line_pos - 1] }
+    #[cfg(test)]
     fn b(&self) -> i32 { self.lines[0][self.line_pos] }
+    #[cfg(test)]
     fn c(&self) -> i32 { self.lines[0][self.line_pos - 1] }
+    #[cfg(test)]
     fn d(&self) -> i32 { self.lines[0][self.line_pos + 1] }
+}
+
+#[inline(always)]
+fn predict_k_value(k: &mut u32, value: u32, k_max: u32) {
+    let cur = *k;
+    let shifted = value.checked_shr(cur).unwrap_or(0);
+    let mut next = cur;
+    if shifted > 2 {
+        next = next.saturating_add(1);
+    }
+    if shifted > 5 {
+        next = next.saturating_add(1);
+    }
+    let half = 1_u32.checked_shl(cur).unwrap_or(0) >> 1;
+    if value < half {
+        next = next.saturating_sub(1);
+    }
+    *k = if k_max > 0 { next.min(k_max) } else { next };
+}
+
+fn run_count_bits(
+    bits: &mut CrxBitReader<'_>,
+    s_param: &mut usize,
+    remaining: usize,
+) -> Result<usize, CodecError> {
+    let mut count = 1_usize;
+    while count != remaining && bits.read_bits(1)? == 1 {
+        let shift = RUN_J[*s_param];
+        count = count.saturating_add(1_usize.checked_shl(shift).unwrap_or(usize::MAX));
+        if count > remaining {
+            count = remaining;
+            break;
+        }
+        *s_param = (*s_param + 1).min(31);
+    }
+    if count < remaining {
+        let bit_count = RUN_J[*s_param];
+        if bit_count > 0 {
+            let extra = bits.read_bits(
+                u8::try_from(bit_count).map_err(|_| invalid("Canon CRX run bits exceed u8"))?,
+            )?;
+            count = count
+                .checked_add(usize::try_from(extra).unwrap_or(usize::MAX))
+                .ok_or_else(|| invalid("Canon CRX run count overflow"))?;
+        }
+        *s_param = s_param.saturating_sub(1);
+        if count > remaining {
+            return Err(invalid("Canon CRX run exceeds remaining samples"));
+        }
+    }
+    Ok(count)
 }
 
 struct CrxBitReader<'a> {
@@ -993,7 +1077,11 @@ impl<'a> CrxBitReader<'a> {
     }
 }
 
-fn signed(code: u32) -> Result<i32, CodecError> {
+#[inline(always)]
+const fn signed(code: u32) -> i32 { ((code >> 1) as i32) ^ -((code & 1) as i32) }
+
+#[cfg(test)]
+fn signed_oracle(code: u32) -> Result<i32, CodecError> {
     let magnitude = code >> 1;
     if magnitude > i32::MAX as u32 {
         return Err(invalid("Canon CRX signed coefficient exceeds i32"));
@@ -1010,6 +1098,7 @@ fn signed(code: u32) -> Result<i32, CodecError> {
     }
 }
 
+#[inline(always)]
 fn med(a: i32, b: i32, c: i32) -> i32 {
     if c >= a.max(b) {
         a.min(b)
@@ -1301,10 +1390,49 @@ mod tests {
 
     #[test]
     fn signed_codes_match_crx_sign_mapping() {
-        assert_eq!(signed(0).unwrap(), 0);
-        assert_eq!(signed(1).unwrap(), -1);
-        assert_eq!(signed(2).unwrap(), 1);
-        assert_eq!(signed(3).unwrap(), -2);
+        for code in [0_u32, 1, 2, 3, 42, 43, u32::MAX - 1, u32::MAX] {
+            assert_eq!(signed(code), signed_oracle(code).unwrap());
+        }
+        let mut state = 0x1234_5678_u32;
+        for _ in 0..1000 {
+            next_random(&mut state);
+            assert_eq!(signed(state), signed_oracle(state).unwrap());
+        }
+    }
+
+    #[test]
+    fn nontop_line_matches_oracle_across_runs_and_truncation() {
+        let bytes = [
+            0xaa_u8, 0xff, 0x01, 0x80, 0x55, 0xc3, 0x10, 0x00, 0x7f, 0x99, 0x42, 0xef, 0x11, 0x22,
+            0x33, 0x44,
+        ];
+        let mut prev = [0_i32; 16];
+        for (i, slot) in prev.iter_mut().enumerate() {
+            *slot = ((i * 7) % 15) as i32;
+        }
+        let width = prev.len() - 2;
+        let mut fast = PlaneDecoder::new(width, 2, &bytes);
+        let mut oracle = PlaneDecoder::new(width, 2, &bytes);
+        fast.lines[0].copy_from_slice(&prev);
+        oracle.lines[0].copy_from_slice(&prev);
+        fast.line_pos = 1;
+        oracle.line_pos = 1;
+        assert_eq!(
+            fast.decode_nontop_line(),
+            oracle.decode_nontop_line_oracle()
+        );
+        assert_eq!(fast.lines, oracle.lines);
+        assert_eq!(fast.k, oracle.k);
+        assert_eq!(fast.s_param, oracle.s_param);
+
+        let mut trunc_fast = PlaneDecoder::new(width, 2, &bytes[..1]);
+        let mut trunc_oracle = PlaneDecoder::new(width, 2, &bytes[..1]);
+        trunc_fast.lines[0].copy_from_slice(&prev);
+        trunc_oracle.lines[0].copy_from_slice(&prev);
+        assert_eq!(
+            trunc_fast.decode_nontop_line().is_err(),
+            trunc_oracle.decode_nontop_line_oracle().is_err()
+        );
     }
 
     #[test]
