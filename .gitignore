@@ -27,6 +27,7 @@ output
 *.png
 *.dng
 *.svg
+!crates/compare-demosaic/chart/*.svg
 converted
 
 # book build output
