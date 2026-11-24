@@ -347,7 +347,10 @@ impl HuffmanTable {
         None
     }
 
-    fn decode_difference_fast<B>(&self, bits: &mut B) -> i32 where B: FastBits {
+    fn decode_difference_fast<B>(&self, bits: &mut B) -> i32
+    where
+        B: FastBits,
+    {
         let index = usize::from(bits.peek_no_fill(FAST_HUFFMAN_LOOKAHEAD_BITS));
         let entry = self.fast_lookup[index];
         let length = entry.length();
@@ -371,14 +374,20 @@ impl HuffmanTable {
 
     #[cold]
     #[inline(never)]
-    fn decode_difference_fast_slow<B>(&self, bits: &mut B) -> i32 where B: FastBits {
+    fn decode_difference_fast_slow<B>(&self, bits: &mut B) -> i32
+    where
+        B: FastBits,
+    {
         let symbol = self.decode_symbol_fast_slow(bits);
         decode_difference_fast(symbol, bits)
     }
 
     #[cold]
     #[inline(never)]
-    fn decode_symbol_fast_slow<B>(&self, bits: &mut B) -> u8 where B: FastBits {
+    fn decode_symbol_fast_slow<B>(&self, bits: &mut B) -> u8
+    where
+        B: FastBits,
+    {
         let mut code = 0_u32;
         let mut first_code = 0_u32;
         let mut symbol_index = 0_usize;
@@ -1086,7 +1095,10 @@ fn decode_four_rows_direct_inner<B>(
     expected_width: usize,
     expected_height: usize,
     tile_rows: &mut [&mut [u16]],
-) -> Result<(), String> where B: FastBits {
+) -> Result<(), String>
+where
+    B: FastBits,
+{
     let [t0, t1, t2, t3] = [tables[0], tables[1], tables[2], tables[3]];
     let initial = 1_i32 << (frame.precision - 1);
     let mask = (1_u32 << frame.precision) - 1;
@@ -1272,7 +1284,10 @@ fn decode_scan_four_rows_inner<B>(
     output_width: usize,
     scratch: &mut FastRowScratch,
     mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
-) -> Result<(), String> where B: FastBits {
+) -> Result<(), String>
+where
+    B: FastBits,
+{
     if predictor != 1 || frame.components.len() != 4 || tables.len() != 4 {
         return Err("fast lossless JPEG four-component scan is invalid".to_owned());
     }
@@ -1821,7 +1836,9 @@ fn decode_one_comp_row<B>(
     mask: u32,
     col0: &mut i32,
     row: &mut [u16],
-) where B: FastBits {
+) where
+    B: FastBits,
+{
     let mut p0 = *col0;
     for slot in row.iter_mut() {
         bits.refill();
@@ -1842,7 +1859,9 @@ fn decode_two_comp_row<B>(
     mask: u32,
     col0: &mut [i32; 2],
     row: &mut [u16],
-) where B: FastBits {
+) where
+    B: FastBits,
+{
     let [mut p0, mut p1] = *col0;
     for pair in row.as_chunks_mut::<2>().0 {
         bits.refill();
@@ -1865,7 +1884,10 @@ fn decode_scan_direct_inner<B>(
     tables: &[&HuffmanTable],
     output_width: usize,
     output: &mut [u16],
-) -> Result<(), String> where B: FastBits {
+) -> Result<(), String>
+where
+    B: FastBits,
+{
     let components = frame.components.len();
     let expected_width = frame
         .width
@@ -1987,7 +2009,10 @@ fn decode_scan_rows_inner<B>(
     output_width: usize,
     scratch: &mut FastRowScratch,
     mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
-) -> Result<(), String> where B: FastBits {
+) -> Result<(), String>
+where
+    B: FastBits,
+{
     if predictor != 1 || !matches!(frame.components.len(), 1 | 2) {
         return Err("fast lossless JPEG row decode does not support this scan".to_owned());
     }
@@ -2060,7 +2085,10 @@ fn decode_scan_rows_generic_oracle<B>(
     output_width: usize,
     scratch: &mut FastRowScratch,
     mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
-) -> Result<(), String> where B: FastBits {
+) -> Result<(), String>
+where
+    B: FastBits,
+{
     if predictor != 1 || !matches!(frame.components.len(), 1 | 2) {
         return Err("fast lossless JPEG row decode does not support this scan".to_owned());
     }
@@ -2181,7 +2209,10 @@ fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String
     }
 }
 
-fn decode_difference_fast<B>(symbol: u8, bits: &mut B) -> i32 where B: FastBits {
+fn decode_difference_fast<B>(symbol: u8, bits: &mut B) -> i32
+where
+    B: FastBits,
+{
     match symbol {
         0 => 0,
         16 => -32_768,
