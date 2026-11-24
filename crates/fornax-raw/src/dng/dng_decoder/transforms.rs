@@ -5,8 +5,10 @@ use fornax_tiff::{DirectoryLookup, Tag, Value, unsigned_scalar};
 use num_traits::ToPrimitive;
 use rayon::prelude::*;
 
+use super::opcodes::SampleDomain;
 use super::{corrupt, unsigned_vec};
 use crate::RawMosaic;
+use crate::dng::constants::DngCompressionMethod;
 use crate::dng::metadata::DngTag;
 use crate::error::DecodeError;
 
@@ -147,6 +149,10 @@ where
         RawMosaic::F32(_) => SampleKind::F32,
     };
     let opcodes = super::opcodes::parse(&bytes)?;
+    let domain = sample_domain(kind, metadata);
+    if opcodes.is_exact_identity(domain, width, height) {
+        return Ok(pixels);
+    }
     match (kind, pixels) {
         (SampleKind::U8, RawMosaic::U8(image)) => {
             let source = image.into_raw();
@@ -202,11 +208,49 @@ where
     }
 }
 
+#[derive(Clone, Copy)]
 enum SampleKind {
     U8,
     U16,
     U32,
     F32,
+}
+
+fn sample_domain<D>(kind: SampleKind, metadata: &D) -> SampleDomain
+where
+    D: DirectoryLookup + ?Sized,
+{
+    let bits = unsigned_scalar(metadata.get(&Tag::from(TiffTag::BitsPerSample)));
+    let compression = unsigned_scalar(metadata.get(&Tag::from(TiffTag::Compression)));
+    // Only codecs that mask/unpack strictly to `bits` without post-mask point
+    // shifts guarantee `sample < (1 << bits)`. For JPEG XL, only `decode_u16`
+    // right-shifts values back down to `bits`; `decode_u8` does not shift.
+    let integer_bit_bounded =
+        compression.is_some_and(|id| matches!(id, 1 | 5 | 8 | 32_773 | 32_946 | 50_000));
+    match kind {
+        SampleKind::U8 => {
+            let max_sample = match bits {
+                Some(b) if integer_bit_bounded && (1..=8).contains(&b) => (1_u32 << b) - 1,
+                _ => u32::from(u8::MAX),
+            };
+            SampleDomain::Integer { max_sample }
+        }
+        SampleKind::U16 => {
+            let jxl_bounded =
+                compression == Some(u64::from(u16::from(DngCompressionMethod::JpegXl)));
+            let max_sample = match bits {
+                Some(b) if (integer_bit_bounded || jxl_bounded) && (1..=16).contains(&b) => {
+                    (1_u32 << b) - 1
+                }
+                _ => u32::from(u16::MAX),
+            };
+            SampleDomain::Integer { max_sample }
+        }
+        SampleKind::U32 => SampleDomain::Integer {
+            max_sample: MAX_EXACT_F32_INTEGER,
+        },
+        SampleKind::F32 => SampleDomain::Float,
+    }
 }
 
 fn convert_sample<T>(value: f32, maximum: T) -> Result<T, DecodeError>
@@ -575,5 +619,93 @@ mod tests {
         let actual = super::apply_zero_bad_pixels_constant(&source, width, height).unwrap();
 
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn identity_opcode_elision_matches_full_apply_and_preserves_errors() {
+        use fornax_core::MonoImage;
+        use fornax_tiff::constants::TiffTag;
+        use fornax_tiff::{Directory, Tag, Value};
+
+        use super::{apply_opcode_bands, apply_opcode_list1, convert_sample};
+        use crate::RawMosaic;
+
+        let mut table_bytes = Vec::new();
+        let table = (0_u16..1024).flat_map(u16::to_be_bytes).collect::<Vec<_>>();
+        table_bytes.extend_from_slice(&4_u32.to_be_bytes());
+        for (top, left) in [(0_u32, 0_u32), (0, 1), (1, 0), (1, 1)] {
+            table_bytes.extend_from_slice(&7_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&0x0103_0000_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&0_u32.to_be_bytes());
+            table_bytes.extend_from_slice(&u32::try_from(36 + table.len()).unwrap().to_be_bytes());
+            for v in [top, left, 8, 8, 0, 1, 2, 2, 1024] {
+                table_bytes.extend_from_slice(&v.to_be_bytes());
+            }
+            table_bytes.extend_from_slice(&table);
+        }
+
+        let mut metadata = Directory::default();
+        metadata.insert(Tag::from(TiffTag::Compression), Value::Short(1));
+        metadata.insert(Tag::from(TiffTag::BitsPerSample), Value::Short(10));
+        metadata.insert(
+            Tag::from(crate::dng::metadata::DngTag::OpcodeList1),
+            Value::Bytes(table_bytes.clone()),
+        );
+
+        let samples: Vec<u16> = (0..64).map(|i| (i * 17) & 0x3ff).collect();
+        let parsed = opcodes::parse(&table_bytes).unwrap();
+        assert!(parsed.is_exact_identity(
+            opcodes::SampleDomain::Integer { max_sample: 1023 },
+            8,
+            8
+        ));
+        // If samples could exceed table length (e.g. 16-bit container), it is
+        // NOT identity.
+        assert!(!parsed.is_exact_identity(
+            opcodes::SampleDomain::Integer { max_sample: 65535 },
+            8,
+            8
+        ));
+        assert!(!parsed.is_exact_identity(opcodes::SampleDomain::Float, 8, 8));
+
+        let expected = apply_opcode_bands(&samples, 8, 8, &parsed, f32::from, |v| {
+            convert_sample(v, u16::MAX)
+        })
+        .unwrap();
+        let mosaic = RawMosaic::U16(MonoImage::from_raw(8, 8, samples).unwrap());
+        let RawMosaic::U16(actual) = apply_opcode_list1(mosaic, &metadata).unwrap() else {
+            panic!("expected U16 mosaic");
+        };
+        assert_eq!(actual.into_raw(), expected);
+
+        // U32 > 2^24 must still error even when the opcode list is an identity.
+        let mut scale_one = Vec::new();
+        scale_one.extend_from_slice(&1_u32.to_be_bytes());
+        scale_one.extend_from_slice(&12_u32.to_be_bytes());
+        scale_one.extend_from_slice(&0x0103_0000_u32.to_be_bytes());
+        scale_one.extend_from_slice(&0_u32.to_be_bytes());
+        scale_one.extend_from_slice(&40_u32.to_be_bytes());
+        for v in [0_u32, 0, u32::MAX, u32::MAX, 0, 1, 1, 1, 1] {
+            scale_one.extend_from_slice(&v.to_be_bytes());
+        }
+        scale_one.extend_from_slice(&1.0_f32.to_bits().to_be_bytes());
+        metadata.insert(
+            Tag::from(crate::dng::metadata::DngTag::OpcodeList1),
+            Value::Bytes(scale_one),
+        );
+        let oversized = RawMosaic::U32(MonoImage::from_raw(1, 1, vec![(1 << 24) + 1]).unwrap());
+        assert!(apply_opcode_list1(oversized, &metadata).is_err());
+
+        // Float edge cases (-0.0, subnormals, NaN) must stay conservative and
+        // preserve full-apply behavior.
+        let f32_samples = [-0.0_f32, f32::from_bits(1), f32::NAN, 42.5];
+        let f32_mosaic = RawMosaic::F32(MonoImage::from_raw(4, 1, f32_samples.to_vec()).unwrap());
+        let RawMosaic::F32(f32_out) = apply_opcode_list1(f32_mosaic, &metadata).unwrap() else {
+            panic!("expected F32 mosaic");
+        };
+        assert!(f32_out.as_raw()[0].is_sign_negative());
+        assert_eq!(f32_out.as_raw()[1].to_bits(), 1);
+        assert!(f32_out.as_raw()[2].is_nan());
+        assert_eq!(f32_out.as_raw()[3], 42.5);
     }
 }
