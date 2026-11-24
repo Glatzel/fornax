@@ -1605,6 +1605,25 @@ fn decode_scan_prediction_one(
     output_width: usize,
     output: &mut [u16],
 ) -> Result<(), String> {
+    if point_transform == 0 && matches!(frame.components.len(), 1 | 2) {
+        if entropy.len() >= UNSTUFF_THRESHOLD_BYTES {
+            let unstuffed = unstuff_entropy_parallel(entropy)?;
+            return decode_scan_direct_inner(
+                UnstuffedBitReader::new(&unstuffed),
+                frame,
+                tables,
+                output_width,
+                output,
+            );
+        }
+        return decode_scan_direct_inner(
+            FastBitReader::new(entropy),
+            frame,
+            tables,
+            output_width,
+            output,
+        );
+    }
     decode_scan_rows(
         entropy,
         frame,
@@ -1618,6 +1637,91 @@ fn decode_scan_prediction_one(
             Ok(())
         },
     )
+}
+
+#[inline(always)]
+fn decode_one_comp_row<B: FastBits>(
+    bits: &mut B,
+    t0: &HuffmanTable,
+    mask: u32,
+    col0: &mut i32,
+    row: &mut [u16],
+) {
+    let mut p0 = *col0;
+    for slot in row.iter_mut() {
+        bits.refill();
+        let value = apply_difference(p0, t0.decode_difference_fast(bits), mask);
+        p0 = i32::from(value);
+        *slot = value;
+    }
+    if let Some(&first) = row.first() {
+        *col0 = i32::from(first);
+    }
+}
+
+#[inline(always)]
+fn decode_two_comp_row<B: FastBits>(
+    bits: &mut B,
+    t0: &HuffmanTable,
+    t1: &HuffmanTable,
+    mask: u32,
+    col0: &mut [i32; 2],
+    row: &mut [u16],
+) {
+    let [mut p0, mut p1] = *col0;
+    for pair in row.as_chunks_mut::<2>().0 {
+        bits.refill();
+        let v0 = apply_difference(p0, t0.decode_difference_fast(bits), mask);
+        p0 = i32::from(v0);
+        bits.refill();
+        let v1 = apply_difference(p1, t1.decode_difference_fast(bits), mask);
+        p1 = i32::from(v1);
+        pair[0] = v0;
+        pair[1] = v1;
+    }
+    if let [c0, c1, ..] = *row {
+        *col0 = [i32::from(c0), i32::from(c1)];
+    }
+}
+
+fn decode_scan_direct_inner<B: FastBits>(
+    mut bits: B,
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    output_width: usize,
+    output: &mut [u16],
+) -> Result<(), String> {
+    let components = frame.components.len();
+    let expected_width = frame
+        .width
+        .checked_mul(components)
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    if output_width != expected_width {
+        return Err("lossless JPEG row width does not match the frame".to_owned());
+    }
+    let initial = 1_i32 << (frame.precision - 1);
+    let mask = (1_u32 << frame.precision) - 1;
+    match components {
+        1 => {
+            let t0 = tables[0];
+            let mut col0 = initial;
+            for row in output.chunks_exact_mut(output_width).take(frame.height) {
+                decode_one_comp_row(&mut bits, t0, mask, &mut col0, row);
+            }
+        }
+        2 => {
+            let (t0, t1) = (tables[0], tables[1]);
+            let mut col0 = [initial; 2];
+            for row in output.chunks_exact_mut(output_width).take(frame.height) {
+                decode_two_comp_row(&mut bits, t0, t1, mask, &mut col0, row);
+            }
+        }
+        _ => return Err("fast lossless JPEG row decode does not support this scan".to_owned()),
+    }
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
+    }
+    Ok(())
 }
 
 fn decode_scan_rows(
@@ -1700,6 +1804,79 @@ fn decode_scan_rows_with_scratch(
 }
 
 fn decode_scan_rows_inner<B: FastBits>(
+    mut bits: B,
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    scratch: &mut FastRowScratch,
+    mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    if predictor != 1 || !matches!(frame.components.len(), 1 | 2) {
+        return Err("fast lossless JPEG row decode does not support this scan".to_owned());
+    }
+    let components = frame.components.len();
+    let expected_width = frame
+        .width
+        .checked_mul(components)
+        .ok_or_else(|| "lossless JPEG output width overflow".to_owned())?;
+    if output_width != expected_width {
+        return Err("lossless JPEG row width does not match the frame".to_owned());
+    }
+    let initial = 1_i32 << (frame.precision - point_transform - 1);
+    let mask = (1_u32 << frame.precision) - 1;
+    scratch.resize(output_width, point_transform != 0);
+
+    if point_transform == 0 && components == 2 {
+        let (t0, t1) = (tables[0], tables[1]);
+        let mut col0 = [initial; 2];
+        for row in 0..frame.height {
+            decode_two_comp_row(&mut bits, t0, t1, mask, &mut col0, &mut scratch.current);
+            sink(row, &scratch.current)?;
+        }
+    } else if point_transform == 0 && components == 1 {
+        let t0 = tables[0];
+        let mut col0 = initial;
+        for row in 0..frame.height {
+            decode_one_comp_row(&mut bits, t0, mask, &mut col0, &mut scratch.current);
+            sink(row, &scratch.current)?;
+        }
+    } else {
+        for row in 0..frame.height {
+            let mut predictions = [initial; 2];
+            if row != 0 {
+                for (prediction, &previous) in predictions.iter_mut().zip(&scratch.previous) {
+                    *prediction = i32::from(previous);
+                }
+            }
+            for (column, chunk) in scratch.current.chunks_exact_mut(components).enumerate() {
+                for (component, output) in chunk.iter_mut().enumerate() {
+                    let prediction = predictions[component];
+                    bits.refill();
+                    let value = apply_difference(
+                        prediction,
+                        tables[component].decode_difference_fast(&mut bits),
+                        mask,
+                    );
+                    *output = value;
+                    predictions[component] = i32::from(value);
+                    scratch.shifted[column * components + component] =
+                        value.wrapping_shl(u32::from(point_transform));
+                }
+            }
+            sink(row, &scratch.shifted)?;
+            std::mem::swap(&mut scratch.previous, &mut scratch.current);
+        }
+    }
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+fn decode_scan_rows_generic_oracle<B: FastBits>(
     mut bits: B,
     frame: &Frame,
     tables: &[&HuffmanTable],
@@ -2745,5 +2922,91 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(err, oracle_trunc);
+    }
+
+    #[test]
+    fn direct_one_and_two_component_scan_matches_oracle_across_widths_and_truncation() {
+        use super::{
+            FastRowScratch, decode_scan_prediction_one, decode_scan_rows,
+            decode_scan_rows_generic_oracle, parse_jpeg,
+        };
+
+        for components in [1_u8, 2_u8] {
+            for (width, height) in [(1_u16, 1_u16), (3, 4), (17, 9)] {
+                let count = usize::from(width) * usize::from(height) * usize::from(components);
+                let samples: Vec<u16> = (0..count)
+                    .map(|i| ((i * 613) ^ 0x1357) as u16 & 0x3fff)
+                    .collect();
+                let encoded =
+                    super::encode_interleaved_for_test(&samples, width, height, components, 14);
+                let parsed = parse_jpeg(&encoded, 14).unwrap();
+                let tables: Vec<_> = parsed
+                    .frame
+                    .components
+                    .iter()
+                    .map(|c| parsed.tables[c.huffman_table].as_ref().unwrap())
+                    .collect();
+                let row_w = usize::from(width) * usize::from(components);
+
+                let mut oracle_out = vec![0_u16; count];
+                let mut scratch = FastRowScratch::default();
+                decode_scan_rows_generic_oracle(
+                    FastBitReader::new(parsed.entropy),
+                    &parsed.frame,
+                    &tables,
+                    parsed.predictor,
+                    parsed.point_transform,
+                    row_w,
+                    &mut scratch,
+                    |r, s| {
+                        oracle_out[r * row_w..][..row_w].copy_from_slice(s);
+                        Ok(())
+                    },
+                )
+                .unwrap();
+
+                let mut direct_out = vec![0_u16; count];
+                decode_scan_prediction_one(
+                    parsed.entropy,
+                    &parsed.frame,
+                    &tables,
+                    parsed.point_transform,
+                    row_w,
+                    &mut direct_out,
+                )
+                .unwrap();
+                assert_eq!(direct_out, oracle_out);
+
+                let mut sink_out = vec![0_u16; count];
+                decode_scan_rows(
+                    parsed.entropy,
+                    &parsed.frame,
+                    &tables,
+                    parsed.predictor,
+                    parsed.point_transform,
+                    row_w,
+                    |r, s| {
+                        sink_out[r * row_w..][..row_w].copy_from_slice(s);
+                        Ok(())
+                    },
+                )
+                .unwrap();
+                assert_eq!(sink_out, oracle_out);
+
+                let truncated = &parsed.entropy[..parsed.entropy.len() / 2];
+                let mut trunc_out = vec![0_u16; count];
+                assert!(
+                    decode_scan_prediction_one(
+                        truncated,
+                        &parsed.frame,
+                        &tables,
+                        parsed.point_transform,
+                        row_w,
+                        &mut trunc_out,
+                    )
+                    .is_err()
+                );
+            }
+        }
     }
 }
