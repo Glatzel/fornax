@@ -22,6 +22,8 @@ const HUFFMAN_LOOKAHEAD_BITS: usize = 16;
 const FAST_HUFFMAN_LOOKAHEAD_BITS: usize = 10;
 const FAST_HUFFMAN_LOOKAHEAD_BITS_U8: u8 = 10;
 const FAST_HUFFMAN_LOOKAHEAD_SIZE: usize = 1 << FAST_HUFFMAN_LOOKAHEAD_BITS;
+const UNSTUFF_THRESHOLD_BYTES: usize = 1 << 20;
+const UNSTUFF_CHUNK_BYTES: usize = 4 * 1024 * 1024;
 
 pub fn decode(request: &DecodeRequest<'_>) -> Result<SampleBuffer, CodecError> {
     if request.sample_format != SampleFormat::Integer
@@ -345,7 +347,7 @@ impl HuffmanTable {
         None
     }
 
-    fn decode_difference_fast(&self, bits: &mut FastBitReader<'_>) -> i32 {
+    fn decode_difference_fast<B: FastBits>(&self, bits: &mut B) -> i32 {
         let index = usize::from(bits.peek_no_fill(FAST_HUFFMAN_LOOKAHEAD_BITS));
         let entry = self.fast_lookup[index];
         let length = entry.length();
@@ -358,7 +360,7 @@ impl HuffmanTable {
         }
 
         let symbol = entry.symbol();
-        let cache = bits.cache;
+        let cache = bits.cache_word();
         let raw = ((cache << length) >> 1) >> (63 - usize::from(symbol));
         bits.skip_no_fill(usize::from(length) + usize::from(symbol));
         let raw = i32::from_le_bytes(low_u32_from_u64(raw).to_le_bytes());
@@ -369,14 +371,14 @@ impl HuffmanTable {
 
     #[cold]
     #[inline(never)]
-    fn decode_difference_fast_slow(&self, bits: &mut FastBitReader<'_>) -> i32 {
+    fn decode_difference_fast_slow<B: FastBits>(&self, bits: &mut B) -> i32 {
         let symbol = self.decode_symbol_fast_slow(bits);
         decode_difference_fast(symbol, bits)
     }
 
     #[cold]
     #[inline(never)]
-    fn decode_symbol_fast_slow(&self, bits: &mut FastBitReader<'_>) -> u8 {
+    fn decode_symbol_fast_slow<B: FastBits>(&self, bits: &mut B) -> u8 {
         let mut code = 0_u32;
         let mut first_code = 0_u32;
         let mut symbol_index = 0_usize;
@@ -603,6 +605,263 @@ impl<'a> FastBitReader<'a> {
     }
 }
 
+trait FastBits {
+    fn refill(&mut self);
+    fn peek_no_fill(&self, count: usize) -> u16;
+    fn skip_no_fill(&mut self, count: usize);
+    fn cache_word(&self) -> u64;
+    fn record_error(&mut self, error: &'static str);
+    fn take_error(&mut self) -> Option<&'static str>;
+}
+
+impl FastBits for FastBitReader<'_> {
+    #[inline(always)]
+    fn refill(&mut self) { FastBitReader::refill(self); }
+
+    #[inline(always)]
+    fn peek_no_fill(&self, count: usize) -> u16 { FastBitReader::peek_no_fill(self, count) }
+
+    #[inline(always)]
+    fn skip_no_fill(&mut self, count: usize) { FastBitReader::skip_no_fill(self, count); }
+
+    #[inline(always)]
+    fn cache_word(&self) -> u64 { self.cache }
+
+    #[inline(always)]
+    fn record_error(&mut self, error: &'static str) { FastBitReader::record_error(self, error); }
+
+    fn take_error(&mut self) -> Option<&'static str> { FastBitReader::take_error(self) }
+}
+
+/// Unstuffs `0xFF 0x00` sequences across independent chunks and stops before
+/// the earliest real JPEG marker or dangling `0xFF`.
+///
+/// A byte `entropy[start]` is the stuffed `0x00` of chunk `c - 1`'s `0xFF` iff
+/// `entropy[start - 1] == 0xFF && entropy[start] == 0x00`; if `entropy[start -
+/// 2]` was also `0xFF`, chunk `c - 1` already stopped at `start - 2 < start`.
+struct UnstuffedEntropy {
+    storage: Vec<u8>,
+    spans: Vec<(usize, usize)>,
+}
+
+/// Unstuffs `0xFF 0x00` sequences across independent chunks and stops before
+/// the earliest real JPEG marker or dangling `0xFF`.
+///
+/// A byte `entropy[start]` is the stuffed `0x00` of chunk `c - 1`'s `0xFF` iff
+/// `entropy[start - 1] == 0xFF && entropy[start] == 0x00`; if `entropy[start -
+/// 2]` was also `0xFF`, chunk `c - 1` already stopped at `start - 2 < start`.
+fn unstuff_entropy_parallel(entropy: &[u8]) -> Result<UnstuffedEntropy, String> {
+    unstuff_entropy_with_chunk_size(entropy, UNSTUFF_CHUNK_BYTES)
+}
+
+fn unstuff_entropy_with_chunk_size(
+    entropy: &[u8],
+    chunk_size: usize,
+) -> Result<UnstuffedEntropy, String> {
+    if entropy.is_empty() {
+        return Ok(UnstuffedEntropy {
+            storage: Vec::new(),
+            spans: Vec::new(),
+        });
+    }
+    let chunk_size = chunk_size.max(1);
+    let mut storage = zeroed_samples::<u8>(entropy.len())
+        .map_err(|error| format!("lossless JPEG allocation: {error}"))?;
+    let chunk_meta: Vec<(usize, usize, bool)> = storage
+        .par_chunks_mut(chunk_size)
+        .enumerate()
+        .map(|(chunk_index, dst)| {
+            let start = chunk_index * chunk_size;
+            let chunk_end = start + dst.len();
+            let skip_first =
+                start > 0 && entropy[start - 1] == MARKER_PREFIX && entropy[start] == 0;
+            let mut pos = start + usize::from(skip_first);
+            let mut out_pos = 0_usize;
+            let mut stopped = false;
+
+            while pos + 8 <= chunk_end {
+                let bytes: [u8; 8] = entropy[pos..pos + 8]
+                    .try_into()
+                    .expect("eight-byte unstuff window is in bounds");
+                dst[out_pos..out_pos + 8].copy_from_slice(&bytes);
+                let word = u64::from_le_bytes(bytes);
+                let has_ff =
+                    (!word).wrapping_sub(0x0101_0101_0101_0101) & word & 0x8080_8080_8080_8080;
+                if has_ff == 0 {
+                    out_pos += 8;
+                    pos += 8;
+                } else {
+                    let ff_offset = (has_ff.trailing_zeros() as usize) >> 3;
+                    let ff_pos = pos + ff_offset;
+                    if entropy.get(ff_pos + 1) == Some(&0) {
+                        out_pos += ff_offset + 1;
+                        pos = ff_pos + 2;
+                    } else {
+                        out_pos += ff_offset;
+                        stopped = true;
+                        break;
+                    }
+                }
+            }
+            if !stopped {
+                while pos < chunk_end {
+                    let byte = entropy[pos];
+                    if byte != MARKER_PREFIX {
+                        dst[out_pos] = byte;
+                        out_pos += 1;
+                        pos += 1;
+                    } else if entropy.get(pos + 1) == Some(&0) {
+                        dst[out_pos] = MARKER_PREFIX;
+                        out_pos += 1;
+                        pos += 2;
+                    } else {
+                        stopped = true;
+                        break;
+                    }
+                }
+            }
+            (start, out_pos, stopped)
+        })
+        .collect();
+
+    let mut spans = Vec::with_capacity(chunk_meta.len());
+    for (start, len, stopped) in chunk_meta {
+        if len > 0 {
+            spans.push((start, start + len));
+        }
+        if stopped {
+            break;
+        }
+    }
+    Ok(UnstuffedEntropy { storage, spans })
+}
+
+struct UnstuffedBitReader<'a> {
+    storage: &'a [u8],
+    spans: &'a [(usize, usize)],
+    span_index: usize,
+    current: &'a [u8],
+    position: usize,
+    cache: u64,
+    buffered_bits: usize,
+    real_bits_loaded: usize,
+    synthetic_bits_loaded: usize,
+    error: Option<&'static str>,
+}
+
+impl<'a> UnstuffedBitReader<'a> {
+    fn new(unstuffed: &'a UnstuffedEntropy) -> Self {
+        let current = unstuffed
+            .spans
+            .first()
+            .map_or(&[][..], |&(start, end)| &unstuffed.storage[start..end]);
+        Self {
+            storage: &unstuffed.storage,
+            spans: &unstuffed.spans,
+            span_index: 0,
+            current,
+            position: 0,
+            cache: 0,
+            buffered_bits: 0,
+            real_bits_loaded: 0,
+            synthetic_bits_loaded: 0,
+            error: None,
+        }
+    }
+
+    #[inline(always)]
+    fn refill(&mut self) {
+        if self.buffered_bits >= 32 {
+            return;
+        }
+        if let Some(bytes) = self
+            .current
+            .get(self.position..)
+            .and_then(|s| s.first_chunk::<8>())
+        {
+            let word = u64::from_be_bytes(*bytes);
+            self.cache |= word >> self.buffered_bits;
+            let taken = (63 - self.buffered_bits) >> 3;
+            self.position += taken;
+            self.buffered_bits += taken * 8;
+            self.real_bits_loaded += taken * 8;
+            return;
+        }
+        self.refill_tail();
+    }
+
+    #[cold]
+    #[inline(never)]
+    fn refill_tail(&mut self) {
+        while self.buffered_bits < 32 {
+            let (byte, valid) = self.next_byte();
+            let shift = 64 - self.buffered_bits - 8;
+            self.cache |= u64::from(byte) << shift;
+            self.buffered_bits += 8;
+            if valid {
+                self.real_bits_loaded += 8;
+            } else {
+                self.synthetic_bits_loaded += 8;
+            }
+        }
+    }
+
+    fn next_byte(&mut self) -> (u8, bool) {
+        loop {
+            if let Some(&byte) = self.current.get(self.position) {
+                self.position += 1;
+                return (byte, true);
+            }
+            self.span_index += 1;
+            let Some(&(start, end)) = self.spans.get(self.span_index) else {
+                self.current = &[];
+                return (0, false);
+            };
+            self.current = &self.storage[start..end];
+            self.position = 0;
+        }
+    }
+}
+
+impl FastBits for UnstuffedBitReader<'_> {
+    #[inline(always)]
+    fn refill(&mut self) { UnstuffedBitReader::refill(self); }
+
+    #[inline(always)]
+    fn peek_no_fill(&self, count: usize) -> u16 {
+        debug_assert!(count != 0 && count <= self.buffered_bits && count <= 16);
+        low_u16_from_u64(self.cache >> (64 - count))
+    }
+
+    #[inline(always)]
+    fn skip_no_fill(&mut self, count: usize) {
+        debug_assert!(count <= self.buffered_bits);
+        self.cache <<= count;
+        self.buffered_bits -= count;
+    }
+
+    #[inline(always)]
+    fn cache_word(&self) -> u64 { self.cache }
+
+    #[inline(always)]
+    fn record_error(&mut self, error: &'static str) {
+        if self.error.is_none() {
+            self.error = Some(error);
+        }
+    }
+
+    fn take_error(&mut self) -> Option<&'static str> {
+        let consumed = self.real_bits_loaded + self.synthetic_bits_loaded - self.buffered_bits;
+        let error = if consumed > self.real_bits_loaded {
+            Some("lossless JPEG bitstream is exhausted")
+        } else {
+            self.error
+        };
+        self.error = None;
+        error
+    }
+}
+
 struct HeaderReader<'a> {
     bytes: &'a [u8],
     position: usize,
@@ -799,6 +1058,44 @@ fn decode_scan_four_rows_with_scratch(
     point_transform: u8,
     output_width: usize,
     scratch: &mut FastRowScratch,
+    sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    if entropy.len() >= UNSTUFF_THRESHOLD_BYTES {
+        let unstuffed = unstuff_entropy_parallel(entropy)?;
+        let bits = UnstuffedBitReader::new(&unstuffed);
+        decode_scan_four_rows_inner(
+            bits,
+            frame,
+            tables,
+            predictor,
+            point_transform,
+            output_width,
+            scratch,
+            sink,
+        )
+    } else {
+        let bits = FastBitReader::new(entropy);
+        decode_scan_four_rows_inner(
+            bits,
+            frame,
+            tables,
+            predictor,
+            point_transform,
+            output_width,
+            scratch,
+            sink,
+        )
+    }
+}
+
+fn decode_scan_four_rows_inner<B: FastBits>(
+    mut bits: B,
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    scratch: &mut FastRowScratch,
     mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
 ) -> Result<(), String> {
     if predictor != 1 || frame.components.len() != 4 || tables.len() != 4 {
@@ -814,7 +1111,6 @@ fn decode_scan_four_rows_with_scratch(
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let mask = (1_u32 << frame.precision) - 1;
     scratch.resize(output_width, point_transform != 0);
-    let mut bits = FastBitReader::new(entropy);
 
     if point_transform == 0 {
         for row in 0..frame.height {
@@ -1373,6 +1669,44 @@ fn decode_scan_rows_with_scratch(
     point_transform: u8,
     output_width: usize,
     scratch: &mut FastRowScratch,
+    sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
+) -> Result<(), String> {
+    if entropy.len() >= UNSTUFF_THRESHOLD_BYTES {
+        let unstuffed = unstuff_entropy_parallel(entropy)?;
+        let bits = UnstuffedBitReader::new(&unstuffed);
+        decode_scan_rows_inner(
+            bits,
+            frame,
+            tables,
+            predictor,
+            point_transform,
+            output_width,
+            scratch,
+            sink,
+        )
+    } else {
+        let bits = FastBitReader::new(entropy);
+        decode_scan_rows_inner(
+            bits,
+            frame,
+            tables,
+            predictor,
+            point_transform,
+            output_width,
+            scratch,
+            sink,
+        )
+    }
+}
+
+fn decode_scan_rows_inner<B: FastBits>(
+    mut bits: B,
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    predictor: u8,
+    point_transform: u8,
+    output_width: usize,
+    scratch: &mut FastRowScratch,
     mut sink: impl FnMut(usize, &[u16]) -> Result<(), String>,
 ) -> Result<(), String> {
     if predictor != 1 || !matches!(frame.components.len(), 1 | 2) {
@@ -1389,7 +1723,6 @@ fn decode_scan_rows_with_scratch(
     let initial = 1_i32 << (frame.precision - point_transform - 1);
     let mask = (1_u32 << frame.precision) - 1;
     scratch.resize(output_width, point_transform != 0);
-    let mut bits = FastBitReader::new(entropy);
 
     for row in 0..frame.height {
         let mut predictions = [initial; 2];
@@ -1496,7 +1829,7 @@ fn decode_difference(symbol: u8, bits: &mut BitReader<'_>) -> Result<i32, String
     }
 }
 
-fn decode_difference_fast(symbol: u8, bits: &mut FastBitReader<'_>) -> i32 {
+fn decode_difference_fast<B: FastBits>(symbol: u8, bits: &mut B) -> i32 {
     match symbol {
         0 => 0,
         16 => -32_768,
@@ -2292,5 +2625,125 @@ mod tests {
             fresh[fresh.len() / 2].as_secs_f64() * 1_000.0,
             reused[reused.len() / 2].as_secs_f64() * 1_000.0,
         );
+    }
+
+    #[test]
+    fn unstuffed_reader_matches_fast_bit_reader_across_boundaries_and_errors() {
+        use super::{
+            FastBits, FastRowScratch, UnstuffedBitReader, decode_scan_rows_inner, parse_jpeg,
+            unstuff_entropy_with_chunk_size,
+        };
+
+        // Case 1: byte-for-byte / bit-for-bit boundary checks against
+        // FastBitReader.
+        let streams: [&[u8]; 7] = [
+            &[],
+            &[0xff],
+            &[0xff, 0x00, 0xab, 0xff, 0x00, 0xcd],
+            &[0x12, 0x34, 0xff, 0x00, 0x56, 0xff, 0xd9, 0xaa, 0xbb],
+            &[0x12, 0xff, 0xff, 0x00, 0x34, 0x56],
+            &[0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff, 0x00, 0x11, 0xff],
+            &[
+                1, 2, 3, 4, 5, 6, 7, 0xff, 0x00, 8, 9, 10, 11, 12, 13, 14, 15, 0xff, 0x00, 0xff,
+                0x00, 0x42, 0xff, 0xc4, 0x99,
+            ],
+        ];
+        for stream in streams {
+            for chunk_size in [1, 2, 7, 8, 9, 16, 64] {
+                let chunks = unstuff_entropy_with_chunk_size(stream, chunk_size).unwrap();
+                let mut oracle = FastBitReader::new(stream);
+                let mut fast = UnstuffedBitReader::new(&chunks);
+                for _ in 0..(stream.len() * 2 + 8) {
+                    oracle.refill();
+                    fast.refill();
+                    assert_eq!(
+                        fast.peek_no_fill(16),
+                        oracle.peek_no_fill(16),
+                        "chunk_size={chunk_size} stream={stream:02x?}"
+                    );
+                    oracle.skip_no_fill(5);
+                    fast.skip_no_fill(5);
+                    assert_eq!(fast.take_error(), oracle.take_error());
+                }
+            }
+        }
+
+        // Case 2: full 2-component scan decode equivalence (valid, truncated,
+        // invalid).
+        let width = 64_u16;
+        let height = 32_u16;
+        let samples: Vec<u16> = (0..usize::from(width) * usize::from(height) * 2)
+            .map(|i| ((i * 977) ^ 0x2a5a) as u16 & 0x3fff)
+            .collect();
+        let encoded = super::encode_interleaved_for_test(&samples, width, height, 2, 14);
+        let parsed = parse_jpeg(&encoded, 14).unwrap();
+        let tables: Vec<_> = parsed
+            .frame
+            .components
+            .iter()
+            .map(|c| parsed.tables[c.huffman_table].as_ref().unwrap())
+            .collect();
+
+        let decode_oracle = |entropy: &[u8]| {
+            let mut scratch = FastRowScratch::default();
+            let mut out = vec![0_u16; samples.len()];
+            let row_w = usize::from(width) * 2;
+            let res = decode_scan_rows_inner(
+                FastBitReader::new(entropy),
+                &parsed.frame,
+                &tables,
+                parsed.predictor,
+                parsed.point_transform,
+                row_w,
+                &mut scratch,
+                |r, s| {
+                    out[r * row_w..][..row_w].copy_from_slice(s);
+                    Ok(())
+                },
+            );
+            res.map(|()| out)
+        };
+        let oracle_ok = decode_oracle(parsed.entropy).unwrap();
+        assert_eq!(oracle_ok, samples);
+
+        for chunk_size in [1, 7, 8, 9, 17, 64] {
+            let chunks = unstuff_entropy_with_chunk_size(parsed.entropy, chunk_size).unwrap();
+            let mut scratch = FastRowScratch::default();
+            let mut out = vec![0_u16; samples.len()];
+            let row_w = usize::from(width) * 2;
+            decode_scan_rows_inner(
+                UnstuffedBitReader::new(&chunks),
+                &parsed.frame,
+                &tables,
+                parsed.predictor,
+                parsed.point_transform,
+                row_w,
+                &mut scratch,
+                |r, s| {
+                    out[r * row_w..][..row_w].copy_from_slice(s);
+                    Ok(())
+                },
+            )
+            .unwrap();
+            assert_eq!(out, oracle_ok, "chunk_size={chunk_size}");
+        }
+
+        let trunc_len = parsed.entropy.len() / 2;
+        let truncated = &parsed.entropy[..trunc_len];
+        let oracle_trunc = decode_oracle(truncated).unwrap_err();
+        let chunks = unstuff_entropy_with_chunk_size(truncated, 7).unwrap();
+        let mut scratch = FastRowScratch::default();
+        let err = decode_scan_rows_inner(
+            UnstuffedBitReader::new(&chunks),
+            &parsed.frame,
+            &tables,
+            parsed.predictor,
+            parsed.point_transform,
+            usize::from(width) * 2,
+            &mut scratch,
+            |_, _| Ok(()),
+        )
+        .unwrap_err();
+        assert_eq!(err, oracle_trunc);
     }
 }
