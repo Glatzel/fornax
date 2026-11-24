@@ -632,9 +632,10 @@ mod image_write {
         }
     }
 
-    fn typed_to_interleaved<T>(
-        typed: &TypedTiffImage<T>,
-    ) -> Result<Vec<T>, TiffIoError> where T: image::Primitive {
+    fn typed_to_interleaved<T>(typed: &TypedTiffImage<T>) -> Result<Vec<T>, TiffIoError>
+    where
+        T: image::Primitive,
+    {
         match typed {
             TypedTiffImage::Mono(img) => Ok(img.as_raw().clone()),
             TypedTiffImage::Uv(img) => Ok(img.as_raw().clone()),
@@ -647,9 +648,10 @@ mod image_write {
         }
     }
 
-    fn typed_to_planes<T>(
-        typed: &TypedTiffImage<T>,
-    ) -> Result<Vec<MonoImage<T>>, TiffIoError> where T: image::Primitive {
+    fn typed_to_planes<T>(typed: &TypedTiffImage<T>) -> Result<Vec<MonoImage<T>>, TiffIoError>
+    where
+        T: image::Primitive,
+    {
         match typed {
             TypedTiffImage::Mono(img) => Ok(vec![img.clone()]),
             TypedTiffImage::Uv(img) => {
@@ -668,9 +670,10 @@ mod image_write {
         }
     }
 
-    fn validate_multiplane_dimensions<T>(
-        planes: &[MonoImage<T>],
-    ) -> Result<(), TiffIoError> where T: image::Primitive {
+    fn validate_multiplane_dimensions<T>(planes: &[MonoImage<T>]) -> Result<(), TiffIoError>
+    where
+        T: image::Primitive,
+    {
         let first = planes
             .first()
             .ok_or_else(|| TiffIoError::Invalid("multi-plane image has no planes".into()))?;

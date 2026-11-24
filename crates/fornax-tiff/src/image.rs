@@ -113,7 +113,10 @@ impl TiffImage {
     }
 
     /// Decodes the root directory of a TIFF file at `path`.
-    pub fn open<P>(path: P) -> Result<Self, TiffIoError> where P: AsRef<Path> {
+    pub fn open<P>(path: P) -> Result<Self, TiffIoError>
+    where
+        P: AsRef<Path>,
+    {
         let source = TiffSource::from_path(path.as_ref())?;
         crate::parse_source(source)?.decode_image(0)
     }
@@ -127,11 +130,10 @@ impl TiffImage {
     }
 
     /// Writes this image to a file at `path` using `options`.
-    pub fn save<P>(
-        &self,
-        path: P,
-        options: &TiffWriteOptions,
-    ) -> Result<(), TiffIoError> where P: AsRef<Path> {
+    pub fn save<P>(&self, path: P, options: &TiffWriteOptions) -> Result<(), TiffIoError>
+    where
+        P: AsRef<Path>,
+    {
         let file = File::create(path.as_ref())?;
         self.write_to(BufWriter::new(file), options)
     }

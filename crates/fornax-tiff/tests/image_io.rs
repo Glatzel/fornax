@@ -65,7 +65,10 @@ fn make_images_for_type<T>(
     w: u32,
     h: u32,
     make: impl Fn(usize) -> T,
-) -> Vec<(&'static str, TypedTiffImage<T>)> where T: image::Primitive + Copy {
+) -> Vec<(&'static str, TypedTiffImage<T>)>
+where
+    T: image::Primitive + Copy,
+{
     let pixels = (w as usize) * (h as usize);
     let mono = MonoImage::from_raw(w, h, (0..pixels).map(&make).collect()).unwrap();
     let uv = UvImage::from_raw(w, h, (0..pixels * 2).map(&make).collect()).unwrap();
