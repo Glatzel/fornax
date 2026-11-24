@@ -970,31 +970,16 @@ fn decode_interleaved_impl(
     })
 }
 
-/// Streams four-component predictor-one scan rows without retaining a decoded
-/// image.
-///
-/// The callback receives each interleaved JPEG row. Returns `Ok(false)` when
-/// the scan does not meet the four-component fast-path contract.
-///
-/// # Errors
-///
-/// Returns an error when the JPEG stream, scan geometry, or Huffman data is
-/// invalid.
-#[doc(hidden)]
-pub fn decode_interleaved_rows<F>(
-    source: &[u8],
+fn parse_four_component_scan<'a>(
+    source: &'a [u8],
     expected_precision: u8,
     expected_width: usize,
     expected_height: usize,
-    mut sink: F,
-) -> Result<bool, String>
-where
-    F: FnMut(usize, &[u16]) -> Result<(), String>,
-{
+) -> Result<Option<(ParsedJpeg<'a>, usize)>, String> {
     let parsed = parse_jpeg(source, expected_precision)?;
     let components = parsed.frame.components.len();
     if parsed.predictor != 1 || components != 4 || parsed.point_transform != 0 {
-        return Ok(false);
+        return Ok(None);
     }
     let decoded_width = parsed
         .frame
@@ -1026,7 +1011,16 @@ where
             parsed.frame.width, parsed.frame.height
         ));
     }
-    let tables = parsed
+    for component in &parsed.frame.components {
+        if parsed.tables[component.huffman_table].is_none() {
+            return Err("lossless JPEG references a missing Huffman table".to_owned());
+        }
+    }
+    Ok(Some((parsed, decoded_width)))
+}
+
+fn scan_tables<'a>(parsed: &'a ParsedJpeg<'_>) -> Result<Vec<&'a HuffmanTable>, String> {
+    parsed
         .frame
         .components
         .iter()
@@ -1035,7 +1029,188 @@ where
                 .as_ref()
                 .ok_or_else(|| "lossless JPEG references a missing Huffman table".to_owned())
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect()
+}
+
+/// Decodes four-component predictor-one scan rows directly into Bayer tile row
+/// slices without an intermediate row buffer or per-row callback.
+///
+/// Returns `Ok(false)` when the scan does not meet the four-component
+/// fast-path contract.
+///
+/// # Errors
+///
+/// Returns an error when the JPEG stream, scan geometry, or Huffman data is
+/// invalid.
+#[doc(hidden)]
+pub fn decode_interleaved_four_into_rows(
+    source: &[u8],
+    expected_precision: u8,
+    expected_width: usize,
+    expected_height: usize,
+    tile_rows: &mut [&mut [u16]],
+) -> Result<bool, String> {
+    let Some((parsed, _)) =
+        parse_four_component_scan(source, expected_precision, expected_width, expected_height)?
+    else {
+        return Ok(false);
+    };
+    let tables = scan_tables(&parsed)?;
+    if parsed.entropy.len() >= UNSTUFF_THRESHOLD_BYTES {
+        let unstuffed = unstuff_entropy_parallel(parsed.entropy)?;
+        decode_four_rows_direct_inner(
+            UnstuffedBitReader::new(&unstuffed),
+            &parsed.frame,
+            &tables,
+            expected_width,
+            expected_height,
+            tile_rows,
+        )?;
+    } else {
+        decode_four_rows_direct_inner(
+            FastBitReader::new(parsed.entropy),
+            &parsed.frame,
+            &tables,
+            expected_width,
+            expected_height,
+            tile_rows,
+        )?;
+    }
+    Ok(true)
+}
+
+fn decode_four_rows_direct_inner<B: FastBits>(
+    mut bits: B,
+    frame: &Frame,
+    tables: &[&HuffmanTable],
+    expected_width: usize,
+    expected_height: usize,
+    tile_rows: &mut [&mut [u16]],
+) -> Result<(), String> {
+    let [t0, t1, t2, t3] = [tables[0], tables[1], tables[2], tables[3]];
+    let initial = 1_i32 << (frame.precision - 1);
+    let mask = (1_u32 << frame.precision) - 1;
+    let mut col0 = [initial; 4];
+    let full_tile = tile_rows.len() == expected_height
+        && tile_rows.iter().all(|row| row.len() == expected_width);
+
+    if full_tile {
+        for [even, odd] in tile_rows.as_chunks_mut::<2>().0 {
+            let [mut p0, mut p1, mut p2, mut p3] = col0;
+            for (ep, op) in even
+                .as_chunks_mut::<2>()
+                .0
+                .iter_mut()
+                .zip(odd.as_chunks_mut::<2>().0.iter_mut())
+            {
+                bits.refill();
+                let v0 = apply_difference(p0, t0.decode_difference_fast(&mut bits), mask);
+                p0 = i32::from(v0);
+                bits.refill();
+                let v1 = apply_difference(p1, t1.decode_difference_fast(&mut bits), mask);
+                p1 = i32::from(v1);
+                bits.refill();
+                let v2 = apply_difference(p2, t2.decode_difference_fast(&mut bits), mask);
+                p2 = i32::from(v2);
+                bits.refill();
+                let v3 = apply_difference(p3, t3.decode_difference_fast(&mut bits), mask);
+                p3 = i32::from(v3);
+                ep[0] = v0;
+                ep[1] = v1;
+                op[0] = v2;
+                op[1] = v3;
+            }
+            if let ([e0, e1, ..], [o0, o1, ..]) = (&**even, &**odd) {
+                col0 = [
+                    i32::from(*e0),
+                    i32::from(*e1),
+                    i32::from(*o0),
+                    i32::from(*o1),
+                ];
+            }
+        }
+    } else {
+        for row in 0..frame.height {
+            let [mut p0, mut p1, mut p2, mut p3] = col0;
+            let row_base = row * 2;
+            let (mut even_opt, mut odd_opt) = if row_base + 1 < tile_rows.len() {
+                let (head, tail) = tile_rows.split_at_mut(row_base + 1);
+                (Some(&mut *head[row_base]), Some(&mut *tail[0]))
+            } else if row_base < tile_rows.len() {
+                (Some(&mut *tile_rows[row_base]), None)
+            } else {
+                (None, None)
+            };
+            for col in 0..frame.width {
+                bits.refill();
+                let v0 = apply_difference(p0, t0.decode_difference_fast(&mut bits), mask);
+                p0 = i32::from(v0);
+                bits.refill();
+                let v1 = apply_difference(p1, t1.decode_difference_fast(&mut bits), mask);
+                p1 = i32::from(v1);
+                bits.refill();
+                let v2 = apply_difference(p2, t2.decode_difference_fast(&mut bits), mask);
+                p2 = i32::from(v2);
+                bits.refill();
+                let v3 = apply_difference(p3, t3.decode_difference_fast(&mut bits), mask);
+                p3 = i32::from(v3);
+                if col == 0 {
+                    col0 = [i32::from(v0), i32::from(v1), i32::from(v2), i32::from(v3)];
+                }
+                let x = col * 2;
+                if let Some(even) = even_opt.as_deref_mut()
+                    && let Some(slot) = even.get_mut(x)
+                {
+                    *slot = v0;
+                    if let Some(slot1) = even.get_mut(x + 1) {
+                        *slot1 = v1;
+                    }
+                }
+                if let Some(odd) = odd_opt.as_deref_mut()
+                    && let Some(slot) = odd.get_mut(x)
+                {
+                    *slot = v2;
+                    if let Some(slot1) = odd.get_mut(x + 1) {
+                        *slot1 = v3;
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(error) = bits.take_error() {
+        return Err(error.to_owned());
+    }
+    Ok(())
+}
+
+/// Streams four-component predictor-one scan rows without retaining a decoded
+/// image.
+///
+/// The callback receives each interleaved JPEG row. Returns `Ok(false)` when
+/// the scan does not meet the four-component fast-path contract.
+///
+/// # Errors
+///
+/// Returns an error when the JPEG stream, scan geometry, or Huffman data is
+/// invalid.
+#[doc(hidden)]
+pub fn decode_interleaved_rows<F>(
+    source: &[u8],
+    expected_precision: u8,
+    expected_width: usize,
+    expected_height: usize,
+    mut sink: F,
+) -> Result<bool, String>
+where
+    F: FnMut(usize, &[u16]) -> Result<(), String>,
+{
+    let Some((parsed, decoded_width)) =
+        parse_four_component_scan(source, expected_precision, expected_width, expected_height)?
+    else {
+        return Ok(false);
+    };
+    let tables = scan_tables(&parsed)?;
     let mut scratch = FastRowScratch::default();
     decode_scan_four_rows_with_scratch(
         parsed.entropy,
@@ -3008,5 +3183,72 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn direct_four_component_row_pair_decode_matches_oracle_across_full_and_partial_tiles() {
+        let frame_w = 8_u16;
+        let frame_h = 5_u16;
+        let tile_w = usize::from(frame_w) * 2;
+        let tile_h = usize::from(frame_h) * 2;
+        let samples: Vec<u16> = (0..usize::from(frame_w) * usize::from(frame_h) * 4)
+            .map(|i| ((i * 541) ^ 0x1a2b) as u16 & 0x3fff)
+            .collect();
+        let encoded = super::encode_interleaved_for_test(&samples, frame_w, frame_h, 4, 14);
+
+        for (crop_w, crop_h) in [(tile_w, tile_h), (tile_w - 3, tile_h - 1), (1, 1)] {
+            let mut oracle_buf = vec![0_u16; crop_w * crop_h];
+            let mut oracle_rows: Vec<&mut [u16]> = oracle_buf.chunks_mut(crop_w).collect();
+            assert!(
+                decode_interleaved_rows(&encoded, 14, tile_w, tile_h, |row, row_samples| {
+                    for (output_row, comp) in [0, 2].into_iter().enumerate() {
+                        let out_r = row * 2 + output_row;
+                        if let Some(target) = oracle_rows.get_mut(out_r) {
+                            let pixels = row_samples.as_chunks::<4>().0;
+                            let (pairs, tail) = target.as_chunks_mut::<2>();
+                            for (pair, pixel) in pairs.iter_mut().zip(pixels) {
+                                pair[0] = pixel[comp];
+                                pair[1] = pixel[comp + 1];
+                            }
+                            if let (Some(v), Some(pixel)) =
+                                (tail.first_mut(), pixels.get(pairs.len()))
+                            {
+                                *v = pixel[comp];
+                            }
+                        }
+                    }
+                    Ok(())
+                })
+                .unwrap()
+            );
+
+            let mut direct_buf = vec![0_u16; crop_w * crop_h];
+            let mut direct_rows: Vec<&mut [u16]> = direct_buf.chunks_mut(crop_w).collect();
+            assert!(
+                super::decode_interleaved_four_into_rows(
+                    &encoded,
+                    14,
+                    tile_w,
+                    tile_h,
+                    &mut direct_rows,
+                )
+                .unwrap()
+            );
+            assert_eq!(direct_buf, oracle_buf, "crop={crop_w}x{crop_h}");
+        }
+
+        let truncated = &encoded[..encoded.len() - 4];
+        let mut trunc_buf = vec![0_u16; tile_w * tile_h];
+        let mut trunc_rows: Vec<&mut [u16]> = trunc_buf.chunks_mut(tile_w).collect();
+        assert!(
+            super::decode_interleaved_four_into_rows(
+                truncated,
+                14,
+                tile_w,
+                tile_h,
+                &mut trunc_rows,
+            )
+            .is_err()
+        );
     }
 }
