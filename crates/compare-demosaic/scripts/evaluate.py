@@ -21,7 +21,7 @@ from skimage.metrics import structural_similarity
 CRATE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = CRATE_DIR.parent.parent
 DEFAULT_TEMP_DIR = REPO_ROOT / "temp" / "compare-demosaic"
-DEFAULT_DATA_DIR = DEFAULT_TEMP_DIR
+DEFAULT_DATA_DIR = DEFAULT_TEMP_DIR / "data"
 DEFAULT_README_PATH = CRATE_DIR / "README.md"
 
 ALL_METHODS = ("linear", "ppg")
