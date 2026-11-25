@@ -42,5 +42,5 @@ jobs:
           path: |
             crates/compare-demosaic/README.md
             temp/compare-demosaic/
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: error
