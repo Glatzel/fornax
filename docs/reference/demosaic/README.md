@@ -12,9 +12,9 @@ availability.
 | --- | --- | --- |
 | [`Linear`](linear.md) | Ready; done | Supported bilinear baseline |
 | Modern LibRaw/darktable [`PPG`](ppg.md) | Ready; done | Supported PPG formulation |
+| [`RCD`](rcd.md) | Ready; done | Supported linear-light RCD 2.3 formulation |
+| [`LMMSE`](lmmse.md) | Ready; done | Supported linear-light Zhang-Wu LMMSE formulation |
 | `AMaZE` | Not ready | Implemented and selectable; follow-up work remains |
-| `RCD` | Not ready | Conversion details and regression coverage remain |
-| `LMMSE` | Not ready | Gamma-workspace compatibility variant remains |
 | `VNG` | Not ready | Implemented and selectable; follow-up work remains |
 | `VNG4` | Not ready | Implemented and selectable; follow-up work remains |
 | Malvar-He-Cutler | Tier -1 | Reference only; never implement |
@@ -43,32 +43,14 @@ eligibility.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | [Original Pixel Grouping](ppg.md#sources) | Eligible | Yes | No | Yes | Yes; monotonic ratio branch has no pole | Yes | Not separately implemented |
 | [Modern LibRaw/darktable PPG](ppg.md#algorithm) | Eligible | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Ppg` |
-| [RCD 2.3](rcd.md) | Convertible | Yes | No | Yes with scale-relative tolerances | Needs a defined denominator fallback | Yes | Implemented with most conversion work completed |
-| [Zhang-Wu LMMSE](lmmse.md) | Convertible | Yes | No | Yes with a relative variance floor | Yes | Yes | Not the current default formulation |
-| [darktable-compatible LMMSE](lmmse.md#current-fornax-behavior) | Conditional | Encoded workspace, decoded output | No, but globally scale-normalized | Yes through normalization | Yes through odd transfer extension | Yes | Current `Demosaic::Lmmse` |
+| [RCD 2.3](rcd.md) | Ready | Yes | No | Yes (tile-normalized) | Yes (zero-crossing fallback) | Yes | Ready as `Demosaic::Rcd` |
+| [Zhang-Wu LMMSE](lmmse.md) | Ready | Yes | No | Yes (tile-normalized) | Yes | Yes | Ready as `Demosaic::Lmmse` |
 
 ## Algorithms to remove
 
 None of the three Tier 1 mathematical families is fundamentally ineligible.
 MHC remains useful reference research, but its patent and source-license risk
 place it below the implementation tiers.
-
-This is not a recommendation to retain every current implementation unchanged.
-The following implementation claims must change:
-
-- Canonical LMMSE must not be described as operating in a gamma domain.
-- The current gamma-domain LMMSE must not be the unqualified canonical
-  formulation.
-- RCD must not rely on a fixed reference epsilon at signed ratio
-  singularities.
-
-## Algorithms that require named variants
-
-- **`LMMSE-darktable` or equivalent:** the current gamma-workspace, PPG-seeded,
-  median/refinement-compatible path may survive only as an explicitly named
-  compatibility variant.
-- **`PixelGrouping`:** historical only. Modern `PPG` is sufficient and a
-  separate original-formulation selector is not planned.
 
 ## Mandatory implementation changes
 
@@ -82,47 +64,29 @@ The following implementation claims must change:
 - Readiness complete: keep the modern equations and linear-light arithmetic.
 - Horizontal-first and diagonal-tie behavior are compatibility contracts.
 
-### Original Pixel Grouping
-
-- Not planned. The equations remain historical context for the ambiguous
-  `PPG` name.
-
 ### RCD
 
-- Replace fixed/reference-domain tolerances with scale-relative values.
-- Define a finite fallback when `L_0 + L_2` crosses zero.
-- Keep only discrimination-weight clamps in `[0,1]`; remove RGB range clamps.
-- Test signed low-pass cancellation, HDR, scaling, and `f64` behavior.
+- Readiness complete: linear-light RCD 2.3 with symmetric `epssq` energy
+  floors, parity-accurate diagonal HPF indexing, and sign-safe ratio / additive
+  zero-crossing fallback.
 
-### Canonical LMMSE
+### Zhang-Wu LMMSE
 
-- Evaluate directional estimates, local variances, fusion, and
-  color-difference reconstruction directly on linear samples.
-- Replace fixed variance additions with a scale-relative floor.
-- Define the zero-variance and all-zero fallback.
-- Preserve signed values and HDR range without a nonlinear intermediate.
-
-### darktable-compatible LMMSE
-
-- Rename or otherwise isolate its gamma-workspace behavior.
-- Keep the reversible transfer, PPG seed, bounded difference policies, median
-  passes, and refinement passes outside the canonical LMMSE claim.
+- Readiness complete: linear-light Zhang-Wu LMMSE with tile-normalized variance
+  floor, parity-preserving reflected halos, and configurable `LmmseOptions`.
 
 ## Unresolved research questions
 
-- What finite fallback should RCD use at a signed ratio denominator crossing?
-- What scale-relative variance floor preserves Zhang-Wu behavior in `f32`?
-- Should canonical linear LMMSE become the default while darktable compatibility
-  remains a named selector?
-- Which independent references replace the removed custom comparison harness?
+None for Linear, PPG, RCD, or LMMSE. Remaining `Not ready` algorithms
+(`AMaZE`, `VNG`, `VNG4`) are tracked separately.
 
 ## Individual reports
 
 - [Linear demosaicing readiness](linear.md)
 - [Malvar-He-Cutler eligibility](mhc.md)
-- [Patterned pixel grouping eligibility](ppg.md)
-- [Ratio-corrected demosaicing eligibility](rcd.md)
-- [Directional LMMSE eligibility](lmmse.md)
+- [Patterned pixel grouping readiness](ppg.md)
+- [Ratio-corrected demosaicing readiness](rcd.md)
+- [Directional LMMSE readiness](lmmse.md)
 
 ## Other implementation notes
 

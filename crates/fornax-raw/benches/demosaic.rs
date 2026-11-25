@@ -20,7 +20,7 @@ fn selected_algorithm() -> Vec<(String, Demosaic)> {
                 "linear" => Demosaic::Linear,
                 "lmmse" => Demosaic::lmmse(),
                 "ppg" => Demosaic::Ppg,
-                "rcd" => Demosaic::Rcd,
+                "rcd" => Demosaic::rcd(),
                 "vng" => Demosaic::Vng,
                 "vng4" => Demosaic::Vng4,
                 _ => panic!("Unknown demosaic algorithm: {name}"),

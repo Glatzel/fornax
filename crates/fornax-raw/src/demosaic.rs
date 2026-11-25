@@ -27,39 +27,106 @@ use crate::{BayerPattern, MonoImage, RawFloat};
 /// Selects a Bayer demosaic implementation and its behavioral parameters.
 ///
 /// Every implementation accepts normalized scene-linear samples and returns
-/// normalized linear RGB. LMMSE interpolates in an analytic gamma-encoded
-/// workspace and decodes its output.
+/// normalized linear RGB without clamping to `[0, 1]`.
 ///
 /// # Examples
 ///
 /// ```
 /// use fornax_raw::demosaic::Demosaic;
 ///
-/// assert_eq!(Demosaic::default(), Demosaic::Rcd);
+/// assert_eq!(Demosaic::default(), Demosaic::rcd());
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Demosaic {
     /// Aliasing minimization and zipper elimination.
     Amaze,
     /// Bilinear interpolation.
     Linear,
     /// Linear minimum mean-square-error demosaicing.
-    Lmmse {
-        /// Median and refinement passes from darktable's mode parameter.
-        mode: LmmseMode,
-    },
+    Lmmse(LmmseOptions),
     /// Patterned pixel grouping.
     Ppg,
     /// Ratio-corrected demosaicing.
-    #[default]
-    Rcd,
+    Rcd(RcdOptions),
     /// Variable-number-of-gradients demosaicing.
     Vng,
     /// Split-green VNG demosaicing.
     Vng4,
 }
 
-/// Selects darktable-compatible LMMSE median and refinement passes.
+impl Default for Demosaic {
+    fn default() -> Self { Self::rcd() }
+}
+
+/// Configuration for [`Demosaic::Rcd`].
+///
+/// # Examples
+///
+/// ```
+/// use fornax_raw::demosaic::RcdOptions;
+///
+/// assert_eq!(
+///     RcdOptions::default().tile_size,
+///     RcdOptions::DEFAULT_TILE_SIZE
+/// );
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct RcdOptions {
+    /// Square tile size (including the 10-pixel border halo on each side).
+    /// Must be even and at least 22.
+    pub tile_size: usize,
+}
+
+impl RcdOptions {
+    /// Default square tile size (`112`).
+    pub const DEFAULT_TILE_SIZE: usize = 112;
+
+    /// Default RCD options (`tile_size: 112`).
+    pub const DEFAULT: Self = Self {
+        tile_size: Self::DEFAULT_TILE_SIZE,
+    };
+}
+
+impl Default for RcdOptions {
+    fn default() -> Self { Self::DEFAULT }
+}
+
+/// Configuration for [`Demosaic::Lmmse`].
+///
+/// # Examples
+///
+/// ```
+/// use fornax_raw::demosaic::{LmmseMode, LmmseOptions};
+///
+/// let opts = LmmseOptions::default();
+/// assert_eq!(opts.mode, LmmseMode::Median);
+/// assert_eq!(opts.tile_size, LmmseOptions::DEFAULT_TILE_SIZE);
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LmmseOptions {
+    /// Post-interpolation median and refinement pass selection.
+    pub mode: LmmseMode,
+    /// Square tile size (including the reflected border halo on each side).
+    /// Must be even and large enough for the selected `mode` halo.
+    pub tile_size: usize,
+}
+
+impl LmmseOptions {
+    /// Default square tile size (`136`).
+    pub const DEFAULT_TILE_SIZE: usize = 136;
+
+    /// Default LMMSE options (`mode: LmmseMode::Median`, `tile_size: 136`).
+    pub const DEFAULT: Self = Self {
+        mode: LmmseMode::Median,
+        tile_size: Self::DEFAULT_TILE_SIZE,
+    };
+}
+
+impl Default for LmmseOptions {
+    fn default() -> Self { Self::DEFAULT }
+}
+
+/// Selects LMMSE median and edge-directed refinement passes.
 ///
 /// # Examples
 ///
@@ -70,37 +137,40 @@ pub enum Demosaic {
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum LmmseMode {
-    /// Uses the PPG seed and interpolation without a median or refinement pass.
+    /// Directional LMMSE interpolation without median or refinement passes.
     Basic,
-    /// Applies one median pass, matching darktable mode 1.
+    /// Applies one 3x3 color-difference median pass.
     #[default]
     Median,
-    /// Applies three median passes without refinement.
+    /// Applies three 3x3 color-difference median passes without refinement.
     ThreeMedians,
-    /// Applies three median passes followed by the given refinement passes.
+    /// Applies three median passes followed by the given number of refinement
+    /// passes.
     Refine(NonZeroU8),
 }
 
 impl Demosaic {
-    /// Returns LMMSE with its default one-median-pass mode.
+    /// Returns RCD with its default tile size (`112`).
     ///
     /// # Examples
     ///
     /// ```
-    /// use fornax_raw::demosaic::{Demosaic, LmmseMode};
+    /// use fornax_raw::demosaic::{Demosaic, RcdOptions};
     ///
-    /// assert_eq!(
-    ///     Demosaic::lmmse(),
-    ///     Demosaic::Lmmse {
-    ///         mode: LmmseMode::Median,
-    ///     }
-    /// );
+    /// assert_eq!(Demosaic::rcd(), Demosaic::Rcd(RcdOptions::DEFAULT));
     /// ```
-    pub const fn lmmse() -> Self {
-        Self::Lmmse {
-            mode: LmmseMode::Median,
-        }
-    }
+    pub const fn rcd() -> Self { Self::Rcd(RcdOptions::DEFAULT) }
+
+    /// Returns LMMSE with its default options (`Median`, `tile_size: 136`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_raw::demosaic::{Demosaic, LmmseOptions};
+    ///
+    /// assert_eq!(Demosaic::lmmse(), Demosaic::Lmmse(LmmseOptions::DEFAULT));
+    /// ```
+    pub const fn lmmse() -> Self { Self::Lmmse(LmmseOptions::DEFAULT) }
 }
 
 pub enum AnyLazy<'a, T: RawFloat> {
@@ -157,11 +227,13 @@ impl<T: RawFloat + Send + Sync> IDemosaic<T> for Demosaic {
         Ok(match self {
             Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
-            Self::Lmmse { mode } => {
-                AnyLazy::Lmmse(DemosaicLmmse.lazy_with_mode(bayer, pattern, *mode)?)
+            Self::Lmmse(options) => {
+                AnyLazy::Lmmse(DemosaicLmmse.lazy_with_options(bayer, pattern, *options)?)
             }
             Self::Ppg => AnyLazy::Ppg(DemosaicPpg.lazy(bayer, pattern)?),
-            Self::Rcd => AnyLazy::Rcd(DemosaicRcd.lazy(bayer, pattern)?),
+            Self::Rcd(options) => {
+                AnyLazy::Rcd(DemosaicRcd.lazy_with_options(bayer, pattern, *options)?)
+            }
             Self::Vng => AnyLazy::Vng(DemosaicVng.lazy(bayer, pattern)?),
             Self::Vng4 => AnyLazy::Vng4(DemosaicVng.lazy(bayer, pattern)?),
         })
@@ -181,9 +253,7 @@ mod rust_algorithm_tests {
         Demosaic::Vng,
         Demosaic::Vng4,
         Demosaic::Amaze,
-        Demosaic::Lmmse {
-            mode: LmmseMode::Median,
-        },
+        Demosaic::lmmse(),
     ];
 
     #[test]
@@ -196,11 +266,9 @@ mod rust_algorithm_tests {
             let algorithms = [
                 Demosaic::Amaze,
                 Demosaic::Linear,
-                Demosaic::Lmmse {
-                    mode: LmmseMode::Median,
-                },
+                Demosaic::lmmse(),
                 Demosaic::Ppg,
-                Demosaic::Rcd,
+                Demosaic::rcd(),
                 Demosaic::Vng,
                 Demosaic::Vng4,
             ];
@@ -229,9 +297,10 @@ mod rust_algorithm_tests {
         );
         assert_eq!(
             Demosaic::lmmse(),
-            Demosaic::Lmmse {
-                mode: LmmseMode::Median
-            }
+            Demosaic::Lmmse(LmmseOptions {
+                mode: LmmseMode::Median,
+                tile_size: LmmseOptions::DEFAULT_TILE_SIZE,
+            })
         );
         Ok(())
     }

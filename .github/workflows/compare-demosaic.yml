@@ -28,7 +28,7 @@ jobs:
       - uses: prefix-dev/setup-pixi@9936258fee697aff89b3fed6ca1f80a382ef694e # v0.11.3
         with:
           run-install: false
-      - uses: Glatzel/template/.github/actions/rust/setup-rust@30e739f98054a90001752326e4ba90918f10d895 # v2026.11.4
+      - uses: Glatzel/template/.github/actions/rust/setup-rust@6851c894419045fb3731d2643deba6b8faef3e82 # v2026.11.6
       - name: Install compare-demosaic environment
         run: pixi install -e compare-demosaic
       - name: Run demosaic comparison
