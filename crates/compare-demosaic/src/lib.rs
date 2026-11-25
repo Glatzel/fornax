@@ -17,17 +17,23 @@ pub enum ProductionMethod {
     Linear,
     /// Modern LibRaw/darktable patterned pixel grouping (PPG).
     Ppg,
+    /// Linear-light ratio-corrected demosaicing (RCD).
+    Rcd,
+    /// Linear-light Zhang-Wu directional LMMSE demosaicing.
+    Lmmse,
 }
 
 impl ProductionMethod {
     /// All production-ready demosaicing methods in canonical order.
-    pub const ALL: [Self; 2] = [Self::Linear, Self::Ppg];
+    pub const ALL: [Self; 4] = [Self::Linear, Self::Ppg, Self::Rcd, Self::Lmmse];
 
     /// Stable lowercase identifier used for directory names and reports.
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Linear => "linear",
             Self::Ppg => "ppg",
+            Self::Rcd => "rcd",
+            Self::Lmmse => "lmmse",
         }
     }
 
@@ -36,6 +42,8 @@ impl ProductionMethod {
         match self {
             Self::Linear => Demosaic::Linear,
             Self::Ppg => Demosaic::Ppg,
+            Self::Rcd => Demosaic::rcd(),
+            Self::Lmmse => Demosaic::lmmse(),
         }
     }
 }
@@ -43,12 +51,16 @@ impl ProductionMethod {
 /// CLI selector for demosaicing methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum MethodSelection {
-    /// Run all production-ready methods (`linear`, `ppg`).
+    /// Run all production-ready methods (`linear`, `ppg`, `rcd`, `lmmse`).
     All,
     /// Run bilinear demosaicing (`linear`).
     Linear,
     /// Run patterned pixel grouping (`ppg`).
     Ppg,
+    /// Run ratio-corrected demosaicing (`rcd`).
+    Rcd,
+    /// Run directional LMMSE demosaicing (`lmmse`).
+    Lmmse,
 }
 
 /// CLI arguments for `compare-demosaic`.
@@ -59,7 +71,8 @@ pub enum MethodSelection {
     styles = clap_style::styles(),
 )]
 pub struct CliArgs {
-    /// Demosaicing method(s) to run (`linear`, `ppg`, or `all`).
+    /// Demosaicing method(s) to run (`linear`, `ppg`, `rcd`, `lmmse`, or
+    /// `all`).
     #[arg(long, value_enum, value_delimiter = ',', default_value = "all")]
     pub method: Vec<MethodSelection>,
 
@@ -106,6 +119,8 @@ pub fn resolve_methods(selections: &[MethodSelection]) -> Vec<ProductionMethod> 
             MethodSelection::All => unreachable!(),
             MethodSelection::Linear => ProductionMethod::Linear,
             MethodSelection::Ppg => ProductionMethod::Ppg,
+            MethodSelection::Rcd => ProductionMethod::Rcd,
+            MethodSelection::Lmmse => ProductionMethod::Lmmse,
         };
         if !resolved.contains(&method) {
             resolved.push(method);
@@ -197,15 +212,20 @@ mod tests {
     fn resolve_methods_handles_all_and_dedup() {
         assert_eq!(
             resolve_methods(&[MethodSelection::All]),
-            vec![ProductionMethod::Linear, ProductionMethod::Ppg]
+            vec![
+                ProductionMethod::Linear,
+                ProductionMethod::Ppg,
+                ProductionMethod::Rcd,
+                ProductionMethod::Lmmse,
+            ]
         );
         assert_eq!(
             resolve_methods(&[MethodSelection::Ppg, MethodSelection::Ppg]),
             vec![ProductionMethod::Ppg]
         );
         assert_eq!(
-            resolve_methods(&[MethodSelection::Ppg, MethodSelection::Linear]),
-            vec![ProductionMethod::Ppg, ProductionMethod::Linear]
+            resolve_methods(&[MethodSelection::Rcd, MethodSelection::Lmmse]),
+            vec![ProductionMethod::Rcd, ProductionMethod::Lmmse]
         );
     }
 
@@ -218,6 +238,14 @@ mod tests {
     #[case(ProductionMethod::Ppg, BayerPattern::BGGR)]
     #[case(ProductionMethod::Ppg, BayerPattern::GRBG)]
     #[case(ProductionMethod::Ppg, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Rcd, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Rcd, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Rcd, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Rcd, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Lmmse, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Lmmse, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Lmmse, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Lmmse, BayerPattern::GBRG)]
     fn demosaic_tiff_preserves_unclamped_float_range(
         #[case] method: ProductionMethod,
         #[case] pattern: BayerPattern,

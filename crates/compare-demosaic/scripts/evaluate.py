@@ -24,7 +24,7 @@ DEFAULT_TEMP_DIR = REPO_ROOT / "temp" / "compare-demosaic"
 DEFAULT_DATA_DIR = DEFAULT_TEMP_DIR / "data"
 DEFAULT_README_PATH = CRATE_DIR / "README.md"
 
-ALL_METHODS = ("linear", "ppg")
+ALL_METHODS = ("linear", "ppg", "rcd", "lmmse")
 ROI_MARGIN = 4  # Trim 4px inside each 448x448 ROI to avoid border/label edge effects
 
 README_START = "<!-- compare-demosaic-results:start -->"

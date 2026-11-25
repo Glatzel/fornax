@@ -56,10 +56,10 @@ reference, and active planning documentation.
 | [DHT reference notes](reference/demosaic/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [Linear readiness](reference/demosaic/linear.md) | Bilinear reconstruction, border behavior, and fixed snapshot coverage. |
 | [MHC Tier -1 research](reference/demosaic/mhc.md) | Source equations and the reference-only patent/license disposition. |
-| [LMMSE reference notes](reference/demosaic/lmmse.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [LMMSE readiness](reference/demosaic/lmmse.md) | Linear-light Zhang-Wu LMMSE equations, tile options, and verification. |
 | [PPG readiness](reference/demosaic/ppg.md) | Modern formulation provenance, equations, readiness, and fixed snapshot coverage. |
 | [RawTherapee reference notes](reference/demosaic/rawtherapee.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [RCD eligibility](reference/demosaic/rcd.md) | Source equations, ratio singularities, and conversion requirements. |
+| [RCD readiness](reference/demosaic/rcd.md) | Linear-light RCD 2.3 equations, signed zero-crossing rule, and tile options. |
 | [VNG reference notes](reference/demosaic/vng.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [TIFF-Family Compression ID Ownership](reference/codecs/compression-ids.md) | Ownership of TIFF-family compression identifiers. |
 | [Corpus Losslessness Classification](reference/codecs/lossless-classification.md) | Provenance and conservative corpus compression boundaries. |

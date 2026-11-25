@@ -288,7 +288,7 @@ fn parse_demosaic(name: &str) -> Result<Demosaic, ConfigError> {
         "linear" => Ok(Demosaic::Linear),
         "lmmse" => Ok(Demosaic::lmmse()),
         "ppg" => Ok(Demosaic::Ppg),
-        "rcd" => Ok(Demosaic::Rcd),
+        "rcd" => Ok(Demosaic::rcd()),
         "vng" => Ok(Demosaic::Vng),
         "vng4" => Ok(Demosaic::Vng4),
         _ => Err(ConfigError::UnknownDemosaic(name.to_owned())),
