@@ -399,17 +399,17 @@ mod tests {
         }
     }
 
-    fn seeded_mosaic<T: RawFloat>(
+    fn seeded_mosaic<T>(
         width: u32,
         height: u32,
         offset: f64,
         scale: f64,
-    ) -> MonoImage<T> {
+    ) -> MonoImage<T> where T: RawFloat {
         let samples = (0..width * height)
             .map(|i| {
                 let h = i.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ i.wrapping_mul(0x85eb_ca6b);
                 let u = f64::from((h ^ (h >> 16)) & 0xffff) / 65535.0;
-                num!(offset + scale * u)
+                num!(scale.mul_add(u, offset))
             })
             .collect();
         MonoImage::from_raw(width, height, samples).unwrap()
@@ -450,7 +450,7 @@ mod tests {
             .flat_map(|y| {
                 (0..width).map(move |x| {
                     let t = (x + y) as f64 / f64::from(width + height - 2);
-                    -0.25 + 0.5 * t
+                    0.5f64.mul_add(t, -0.25)
                 })
             })
             .collect();
