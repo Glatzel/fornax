@@ -258,7 +258,10 @@ fn process_tile<T>(
     tile_x: usize,
     signal_scale: T,
     inv_scale: T,
-) -> TileCoreOutput<T> where T: RawFloat {
+) -> TileCoreOutput<T>
+where
+    T: RawFloat,
+{
     scratch.clear();
     let cfa = &mut scratch.cfa;
     let vh = &mut scratch.vh;
@@ -638,7 +641,10 @@ fn process_tile<T>(
 /// first-order additive color difference `green_neighbor + (l0 - l2) / 8`
 /// (`lpf` weights sum to 4, so `1 / 8` corresponds to `(L_0 - L_2) / 2`).
 #[inline(always)]
-fn ratio_corrected_green<T>(green_neighbor: T, l0: T, l2: T, eps: T) -> T where T: RawFloat {
+fn ratio_corrected_green<T>(green_neighbor: T, l0: T, l2: T, eps: T) -> T
+where
+    T: RawFloat,
+{
     if l0 * l2 > T::zero() {
         let a0 = l0.abs();
         let a2 = l2.abs();
@@ -649,7 +655,12 @@ fn ratio_corrected_green<T>(green_neighbor: T, l0: T, l2: T, eps: T) -> T where 
 }
 
 #[inline(always)]
-fn square<T>(value: T) -> T where T: RawFloat { value * value }
+fn square<T>(value: T) -> T
+where
+    T: RawFloat,
+{
+    value * value
+}
 
 const fn color_index(channel: crate::BayerChannel) -> usize {
     match channel {
@@ -660,7 +671,10 @@ const fn color_index(channel: crate::BayerChannel) -> usize {
 }
 
 #[inline(always)]
-fn interpolate<T>(weight: T, first: T, second: T) -> T where T: RawFloat {
+fn interpolate<T>(weight: T, first: T, second: T) -> T
+where
+    T: RawFloat,
+{
     weight * (first - second) + second
 }
 
@@ -677,12 +691,10 @@ mod tests {
         }
     }
 
-    fn seeded_mosaic<T>(
-        width: u32,
-        height: u32,
-        offset: f64,
-        scale: f64,
-    ) -> MonoImage<T> where T: RawFloat {
+    fn seeded_mosaic<T>(width: u32, height: u32, offset: f64, scale: f64) -> MonoImage<T>
+    where
+        T: RawFloat,
+    {
         let samples = (0..width * height)
             .map(|i| {
                 let h = i.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ i.wrapping_mul(0x85eb_ca6b);

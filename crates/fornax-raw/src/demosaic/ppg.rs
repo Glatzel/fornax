@@ -399,12 +399,10 @@ mod tests {
         }
     }
 
-    fn seeded_mosaic<T>(
-        width: u32,
-        height: u32,
-        offset: f64,
-        scale: f64,
-    ) -> MonoImage<T> where T: RawFloat {
+    fn seeded_mosaic<T>(width: u32, height: u32, offset: f64, scale: f64) -> MonoImage<T>
+    where
+        T: RawFloat,
+    {
         let samples = (0..width * height)
             .map(|i| {
                 let h = i.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ i.wrapping_mul(0x85eb_ca6b);

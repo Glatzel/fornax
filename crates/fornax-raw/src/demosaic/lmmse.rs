@@ -192,7 +192,10 @@ fn process_tile<T>(
     h: [T; 5],
     scale: T,
     inv_scale: T,
-) -> LmmseTileOutput<T> where T: RawFloat {
+) -> LmmseTileOutput<T>
+where
+    T: RawFloat,
+{
     qix.fill(T::zero());
     let tile_area = tile_size * tile_size;
 
@@ -283,7 +286,9 @@ fn refine_tile<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     let edge_scale: T = num!(REFINE_EDGE_SCALE);
 
     let m0 = base + 2;
@@ -435,7 +440,9 @@ fn color_differences<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     let half: T = num!(0.5);
     let quarter: T = num!(0.25);
 
@@ -497,7 +504,9 @@ fn low_pass<T>(
     h: [T; 5],
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     let [h0, h1, h2, h3, h4] = h;
     for rr in 6..last_rr - 6 {
         for cc in 6..last_cc - 6 {
@@ -556,7 +565,9 @@ fn mmse_interpolate<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     let half: T = num!(0.5);
     for rr in 10..last_rr - 10 {
         let mut cc = 10 + (tile_channel(pattern, rr, 10) & 1);
@@ -621,7 +632,10 @@ fn mmse_interpolate<T>(
     }
 }
 
-fn mmse_value<T>(mut filtered: [T; 9], raw: [T; 9]) -> (T, T) where T: RawFloat {
+fn mmse_value<T>(mut filtered: [T; 9], raw: [T; 9]) -> (T, T)
+where
+    T: RawFloat,
+{
     let floor: T = num!(VARIANCE_FLOOR);
     let mean = filtered.iter().fold(T::zero(), |sum, value| sum + *value) / num!(9.0);
     let filtered_center = filtered[4];
@@ -659,7 +673,9 @@ fn copy_cfa_samples<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     for rr in 0..last_rr {
         for cc in 0..last_cc {
             let sample = q(qix, 5, rr, cc, tile_size, tile_area);
@@ -680,7 +696,9 @@ fn interpolate_red_blue<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     for rr in 11..last_rr - 11 {
         let mut cc = 11 + (tile_channel(pattern, rr, 12) & 1);
         while cc < last_cc - 11 {
@@ -737,7 +755,9 @@ fn median_pass<T>(
     pattern: BayerPattern,
     tile_size: usize,
     tile_area: usize,
-) where T: RawFloat {
+) where
+    T: RawFloat,
+{
     for rr in margin..last_rr - margin {
         for color in [RED, BLUE] {
             let correction_channel = if color == RED { 3 } else { 4 };
@@ -803,7 +823,10 @@ const fn q<T>(
     cc: usize,
     tile_size: usize,
     tile_area: usize,
-) -> T where T: RawFloat {
+) -> T
+where
+    T: RawFloat,
+{
     qix[tile_index(channel, rr, cc, tile_size, tile_area)]
 }
 
@@ -813,7 +836,10 @@ const fn tile_channel(pattern: BayerPattern, rr: usize, cc: usize) -> usize {
 }
 
 #[inline]
-fn median9<T>(pixels: &[T; 9]) -> T where T: RawFloat {
+fn median9<T>(pixels: &[T; 9]) -> T
+where
+    T: RawFloat,
+{
     let mut sorted = *pixels;
     sorted.sort_unstable_by(|left, right| {
         left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal)
@@ -822,7 +848,12 @@ fn median9<T>(pixels: &[T; 9]) -> T where T: RawFloat {
 }
 
 #[inline(always)]
-fn square<T>(value: T) -> T where T: RawFloat { value * value }
+fn square<T>(value: T) -> T
+where
+    T: RawFloat,
+{
+    value * value
+}
 
 #[cfg(test)]
 mod tests {
@@ -831,12 +862,10 @@ mod tests {
     use super::*;
     use crate::demosaic::LazyDemosaic;
 
-    fn seeded_mosaic<T>(
-        width: u32,
-        height: u32,
-        offset: f64,
-        scale: f64,
-    ) -> MonoImage<T> where T: RawFloat {
+    fn seeded_mosaic<T>(width: u32, height: u32, offset: f64, scale: f64) -> MonoImage<T>
+    where
+        T: RawFloat,
+    {
         let samples = (0..width * height)
             .map(|i| {
                 let h = i.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ i.wrapping_mul(0x85eb_ca6b);
