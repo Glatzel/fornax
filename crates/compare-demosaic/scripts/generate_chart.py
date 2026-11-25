@@ -1001,7 +1001,7 @@ def _srgb_to_linear(srgb: np.ndarray) -> np.ndarray:
 
 
 def linear_to_srgb_u8(linear: np.ndarray) -> np.ndarray:
-    """Tone-map/clamp linear float RGB in [0, 1] to 8-bit sRGB for preview PNGs."""
+    """Tone-map/clamp linear float RGB in [0, 1] to 8-bit sRGB for preview PNG images."""
     clamped = np.clip(linear, 0.0, 1.0)
     srgb = np.where(
         clamped <= 0.0031308,
