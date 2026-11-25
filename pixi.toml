@@ -48,6 +48,7 @@ MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/book/matplotlib"
 book-figures = "python -m book.figures"
 
 [feature.compare-demosaic.dependencies]
+matplotlib-base = "3.11.*"
 nomkl = "*"
 numpy = "2.3.*"
 pillow = "*"
@@ -59,12 +60,17 @@ scikit-image = "*"
 tifffile = "*"
 typer = "*"
 
+[feature.compare-demosaic.activation.env]
+MPLBACKEND = "Agg"
+MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/compare-demosaic/matplotlib"
+
 [feature.compare-demosaic.tasks]
 chart-svg = "python crates/compare-demosaic/scripts/generate_chart.py svg"
 chart-tiffs = "python crates/compare-demosaic/scripts/generate_chart.py export"
 chart = "python crates/compare-demosaic/scripts/generate_chart.py all"
 demosaic = "cargo run --release -q -p compare-demosaic --"
 evaluate = "python crates/compare-demosaic/scripts/evaluate.py"
+mtf = "python crates/compare-demosaic/scripts/mtf.py"
 compare-demosaic = "bash crates/compare-demosaic/scripts/run.sh"
 compare-demosaic-lint = "ruff check crates/compare-demosaic/scripts && ruff format --check crates/compare-demosaic/scripts"
 compare-demosaic-test = "ruff check crates/compare-demosaic/scripts && ruff format --check crates/compare-demosaic/scripts && cargo test -p compare-demosaic && python -m pytest crates/compare-demosaic/scripts/"

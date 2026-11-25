@@ -14,6 +14,7 @@ import tifffile
 import typer
 from chart_spec import BAYER_PATTERNS, TILES, TileSpec
 from generate_chart import linear_to_srgb_u8
+from mtf import EDGE_SPECS, evaluate_mtf
 from PIL import Image
 from skimage.metrics import structural_similarity
 
@@ -177,6 +178,7 @@ def _fmt_psnr(val: float) -> str:
 def render_readme_section(
     summary_rows: list[dict[str, float | str]],
     tile_rows: list[dict[str, float | str]],
+    mtf_rows: list[dict[str, float | str]] | None = None,
 ) -> str:
     """Render Markdown summary tables for README.md."""
     methods = sorted(
@@ -246,6 +248,34 @@ def render_readme_section(
                 f"[{agg['gt_min']:.3f}, {agg['gt_max']:.3f}] -> [{agg['est_min']:.3f}, {agg['est_max']:.3f}] |"
             )
 
+    if mtf_rows:
+        lines.extend(
+            [
+                "",
+                "### Slanted-Edge MTF Summary (Averaged Across All 4 Bayer Patterns)",
+                "",
+                "| Method | Edge | Channel | MTF50 (cyc/px) | MTF20 (cyc/px) | MTF@0.25 | MTF@0.50 | Peak MTF |",
+                "| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for method in methods:
+            for edge in EDGE_SPECS:
+                for ch in edge.channels:
+                    m_rows = [
+                        r for r in mtf_rows if r["method"] == method and r["edge_id"] == edge.id and r["channel"] == ch
+                    ]
+                    if not m_rows:
+                        continue
+                    mtf50 = float(np.mean([float(r["mtf50"]) for r in m_rows]))
+                    mtf20 = float(np.mean([float(r["mtf20"]) for r in m_rows]))
+                    mtf025 = float(np.mean([float(r["mtf_025"]) for r in m_rows]))
+                    mtf050 = float(np.mean([float(r["mtf_050"]) for r in m_rows]))
+                    mtf_peak = float(np.mean([float(r["mtf_peak"]) for r in m_rows]))
+                    lines.append(
+                        f"| `{method}` | `{edge.id}` | `{ch}` | "
+                        f"{mtf50:.3f} | {mtf20:.3f} | {mtf025:.3f} | {mtf050:.3f} | {mtf_peak:.3f} |"
+                    )
+
     lines.extend(["", README_END])
     return "\n".join(lines)
 
@@ -269,6 +299,7 @@ def main(
     data_dir: Annotated[Path, typer.Option("--data-dir", help="Output CSV/JSON directory.")] = DEFAULT_DATA_DIR,
     readme: Annotated[Path, typer.Option("--readme", help="README.md path to update.")] = DEFAULT_README_PATH,
     write_previews: Annotated[bool, typer.Option("--write-previews/--no-write-previews")] = True,
+    write_mtf: Annotated[bool, typer.Option("--write-mtf/--no-write-mtf")] = True,
     should_update_readme: Annotated[bool, typer.Option("--update-readme/--no-update-readme")] = True,
 ) -> None:
     """Evaluate demosaiced outputs against ground_truth_rgb.tif."""
@@ -304,18 +335,26 @@ def main(
                 agg = _aggregate_rows(cat_rows)
                 summary_rows.append({"method": m, "pattern": pattern, "category": cat, **agg})
 
+    mtf_rows = evaluate_mtf(temp_dir=temp_dir, methods=methods, gt_rgb=gt_rgb, write_charts=write_mtf)
+
     data_dir.mkdir(parents=True, exist_ok=True)
     summary_csv = data_dir / "results.csv"
     with summary_csv.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(summary_rows[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(summary_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(summary_rows)
 
     tile_csv = data_dir / "tile_results.csv"
     with tile_csv.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=list(tile_rows[0].keys()))
+        writer = csv.DictWriter(f, fieldnames=list(tile_rows[0].keys()), lineterminator="\n")
         writer.writeheader()
         writer.writerows(tile_rows)
+
+    mtf_csv = data_dir / "mtf_results.csv"
+    with mtf_csv.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=list(mtf_rows[0].keys()), lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(mtf_rows)
 
     json_path = data_dir / "results.json"
     json_payload = {
@@ -324,14 +363,15 @@ def main(
         "resolution": [int(gt_rgb.shape[1]), int(gt_rgb.shape[0])],
         "summary": summary_rows,
         "tiles": tile_rows,
+        "mtf": mtf_rows,
     }
     json_path.write_text(json.dumps(json_payload, indent=2) + "\n", encoding="utf-8")
 
     if should_update_readme:
-        section_md = render_readme_section(summary_rows, tile_rows)
+        section_md = render_readme_section(summary_rows, tile_rows, mtf_rows)
         update_readme(readme, section_md)
 
-    typer.echo(f"wrote {summary_csv}, {tile_csv}, {json_path}")
+    typer.echo(f"wrote {summary_csv}, {tile_csv}, {mtf_csv}, {json_path}")
 
 
 if __name__ == "__main__":

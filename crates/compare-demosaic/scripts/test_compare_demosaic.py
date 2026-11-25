@@ -10,6 +10,8 @@ import tifffile
 from chart_spec import BAYER_PATTERNS, CANVAS_HEIGHT, CANVAS_WIDTH, ROI_SIZE, TILES
 from evaluate import compute_psnr, evaluate_roi, parse_methods, render_readme_section, update_readme
 from generate_chart import _mosaic_bayer, build_svg, export_tiffs
+from mtf import compute_slanted_edge_mtf, evaluate_mtf
+from scipy.special import erf
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -119,3 +121,47 @@ def test_parse_methods_and_readme_update_idempotent(tmp_path: Path) -> None:
     update_readme(readme, sec)
     assert readme.read_text(encoding="utf-8") == first
     assert "| `linear` | `clean_srgb` |" in first
+
+
+def test_compute_slanted_edge_mtf_matches_analytical_gaussian() -> None:
+    size = 192
+    sigma = 0.8
+    slope = math.tan(math.radians(5.0))
+    yy, xx = np.mgrid[:size, :size]
+    d_perp = (xx - (size / 2.0 + slope * (yy - size / 2.0))) / math.hypot(1.0, slope)
+
+    for lo, hi in ((0.0, 1.0), (-0.25, 0.25)):
+        patch = lo + (hi - lo) * 0.5 * (1.0 + erf(d_perp / (math.sqrt(2.0) * sigma)))
+        res = compute_slanted_edge_mtf(patch)
+        mask = (res.freqs >= 0.05) & (res.freqs <= 0.45)
+        expected = np.exp(-2.0 * (math.pi**2) * (sigma**2) * (res.freqs[mask] ** 2))
+        mae = float(np.mean(np.abs(res.mtf[mask] - expected)))
+        assert mae < 0.03
+        expected_mtf50 = math.sqrt(math.log(2.0) / (2.0 * (math.pi**2) * (sigma**2)))
+        assert abs(res.mtf50 - expected_mtf50) < 0.02
+
+
+def test_evaluate_mtf_writes_svg_charts(tmp_path: Path) -> None:
+    gt = np.zeros((CANVAS_HEIGHT, CANVAS_WIDTH, 3), dtype=np.float32)
+    # Put a 5-deg step in each slanted-edge ROI so centroid fitting succeeds
+    slope = math.tan(math.radians(5.0))
+    for tile in TILES:
+        if tile.id in {"line_pairs_edges", "signed_zero_crossing", "wide_range_signed_hdr"}:
+            x0, y0, w, h = tile.roi_bounds()
+            yy, xx = np.mgrid[:h, :w]
+            edge = ((xx % (w // 2)) >= (w // 4) + slope * (yy % (h // 2))).astype(np.float32)
+            gt[y0 : y0 + h, x0 : x0 + w, :] = edge[..., None]
+    tifffile.imwrite(tmp_path / "ground_truth_rgb.tif", gt, photometric="rgb")
+    lin_dir = tmp_path / "linear"
+    lin_dir.mkdir(parents=True, exist_ok=True)
+    for pat in BAYER_PATTERNS:
+        tifffile.imwrite(lin_dir / f"demosaic_{pat}.tif", gt, photometric="rgb")
+
+    rows = evaluate_mtf(temp_dir=tmp_path, methods=["linear"], gt_rgb=gt, write_charts=True)
+    assert len(rows) > 0
+    comp_svg = tmp_path / "mtf_comparison.svg"
+    pat_svg = lin_dir / "mtf_rggb.svg"
+    assert comp_svg.exists()
+    assert "<svg" in comp_svg.read_text(encoding="utf-8")
+    assert pat_svg.exists()
+    assert "<svg" in pat_svg.read_text(encoding="utf-8")

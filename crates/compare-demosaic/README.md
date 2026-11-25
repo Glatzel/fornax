@@ -9,11 +9,12 @@ Bayer demosaicing methods (`linear` and `ppg`).
 - **Rasterization & Filter:** 4× supersampling (`8192 × 8192`) via `resvg`, exact IEC 61966-2-1 sRGB-to-linear EOTF in `float32`, followed by 4×4 box (area-average) downsampling in linear light to `2048 × 2048`.
 - **Unclamped Float (`< 0.0` and `> 1.0`):** Row 4 tiles (`signed_zero_crossing` `[-0.25, +0.25]`, `hdr_specular` `[0.0, 4.0]`, and `wide_range_signed_hdr` `[-0.5, +2.5]`) are analytically synthesized directly in IEEE 754 `float32` so clamping or gamma-domain bugs are caught immediately.
 - **Mosaic-Only Noise:** Tile 13 (`noisy_flat_fields`) stores noiseless flat patches in `ground_truth_rgb.tif` and injects deterministic fixed-seed Gaussian noise only into the 4 Bayer mosaics (`bayer_*.tif`), evaluated separately from clean `[0, 1]` and unclamped-float metrics.
+- **Slanted-Edge MTF (SVG):** Computes ISO 12233-style 4×-oversampled SFR/MTF on the four 5°-slanted edges (achromatic B/W, chromatic R/B, signed zero-crossing, wide-range HDR) and writes `temp/compare-demosaic/mtf_comparison.svg` plus `temp/compare-demosaic/{method}/mtf_{pattern}.svg`.
 
 ## Usage
 
 ```bash
-# Run full pipeline (chart -> Rust demosaic -> Python metrics + README update)
+# Run full pipeline (chart -> Rust demosaic -> Python metrics + MTF SVGs + README update)
 pixi run -e compare-demosaic compare-demosaic --method all
 
 # Run a single method
@@ -23,6 +24,7 @@ pixi run -e compare-demosaic compare-demosaic --method ppg
 pixi run -e compare-demosaic chart
 pixi run -e compare-demosaic demosaic --method linear,ppg
 pixi run -e compare-demosaic evaluate --method all
+pixi run -e compare-demosaic mtf --method all
 
 # Lint & tests
 pixi run -e compare-demosaic compare-demosaic-test
@@ -92,5 +94,26 @@ pixi run -e compare-demosaic compare-demosaic-test
 | 15 · HDR Specular Highlights | `ppg` | 0.003048 | 37.68 | 0.99204 | [0.036, 4.000] -> [-1.900, 4.864] |
 | 16 · Wide-Range Signed-to-HDR | `linear` | 0.192054 | 14.99 | 0.88881 | [-0.500, 2.500] -> [-0.500, 2.500] |
 | 16 · Wide-Range Signed-to-HDR | `ppg` | 0.192394 | 14.90 | 0.88111 | [-0.500, 2.500] -> [-1.800, 3.950] |
+
+### Slanted-Edge MTF Summary (Averaged Across All 4 Bayer Patterns)
+
+| Method | Edge | Channel | MTF50 (cyc/px) | MTF20 (cyc/px) | MTF@0.25 | MTF@0.50 | Peak MTF |
+| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+| `linear` | `achromatic_bw` | `Y` | 0.297 | 0.563 | 0.608 | 0.219 | 1.000 |
+| `linear` | `achromatic_bw` | `R` | 0.235 | 0.338 | 0.451 | 0.005 | 1.000 |
+| `linear` | `achromatic_bw` | `G` | 0.339 | 0.589 | 0.671 | 0.304 | 1.000 |
+| `linear` | `achromatic_bw` | `B` | 0.235 | 0.338 | 0.451 | 0.005 | 1.000 |
+| `linear` | `chromatic_rb` | `R` | 0.234 | 0.336 | 0.449 | 0.003 | 1.000 |
+| `linear` | `chromatic_rb` | `B` | 0.234 | 0.336 | 0.449 | 0.002 | 1.000 |
+| `linear` | `signed_zero_crossing` | `Y` | 0.298 | 0.589 | 0.610 | 0.223 | 1.000 |
+| `linear` | `wide_range_hdr` | `Y` | 0.298 | 0.589 | 0.610 | 0.223 | 1.000 |
+| `ppg` | `achromatic_bw` | `Y` | 0.589 | 0.589 | 0.895 | 0.622 | 1.000 |
+| `ppg` | `achromatic_bw` | `R` | 0.589 | 0.589 | 0.894 | 0.622 | 1.000 |
+| `ppg` | `achromatic_bw` | `G` | 0.589 | 0.589 | 0.895 | 0.622 | 1.000 |
+| `ppg` | `achromatic_bw` | `B` | 0.589 | 0.589 | 0.894 | 0.622 | 1.000 |
+| `ppg` | `chromatic_rb` | `R` | 0.235 | 0.333 | 0.450 | 0.042 | 1.000 |
+| `ppg` | `chromatic_rb` | `B` | 0.255 | 0.373 | 0.514 | 0.049 | 1.000 |
+| `ppg` | `signed_zero_crossing` | `Y` | 0.589 | 0.589 | 0.898 | 0.630 | 1.000 |
+| `ppg` | `wide_range_hdr` | `Y` | 0.589 | 0.589 | 0.898 | 0.630 | 1.000 |
 
 <!-- compare-demosaic-results:end -->
