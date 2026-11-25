@@ -250,13 +250,48 @@ def _compute_image_edges(rgb: np.ndarray) -> dict[tuple[str, str], MtfResult]:
 
 def _setup_mtf_axes(ax: plt.Axes, title: str, ylabel: str = "MTF") -> None:
     ax.set_title(title, fontsize=10, fontweight="bold")
-    ax.set_xlabel("Spatial Frequency (cycles/pixel)", fontsize=9)
-    ax.set_ylabel(ylabel, fontsize=9)
+    ax.set_xlabel("Spatial Frequency (cycles/pixel)", fontsize=8.5)
+    ax.set_ylabel(ylabel, fontsize=8.5)
     ax.set_xlim(0.0, 0.55)
     ax.set_ylim(0.0, 1.15)
     ax.axvline(0.50, color="#6b7280", linestyle=":", linewidth=1.0, label="Nyquist (0.50)")
     ax.axhline(0.50, color="#9ca3af", linestyle="--", linewidth=0.9)
     ax.grid(True, linestyle=":", alpha=0.5)
+
+
+def _plot_gt_halo(ax: plt.Axes, freqs: np.ndarray, mtf: np.ndarray, label: str) -> None:
+    """Plot Ground Truth as a wide translucent reference band + thin center dashed hairline."""
+    ax.plot(freqs, mtf, color="#9ca3af", linewidth=5.0, alpha=0.45, zorder=1)
+    ax.plot(freqs, mtf, color="#374151", linestyle="--", linewidth=1.0, zorder=2, label=label)
+
+
+def _plot_series(
+    ax: plt.Axes,
+    freqs: np.ndarray,
+    values: np.ndarray,
+    *,
+    color: str,
+    linestyle: str,
+    marker: str,
+    markevery: tuple[int, int],
+    label: str,
+    linewidth: float = 1.6,
+    zorder: int = 3,
+) -> None:
+    ax.plot(
+        freqs,
+        values,
+        color=color,
+        linestyle=linestyle,
+        linewidth=linewidth,
+        marker=marker,
+        markersize=5.0,
+        markevery=markevery,
+        markeredgecolor="white",
+        markeredgewidth=0.6,
+        zorder=zorder,
+        label=label,
+    )
 
 
 def plot_method_mtf(
@@ -266,90 +301,182 @@ def plot_method_mtf(
     est_results: dict[tuple[str, str], MtfResult],
     gt_results: dict[tuple[str, str], MtfResult],
 ) -> None:
-    """Write a 4-panel SVG MTF + ESF/LSF chart for one (method, pattern)."""
+    """Write a 2x3 (6-panel) SVG MTF + residual + ESF/LSF chart for one (method, pattern)."""
     output_svg.parent.mkdir(parents=True, exist_ok=True)
-    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.5), dpi=150)
+    fig, axes = plt.subplots(2, 3, figsize=(15.5, 9.2), dpi=150, constrained_layout=True)
     fig.suptitle(
         f"Slanted-Edge MTF — {method} ({pattern.upper()}) vs. Ground Truth",
-        fontsize=12,
+        fontsize=12.5,
         fontweight="bold",
     )
 
-    # Panel 1: Achromatic B/W edge (Y, R, G, B)
+    ch_styles = {
+        "Y": ("#0f766e", "-", "D", (0, 4)),
+        "R": ("#dc2626", "--", "o", (1, 4)),
+        "G": ("#16a34a", "-.", "^", (2, 4)),
+        "B": ("#2563eb", ":", "s", (3, 4)),
+    }
+
+    # Panel (0,0): Achromatic B/W edge (Y, R, G, B)
     ax = axes[0, 0]
     _setup_mtf_axes(ax, "Achromatic 5 deg Edge (Y / R / G / B)")
     gt_y = gt_results[("achromatic_bw", "Y")]
-    ax.plot(
-        gt_y.freqs, gt_y.mtf, color="#111827", linestyle="--", linewidth=1.6, label=f"GT Y (MTF50={gt_y.mtf50:.3f})"
-    )
-    ch_colors = {"Y": "#0f766e", "R": "#dc2626", "G": "#16a34a", "B": "#2563eb"}
+    _plot_gt_halo(ax, gt_y.freqs, gt_y.mtf, f"GT Y (MTF50={gt_y.mtf50:.3f})")
     for ch in ("Y", "R", "G", "B"):
+        col, ls, mk, me = ch_styles[ch]
         res = est_results[("achromatic_bw", ch)]
-        ax.plot(
+        _plot_series(
+            ax,
             res.freqs,
             res.mtf,
-            color=ch_colors[ch],
-            linewidth=1.8 if ch == "Y" else 1.2,
+            color=col,
+            linestyle=ls,
+            marker=mk,
+            markevery=me,
             label=f"{ch} (MTF50={res.mtf50:.3f})",
         )
-    ax.legend(fontsize=7.5, loc="lower left")
+    ax.legend(fontsize=7.2, loc="lower left")
 
-    # Panel 2: Chromatic R/B edge
+    # Panel (0,1): Achromatic MTF residual (MTF - MTF_GT)
     ax = axes[0, 1]
-    _setup_mtf_axes(ax, "Chromatic R/B 5 deg Edge")
-    for ch, col in (("R", "#dc2626"), ("B", "#2563eb")):
-        gt_r = gt_results[("chromatic_rb", ch)]
-        res = est_results[("chromatic_rb", ch)]
-        ax.plot(
-            gt_r.freqs,
-            gt_r.mtf,
+    ax.set_title("Achromatic MTF Residual (Est - GT)", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Spatial Frequency (cycles/pixel)", fontsize=8.5)
+    ax.set_ylabel("Delta MTF", fontsize=8.5)
+    ax.set_xlim(0.0, 0.55)
+    ax.axvline(0.50, color="#6b7280", linestyle=":", linewidth=1.0, label="Nyquist (0.50)")
+    ax.axhline(0.0, color="#374151", linestyle="--", linewidth=1.0, label="Zero (GT)")
+    ax.grid(True, linestyle=":", alpha=0.5)
+    resids = []
+    for ch in ("Y", "R", "G", "B"):
+        col, ls, mk, me = ch_styles[ch]
+        res = est_results[("achromatic_bw", ch)]
+        gt_ch = gt_results[("achromatic_bw", ch)]
+        delta = res.mtf - gt_ch.mtf
+        resids.append(delta)
+        _plot_series(
+            ax,
+            res.freqs,
+            delta,
             color=col,
-            linestyle="--",
-            linewidth=1.2,
-            alpha=0.65,
-            label=f"GT {ch} ({gt_r.mtf50:.3f})",
+            linestyle=ls,
+            marker=mk,
+            markevery=me,
+            label=f"{ch} (max={float(np.max(np.abs(delta))):+.3f})",
         )
-        ax.plot(res.freqs, res.mtf, color=col, linewidth=1.7, label=f"{method} {ch} ({res.mtf50:.3f})")
-    ax.legend(fontsize=7.5, loc="lower left")
+    max_abs = max(0.03, float(np.max(np.abs(np.concatenate(resids)))))
+    ax.set_ylim(-max_abs * 1.15, max_abs * 1.15)
+    ax.legend(fontsize=7.2, loc="lower left")
 
-    # Panel 3: Unclamped signed & HDR edges
-    ax = axes[1, 0]
-    _setup_mtf_axes(ax, "Unclamped Float 5 deg Edges (Signed & HDR)")
-    for edge_id, lbl, col in (
-        ("signed_zero_crossing", "Signed [-0.25,+0.25]", "#7c3aed"),
-        ("wide_range_hdr", "HDR [-0.5,+2.5]", "#d97706"),
+    # Panel (0,2): Chromatic R/B edge
+    ax = axes[0, 2]
+    _setup_mtf_axes(ax, "Chromatic R/B 5 deg Edge (R & B)")
+    gt_r = gt_results[("chromatic_rb", "R")]
+    _plot_gt_halo(ax, gt_r.freqs, gt_r.mtf, f"GT R/B (MTF50={gt_r.mtf50:.3f})")
+    for ch, col, ls, mk, me in (
+        ("R", "#dc2626", "-", "o", (0, 3)),
+        ("B", "#2563eb", "--", "s", (1, 3)),
     ):
-        gt_e = gt_results[(edge_id, "Y")]
-        res = est_results[(edge_id, "Y")]
-        ax.plot(
-            gt_e.freqs,
-            gt_e.mtf,
+        res = est_results[("chromatic_rb", ch)]
+        _plot_series(
+            ax,
+            res.freqs,
+            res.mtf,
             color=col,
-            linestyle="--",
-            linewidth=1.2,
-            alpha=0.65,
-            label=f"GT {lbl} ({gt_e.mtf50:.3f})",
+            linestyle=ls,
+            marker=mk,
+            markevery=me,
+            label=f"{method} {ch} (MTF50={res.mtf50:.3f})",
         )
-        ax.plot(res.freqs, res.mtf, color=col, linewidth=1.7, label=f"{method} {lbl} ({res.mtf50:.3f})")
     ax.legend(fontsize=7.5, loc="lower left")
 
-    # Panel 4: Achromatic ESF & LSF zoom [-8, +8] px
+    # Panel (1,0): Unclamped signed & HDR edges
+    ax = axes[1, 0]
+    _setup_mtf_axes(ax, "Unclamped Float Edges (Signed & HDR)")
+    gt_s = gt_results[("signed_zero_crossing", "Y")]
+    _plot_gt_halo(ax, gt_s.freqs, gt_s.mtf, f"GT (MTF50={gt_s.mtf50:.3f})")
+    res_s = est_results[("signed_zero_crossing", "Y")]
+    res_h = est_results[("wide_range_hdr", "Y")]
+    _plot_series(
+        ax,
+        res_s.freqs,
+        res_s.mtf,
+        color="#7c3aed",
+        linestyle="-",
+        marker="o",
+        markevery=(0, 3),
+        label=f"Signed [-0.25,+0.25] ({res_s.mtf50:.3f})",
+    )
+    _plot_series(
+        ax,
+        res_h.freqs,
+        res_h.mtf,
+        color="#d97706",
+        linestyle="--",
+        marker="s",
+        markevery=(1, 3),
+        label=f"HDR [-0.5,+2.5] ({res_h.mtf50:.3f})",
+    )
+    diff_sh = float(np.max(np.abs(res_s.mtf - res_h.mtf)))
+    ax.text(
+        0.97,
+        0.95,
+        f"max |Signed - HDR| = {diff_sh:.4f}",
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=7.5,
+        bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "alpha": 0.85, "edgecolor": "#d1d5db"},
+    )
+    ax.legend(fontsize=7.2, loc="lower left")
+
+    # Panel (1,1): Achromatic ESF zoom [-6, +6] px
     ax = axes[1, 1]
-    ax.set_title("Achromatic 4x-Oversampled ESF & LSF", fontsize=10, fontweight="bold")
-    ax.set_xlabel("Perpendicular Distance from Edge (pixels)", fontsize=9)
-    ax.set_ylabel("Normalized Amplitude", fontsize=9)
-    ax.set_xlim(-8.0, 8.0)
+    ax.set_title("Achromatic 4x-Oversampled ESF", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Perpendicular Distance from Edge (pixels)", fontsize=8.5)
+    ax.set_ylabel("Normalized Amplitude", fontsize=8.5)
+    ax.set_xlim(-6.0, 6.0)
+    ax.set_ylim(-0.15, 1.15)
     ax.grid(True, linestyle=":", alpha=0.5)
     est_y = est_results[("achromatic_bw", "Y")]
-    ax.plot(gt_y.esf_x, gt_y.esf, color="#6b7280", linestyle="--", linewidth=1.2, label="GT ESF")
-    ax.plot(est_y.esf_x, est_y.esf, color="#0f766e", linewidth=1.6, label=f"{method} ESF")
-    lsf_scale = max(float(np.max(np.abs(est_y.lsf))), 1e-6)
-    ax.plot(
-        est_y.lsf_x, est_y.lsf / lsf_scale, color="#dc2626", linewidth=1.3, alpha=0.85, label=f"{method} LSF (norm)"
+    ax.plot(gt_y.esf_x, gt_y.esf, color="#9ca3af", linewidth=5.0, alpha=0.45, zorder=1)
+    ax.plot(gt_y.esf_x, gt_y.esf, color="#374151", linestyle="--", linewidth=1.0, zorder=2, label="GT ESF")
+    _plot_series(
+        ax,
+        est_y.esf_x,
+        est_y.esf,
+        color="#0f766e",
+        linestyle="-",
+        marker="o",
+        markevery=(0, 2),
+        label=f"{method} ESF",
     )
     ax.legend(fontsize=7.5, loc="upper left")
 
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    # Panel (1,2): Achromatic LSF zoom [-6, +6] px
+    ax = axes[1, 2]
+    ax.set_title("Achromatic 4x-Oversampled LSF (Normalized)", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Perpendicular Distance from Edge (pixels)", fontsize=8.5)
+    ax.set_ylabel("Normalized LSF", fontsize=8.5)
+    ax.set_xlim(-6.0, 6.0)
+    ax.set_ylim(-0.20, 1.15)
+    ax.axhline(0.0, color="#9ca3af", linestyle=":", linewidth=0.9)
+    ax.grid(True, linestyle=":", alpha=0.5)
+    gt_lsf_norm = gt_y.lsf / max(float(np.max(np.abs(gt_y.lsf))), 1e-6)
+    est_lsf_norm = est_y.lsf / max(float(np.max(np.abs(est_y.lsf))), 1e-6)
+    ax.fill_between(gt_y.lsf_x, 0.0, gt_lsf_norm, color="#9ca3af", alpha=0.35, zorder=1)
+    ax.plot(gt_y.lsf_x, gt_lsf_norm, color="#4b5563", linestyle="--", linewidth=1.0, zorder=2, label="GT LSF")
+    _plot_series(
+        ax,
+        est_y.lsf_x,
+        est_lsf_norm,
+        color="#dc2626",
+        linestyle="-",
+        marker="o",
+        markevery=(0, 2),
+        label=f"{method} LSF",
+    )
+    ax.legend(fontsize=7.5, loc="upper left")
+
     fig.savefig(output_svg, format="svg", bbox_inches="tight")
     plt.close(fig)
 
@@ -359,16 +486,18 @@ def plot_comparison_mtf(
     method_curves: dict[str, dict[tuple[str, str], list[MtfResult]]],
     gt_results: dict[tuple[str, str], MtfResult],
 ) -> None:
-    """Write a combined 4-panel SVG MTF chart comparing all methods (mean over 4 Bayer patterns)."""
+    """Write a combined 2x3 (6-panel) SVG MTF chart comparing all methods (mean over 4 Bayer patterns)."""
     output_svg.parent.mkdir(parents=True, exist_ok=True)
-    fig, axes = plt.subplots(2, 2, figsize=(11.5, 8.5), dpi=150)
+    fig, axes = plt.subplots(2, 3, figsize=(15.5, 9.2), dpi=150, constrained_layout=True)
     fig.suptitle(
         "Slanted-Edge MTF Comparison (Mean Across 4 Bayer Patterns)",
-        fontsize=12,
+        fontsize=12.5,
         fontweight="bold",
     )
-    method_colors = {"linear": "#2563eb", "ppg": "#dc2626"}
-    method_styles = {"linear": "-", "ppg": "-"}
+    method_styles = {
+        "linear": ("#2563eb", "-", "o", 0),
+        "ppg": ("#dc2626", "--", "s", 1),
+    }
 
     def mean_curve(m: str, edge_id: str, ch: str) -> tuple[np.ndarray, np.ndarray, float]:
         items = method_curves[m][(edge_id, ch)]
@@ -377,92 +506,150 @@ def plot_comparison_mtf(
         mtf50_mean = float(np.mean([r.mtf50 for r in items]))
         return freqs, mtf_mean, mtf50_mean
 
-    # Panel 1: Achromatic Luma Y
+    # Panel (0,0): Achromatic Luma Y
     ax = axes[0, 0]
     _setup_mtf_axes(ax, "Achromatic 5 deg Edge — Luma (Y)")
     gt_y = gt_results[("achromatic_bw", "Y")]
-    ax.plot(
-        gt_y.freqs,
-        gt_y.mtf,
-        color="#111827",
-        linestyle="--",
-        linewidth=1.7,
-        label=f"Ground Truth (MTF50={gt_y.mtf50:.3f})",
-    )
+    _plot_gt_halo(ax, gt_y.freqs, gt_y.mtf, f"Ground Truth (MTF50={gt_y.mtf50:.3f})")
     for m in method_curves:
+        col, ls, mk, phase = method_styles.get(m, ("#0f766e", "-", "D", 2))
         freqs, mtf_m, mtf50_m = mean_curve(m, "achromatic_bw", "Y")
-        ax.plot(
+        _plot_series(
+            ax,
             freqs,
             mtf_m,
-            color=method_colors.get(m, "#0f766e"),
-            linestyle=method_styles.get(m, "-"),
-            linewidth=2.0,
+            color=col,
+            linestyle=ls,
+            marker=mk,
+            markevery=(phase, 3),
+            linewidth=1.8,
             label=f"{m} (MTF50={mtf50_m:.3f})",
         )
-    ax.legend(fontsize=8, loc="lower left")
+    ax.legend(fontsize=7.5, loc="lower left")
 
-    # Panel 2: Achromatic R, G, B
+    # Panel (0,1): Achromatic Per-Channel (R / G / B)
     ax = axes[0, 1]
     _setup_mtf_axes(ax, "Achromatic 5 deg Edge — Per-Channel (R / G / B)")
+    _plot_gt_halo(ax, gt_y.freqs, gt_y.mtf, f"Ground Truth ({gt_y.mtf50:.3f})")
     ch_colors = {"R": "#dc2626", "G": "#16a34a", "B": "#2563eb"}
+    ch_markers = {"R": "o", "G": "^", "B": "s"}
     m_linestyles = {"linear": ":", "ppg": "-"}
-    for m in method_curves:
-        for ch in ("R", "G", "B"):
+    for m_idx, m in enumerate(method_curves):
+        for ch_idx, ch in enumerate(("R", "G", "B")):
             freqs, mtf_m, mtf50_m = mean_curve(m, "achromatic_bw", ch)
-            ax.plot(
+            phase = (ch_idx + 2 * m_idx) % 5
+            _plot_series(
+                ax,
                 freqs,
                 mtf_m,
                 color=ch_colors[ch],
                 linestyle=m_linestyles.get(m, "-."),
+                marker=ch_markers[ch],
+                markevery=(phase, 5),
                 linewidth=1.5,
                 label=f"{m} {ch} ({mtf50_m:.3f})",
             )
-    ax.legend(fontsize=7.2, loc="lower left", ncol=2)
+    ax.legend(fontsize=6.8, loc="lower left", ncol=2)
 
-    # Panel 3: Chromatic R/B edge
-    ax = axes[1, 0]
+    # Panel (0,2): Chromatic R/B edge
+    ax = axes[0, 2]
     _setup_mtf_axes(ax, "Chromatic R/B 5 deg Edge (R & B)")
     gt_r = gt_results[("chromatic_rb", "R")]
-    ax.plot(
-        gt_r.freqs, gt_r.mtf, color="#111827", linestyle="--", linewidth=1.6, label=f"Ground Truth R ({gt_r.mtf50:.3f})"
-    )
+    _plot_gt_halo(ax, gt_r.freqs, gt_r.mtf, f"Ground Truth ({gt_r.mtf50:.3f})")
+    rb_styles = {
+        ("linear", "R"): ("#1d4ed8", "-", "o", 0),
+        ("linear", "B"): ("#60a5fa", "--", "s", 1),
+        ("ppg", "R"): ("#b91c1c", "-.", "^", 2),
+        ("ppg", "B"): ("#f97316", ":", "D", 3),
+    }
     for m in method_curves:
-        for ch, ls_suffix in (("R", "-"), ("B", "-.")):
+        for ch in ("R", "B"):
+            col, ls, mk, phase = rb_styles.get((m, ch), ("#0f766e", "-", "o", 0))
             freqs, mtf_m, mtf50_m = mean_curve(m, "chromatic_rb", ch)
-            ax.plot(
+            _plot_series(
+                ax,
                 freqs,
                 mtf_m,
-                color=method_colors.get(m, "#0f766e"),
-                linestyle=ls_suffix,
-                linewidth=1.6,
+                color=col,
+                linestyle=ls,
+                marker=mk,
+                markevery=(phase, 4),
                 label=f"{m} {ch} ({mtf50_m:.3f})",
             )
-    ax.legend(fontsize=7.5, loc="lower left")
+    ax.legend(fontsize=7.2, loc="lower left")
 
-    # Panel 4: Unclamped Signed & HDR edges
-    ax = axes[1, 1]
-    _setup_mtf_axes(ax, "Unclamped Float 5 deg Edges (Signed & HDR)")
-    gt_s = gt_results[("signed_zero_crossing", "Y")]
-    ax.plot(
-        gt_s.freqs, gt_s.mtf, color="#111827", linestyle="--", linewidth=1.6, label=f"Ground Truth ({gt_s.mtf50:.3f})"
-    )
+    # Panel (1,0): Achromatic Luma Residual (MTF_Y - MTF_GT)
+    ax = axes[1, 0]
+    ax.set_title("Achromatic Luma Residual (MTF_Y - MTF_GT)", fontsize=10, fontweight="bold")
+    ax.set_xlabel("Spatial Frequency (cycles/pixel)", fontsize=8.5)
+    ax.set_ylabel("Delta MTF", fontsize=8.5)
+    ax.set_xlim(0.0, 0.55)
+    ax.axvline(0.50, color="#6b7280", linestyle=":", linewidth=1.0, label="Nyquist (0.50)")
+    ax.axhline(0.0, color="#374151", linestyle="--", linewidth=1.0, label="Zero (GT)")
+    ax.grid(True, linestyle=":", alpha=0.5)
+    resids = []
     for m in method_curves:
-        for edge_id, tag, ls in (
-            ("signed_zero_crossing", "Signed", "-"),
-            ("wide_range_hdr", "HDR", "-."),
-        ):
-            freqs, mtf_m, mtf50_m = mean_curve(m, edge_id, "Y")
-            ax.plot(
-                freqs,
-                mtf_m,
-                color=method_colors.get(m, "#0f766e"),
-                linestyle=ls,
-                linewidth=1.6,
-                label=f"{m} {tag} ({mtf50_m:.3f})",
-            )
+        col, ls, mk, phase = method_styles.get(m, ("#0f766e", "-", "D", 2))
+        freqs, mtf_m, _ = mean_curve(m, "achromatic_bw", "Y")
+        delta = mtf_m - gt_y.mtf
+        resids.append(delta)
+        _plot_series(
+            ax,
+            freqs,
+            delta,
+            color=col,
+            linestyle=ls,
+            marker=mk,
+            markevery=(phase, 3),
+            linewidth=1.8,
+            label=f"{m} (at 0.50: {float(np.interp(0.50, freqs, delta)):+.3f})",
+        )
+    max_abs = max(0.03, float(np.max(np.abs(np.concatenate(resids)))))
+    ax.set_ylim(-max_abs * 1.15, max_abs * 1.15)
     ax.legend(fontsize=7.5, loc="lower left")
 
-    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    # Panel (1,1): Unclamped Signed Edge [-0.25, +0.25]
+    ax = axes[1, 1]
+    _setup_mtf_axes(ax, "Unclamped Signed Edge ([-0.25, +0.25])")
+    gt_s = gt_results[("signed_zero_crossing", "Y")]
+    _plot_gt_halo(ax, gt_s.freqs, gt_s.mtf, f"Ground Truth ({gt_s.mtf50:.3f})")
+    for m in method_curves:
+        col, ls, mk, phase = method_styles.get(m, ("#0f766e", "-", "D", 2))
+        freqs, mtf_m, mtf50_m = mean_curve(m, "signed_zero_crossing", "Y")
+        _plot_series(
+            ax,
+            freqs,
+            mtf_m,
+            color=col,
+            linestyle=ls,
+            marker=mk,
+            markevery=(phase, 3),
+            linewidth=1.8,
+            label=f"{m} ({mtf50_m:.3f})",
+        )
+    ax.legend(fontsize=7.5, loc="lower left")
+
+    # Panel (1,2): Unclamped Wide-Range HDR Edge [-0.5, +2.5]
+    ax = axes[1, 2]
+    _setup_mtf_axes(ax, "Unclamped Wide-Range HDR Edge ([-0.5, +2.5])")
+    gt_h = gt_results[("wide_range_hdr", "Y")]
+    _plot_gt_halo(ax, gt_h.freqs, gt_h.mtf, f"Ground Truth ({gt_h.mtf50:.3f})")
+    for m in method_curves:
+        col, ls, mk, phase = method_styles.get(m, ("#0f766e", "-", "D", 2))
+        freqs, mtf_m, mtf50_m = mean_curve(m, "wide_range_hdr", "Y")
+        _plot_series(
+            ax,
+            freqs,
+            mtf_m,
+            color=col,
+            linestyle=ls,
+            marker=mk,
+            markevery=(phase, 3),
+            linewidth=1.8,
+            label=f"{m} ({mtf50_m:.3f})",
+        )
+    ax.legend(fontsize=7.5, loc="lower left")
+
     fig.savefig(output_svg, format="svg", bbox_inches="tight")
     plt.close(fig)
 
