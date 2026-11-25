@@ -40,7 +40,6 @@ jobs:
         with:
           name: compare-demosaic-results
           path: |
-            crates/compare-demosaic/data/
             crates/compare-demosaic/README.md
             temp/compare-demosaic/
           retention-days: 7
