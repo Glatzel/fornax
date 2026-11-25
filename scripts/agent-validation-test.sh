@@ -13,7 +13,7 @@ fi
 test_root="$(mktemp -d)"
 trap 'rm -rf "$test_root"' EXIT
 
-mkdir -p "$test_root/scripts" "$test_root/bin" "$test_root/crates/compare-demosaic/scripts"
+mkdir -p "$test_root/scripts" "$test_root/bin"
 cp "$validation_script" "$test_root/scripts/agent-validation.sh"
 
 log_file="$test_root/commands.log"
@@ -49,11 +49,6 @@ EOF
 cat >"$test_root/scripts/setup.sh" <<'EOF'
 #!/usr/bin/env bash
 printf 'setup:root\n' >>"$VALIDATION_TEST_LOG"
-EOF
-
-cat >"$test_root/crates/compare-demosaic/scripts/setup.sh" <<'EOF'
-#!/usr/bin/env bash
-printf 'setup:compare\n' >>"$VALIDATION_TEST_LOG"
 EOF
 
 chmod +x \
@@ -98,11 +93,11 @@ assert_logged_prefix 'submodule update --init --remote external/raw.pixls.us'
 assert_logged 'cargo:-q run -p decoder-tracker -- manifest --check'
 assert_logged 'cargo:-q run -p decoder-tracker -- golden-check'
 assert_logged 'pixi:run -e tracker python -m pytest crates/decoder-tracker/scripts/test_tracker_data.py'
-assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:-q test --workspace --all-features'
 assert_logged 'cargo:+nightly fmt --check -q'
-assert_logged 'cargo:-q doc --workspace --all-features --exclude compare-demosaic --no-deps'
+assert_logged 'cargo:-q doc --workspace --all-features --no-deps'
 assert_logged_prefix \
-    'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
+    'cargo:-q clippy --workspace --all-features --all-targets -- '
 assert_logged 'cargo:-q bench -p fornax-raw-decoder --no-run'
 assert_logged 'git:diff --check base --'
 assert_logged 'python3:scripts/check-doc-links.py'
@@ -112,21 +107,6 @@ if grep -Fq -- '-- hash --check ' "$log_file"; then
     exit 1
 fi
 
-if grep -Fq 'compare-demosaic' "$log_file" |
-    grep -Fv -- '--exclude compare-demosaic'; then
-    printf 'unexpected compare-demosaic validation\n' >&2
-    exit 1
-fi
-
-: >"$log_file"
-run_validation 'AGENTS.md\ncrates/compare-demosaic/src/lib.rs\n'
-
-assert_logged 'setup:compare'
-assert_logged 'cargo:-q doc --all-features -p compare-demosaic --no-deps'
-assert_logged_prefix \
-    'cargo:-q clippy --all-features --all-targets -p compare-demosaic -- '
-assert_logged 'cargo:-q test --all-features -p compare-demosaic'
-
 mkdir -p "$test_root/external/raw-images/images"
 touch "$test_root/external/raw-images/images/colorchart-5D2-6000K.dng"
 mkdir -p "$test_root/external/raw.pixls.us"
@@ -135,7 +115,7 @@ touch "$test_root/external/raw.pixls.us/filelist.sha256"
 : >"$log_file"
 run_validation 'scripts/agent-validation.sh\n'
 
-assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:-q test --workspace --all-features'
 
 if grep -Fxq 'setup:root' "$log_file"; then
     printf 'validation reran setup with an existing raw-image fixture\n' >&2
@@ -150,15 +130,12 @@ fi
 run_validation 'AGENTS.md\ncrates/compare-demosaic/src/lib.rs\n' --fix
 
 assert_logged_prefix \
-    'cargo:-q clippy --workspace --all-features --all-targets --fix --allow-dirty --allow-staged --exclude compare-demosaic -- '
-assert_logged_prefix \
-    'cargo:-q clippy --all-features --all-targets --fix --allow-dirty --allow-staged -p compare-demosaic -- '
+    'cargo:-q clippy --workspace --all-features --all-targets --fix --allow-dirty --allow-staged -- '
 assert_logged 'cargo:+nightly fmt -q'
-assert_logged 'cargo:-q test --workspace --all-features --exclude compare-demosaic'
+assert_logged 'cargo:-q test --workspace --all-features'
 assert_logged 'cargo:+nightly fmt --check -q'
 assert_logged_prefix \
-    'cargo:-q clippy --workspace --all-features --all-targets --exclude compare-demosaic -- '
-assert_logged 'cargo:-q test --all-features -p compare-demosaic'
+    'cargo:-q clippy --workspace --all-features --all-targets -- '
 
 : >"$log_file"
 run_validation 'AGENTS.md\n' --docs-only

@@ -47,9 +47,38 @@ MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/book/matplotlib"
 [feature.book.tasks]
 book-figures = "python -m book.figures"
 
+[feature.compare-demosaic.dependencies]
+matplotlib-base = "3.11.*"
+nomkl = "*"
+numpy = "2.3.*"
+pillow = "*"
+pytest = "==9.2.0"
+python = "3.13.*"
+resvg = "*"
+ruff = "*"
+scikit-image = "*"
+tifffile = "*"
+typer = "*"
+
+[feature.compare-demosaic.activation.env]
+MPLBACKEND = "Agg"
+MPLCONFIGDIR = "$PIXI_WORKSPACE_ROOT/temp/compare-demosaic/matplotlib"
+
+[feature.compare-demosaic.tasks]
+chart-svg = "python crates/compare-demosaic/scripts/generate_chart.py svg"
+chart-tiffs = "python crates/compare-demosaic/scripts/generate_chart.py export"
+chart = "python crates/compare-demosaic/scripts/generate_chart.py all"
+demosaic = "cargo run --release -q -p compare-demosaic --"
+evaluate = "python crates/compare-demosaic/scripts/evaluate.py"
+mtf = "python crates/compare-demosaic/scripts/mtf.py"
+compare-demosaic = "bash crates/compare-demosaic/scripts/run.sh"
+compare-demosaic-lint = "ruff check crates/compare-demosaic/scripts && ruff format --check crates/compare-demosaic/scripts"
+compare-demosaic-test = "ruff check crates/compare-demosaic/scripts && ruff format --check crates/compare-demosaic/scripts && cargo test -p compare-demosaic && python -m pytest crates/compare-demosaic/scripts/"
+
 [environments]
 default = []
 dev = { features = ["duckdb", "tracker"], tasks = { fornax-raw-cli = "cargo run -p fornax-raw-cli" } }
 python = ["python"]
 book = ["book"]
 tracker = ["duckdb", "tracker"]
+compare-demosaic = ["compare-demosaic"]
