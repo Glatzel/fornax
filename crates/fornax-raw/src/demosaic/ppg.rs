@@ -1,9 +1,10 @@
-//! Patterned pixel grouping interpolation derived from LibRaw and darktable.
+//! Patterned pixel grouping (PPG) Bayer demosaicing.
 //!
-//! The algorithm performs a three-pixel border fill, estimates green with
-//! horizontal and vertical gradients, reconstructs red/blue at green sites
-//! from local color differences, and then reconstructs the remaining channel
-//! from diagonal color differences.
+//! Estimates green at red/blue sites using horizontal and vertical gradients
+//! with a local min/max envelope inside a 3-pixel border, reconstructs red/blue
+//! at green sites from cardinal color differences inside a 1-pixel border, and
+//! reconstructs the remaining channel at red/blue sites from diagonal color
+//! differences inside a 1-pixel border.
 
 use generic_num::num;
 
@@ -26,42 +27,70 @@ impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for PpgLazy<'_, T> {
     fn dimensions(&self) -> (u32, u32) { (self.width, self.height) }
 
     fn fill_rows(&self, y0: usize, out: &mut [T]) {
-        let row_stride = self.width as usize * 3;
+        let width = self.width as usize;
+        let height = self.height as usize;
+        let row_stride = width * 3;
+        let chunk_rows = out.len() / row_stride;
+        if chunk_rows == 0 {
+            return;
+        }
+
+        // Cache green values for the chunk plus a 1-row halo above and below so
+        // cardinal/diagonal chroma interpolation never recomputes `green_at`.
+        let g_y_start = y0.saturating_sub(1);
+        let g_y_end = (y0 + chunk_rows + 1).min(height);
+        let mut green_strip = vec![T::zero(); (g_y_end - g_y_start) * width];
+        for y in g_y_start..g_y_end {
+            let row_offset = (y - g_y_start) * width;
+            for x in 0..width {
+                green_strip[row_offset + x] = self.green_at(x as u32, y as u32);
+            }
+        }
+
         for (dy, row) in out.chunks_exact_mut(row_stride).enumerate() {
-            self.fill_row(y0 + dy, row);
+            self.fill_row(y0 + dy, g_y_start, &green_strip, row);
         }
     }
 }
 
 impl<T: RawFloat + Send + Sync> PpgLazy<'_, T> {
-    fn fill_row(&self, y: usize, out: &mut [T]) {
+    fn fill_row(&self, y: usize, g_y_start: usize, green_strip: &[T], out: &mut [T]) {
+        let yu = y as u32;
         for (x, pixel) in out.as_chunks_mut::<3>().0.iter_mut().enumerate() {
-            pixel.copy_from_slice(&self.pixel(x as u32, y as u32));
+            let xu = x as u32;
+            let green = self.green_from_strip(green_strip, g_y_start, xu, yu);
+            let sensor = self.pattern.channel_at(xu, yu);
+
+            match sensor {
+                BayerChannel::R | BayerChannel::B => {
+                    let current = sensor_color(sensor);
+                    let missing = BLUE - current;
+                    pixel[current] = self.raw_at(xu, yu);
+                    pixel[GREEN] = green;
+                    pixel[missing] =
+                        self.opposite_at_non_green(xu, yu, current, green, green_strip, g_y_start);
+                }
+                BayerChannel::GRedRow | BayerChannel::GBlueRow => {
+                    let horizontal = horizontal_color(sensor);
+                    pixel[GREEN] = green;
+                    pixel[horizontal] =
+                        self.opposite_at_green(xu, yu, horizontal, green, green_strip, g_y_start);
+                    pixel[BLUE - horizontal] = self.opposite_at_green(
+                        xu,
+                        yu,
+                        BLUE - horizontal,
+                        green,
+                        green_strip,
+                        g_y_start,
+                    );
+                }
+            }
         }
     }
 
-    fn pixel(&self, x: u32, y: u32) -> [T; 3] {
-        let sensor = self.pattern.channel_at(x, y);
-
-        match sensor {
-            BayerChannel::R | BayerChannel::B => {
-                let current = sensor_color(sensor);
-                let missing = BLUE - current;
-                let mut rgb = [T::zero(); 3];
-                rgb[current] = self.raw_at(x, y);
-                rgb[GREEN] = self.green_at(x, y);
-                rgb[missing] = self.opposite_at_non_green(x, y, current);
-                rgb
-            }
-            BayerChannel::GRedRow | BayerChannel::GBlueRow => {
-                let horizontal = sensor_color(self.pattern.channel_at(x + 1, y));
-                let mut rgb = [T::zero(); 3];
-                rgb[GREEN] = self.raw_at(x, y);
-                rgb[horizontal] = self.opposite_at_green(x, y, horizontal);
-                rgb[BLUE - horizontal] = self.opposite_at_green(x, y, BLUE - horizontal);
-                rgb
-            }
-        }
+    #[inline(always)]
+    const fn green_from_strip(&self, strip: &[T], g_y_start: usize, x: u32, y: u32) -> T {
+        strip[(y as usize - g_y_start) * self.width as usize + x as usize]
     }
 
     fn green_at(&self, x: u32, y: u32) -> T {
@@ -110,20 +139,28 @@ impl<T: RawFloat + Send + Sync> PpgLazy<'_, T> {
             .min(first.max(second))
     }
 
-    fn opposite_at_green(&self, x: u32, y: u32, color: usize) -> T {
+    fn opposite_at_green(
+        &self,
+        x: u32,
+        y: u32,
+        color: usize,
+        center_green: T,
+        green_strip: &[T],
+        g_y_start: usize,
+    ) -> T {
         if x == 0 || y == 0 || x + 1 == self.width || y + 1 == self.height {
             return self.border_channel(x, y, color);
         }
 
-        let horizontal = sensor_color(self.pattern.channel_at(x + 1, y));
+        let horizontal = horizontal_color(self.pattern.channel_at(x, y));
         let (first, second, green) = if color == horizontal {
             (
                 self.raw_at(x - 1, y),
                 self.raw_at(x + 1, y),
                 [
-                    self.green_at(x - 1, y),
-                    self.green_at(x, y),
-                    self.green_at(x + 1, y),
+                    self.green_from_strip(green_strip, g_y_start, x - 1, y),
+                    center_green,
+                    self.green_from_strip(green_strip, g_y_start, x + 1, y),
                 ],
             )
         } else {
@@ -131,9 +168,9 @@ impl<T: RawFloat + Send + Sync> PpgLazy<'_, T> {
                 self.raw_at(x, y - 1),
                 self.raw_at(x, y + 1),
                 [
-                    self.green_at(x, y - 1),
-                    self.green_at(x, y),
-                    self.green_at(x, y + 1),
+                    self.green_from_strip(green_strip, g_y_start, x, y - 1),
+                    center_green,
+                    self.green_from_strip(green_strip, g_y_start, x, y + 1),
                 ],
             )
         };
@@ -141,21 +178,28 @@ impl<T: RawFloat + Send + Sync> PpgLazy<'_, T> {
         (first + second + green[1] * num!(2) - green[0] - green[2]) / num!(2)
     }
 
-    fn opposite_at_non_green(&self, x: u32, y: u32, current: usize) -> T {
+    fn opposite_at_non_green(
+        &self,
+        x: u32,
+        y: u32,
+        current: usize,
+        center: T,
+        green_strip: &[T],
+        g_y_start: usize,
+    ) -> T {
         let missing = BLUE - current;
         if x == 0 || y == 0 || x + 1 == self.width || y + 1 == self.height {
             return self.border_channel(x, y, missing);
         }
 
-        let center = self.green_at(x, y);
         let ne = self.raw_at(x + 1, y - 1);
         let sw = self.raw_at(x - 1, y + 1);
         let nw = self.raw_at(x - 1, y - 1);
         let se = self.raw_at(x + 1, y + 1);
-        let g_ne = self.green_at(x + 1, y - 1);
-        let g_sw = self.green_at(x - 1, y + 1);
-        let g_nw = self.green_at(x - 1, y - 1);
-        let g_se = self.green_at(x + 1, y + 1);
+        let g_ne = self.green_from_strip(green_strip, g_y_start, x + 1, y - 1);
+        let g_sw = self.green_from_strip(green_strip, g_y_start, x - 1, y + 1);
+        let g_nw = self.green_from_strip(green_strip, g_y_start, x - 1, y - 1);
+        let g_se = self.green_from_strip(green_strip, g_y_start, x + 1, y + 1);
         let ne_diff = (ne - sw).abs() + (g_ne - center).abs() + (center - g_sw).abs();
         let nw_diff = (nw - se).abs() + (g_nw - center).abs() + (center - g_se).abs();
         let ne_guess = ne + sw + center * num!(2) - g_ne - g_sw;
@@ -210,6 +254,15 @@ const fn sensor_color(channel: BayerChannel) -> usize {
         BayerChannel::R => RED,
         BayerChannel::GRedRow | BayerChannel::GBlueRow => GREEN,
         BayerChannel::B => BLUE,
+    }
+}
+
+#[inline(always)]
+const fn horizontal_color(green_channel: BayerChannel) -> usize {
+    match green_channel {
+        BayerChannel::GRedRow => RED,
+        BayerChannel::GBlueRow => BLUE,
+        BayerChannel::R | BayerChannel::B => unreachable!(),
     }
 }
 
@@ -320,6 +373,13 @@ mod tests {
         let mut rows = vec![0.0; 8 * 3 * 9];
         lazy.fill_rows(0, &mut rows);
         assert_eq!(whole.as_raw(), &rows);
+
+        let mut single_rows = vec![0.0; 8 * 3 * 9];
+        let row_stride = 8 * 3;
+        for y in 0..9 {
+            lazy.fill_rows(y, &mut single_rows[y * row_stride..(y + 1) * row_stride]);
+        }
+        assert_eq!(whole.as_raw(), &single_rows);
         Ok(())
     }
 
@@ -337,5 +397,207 @@ mod tests {
                 Err(DemosaicError::InvalidInput(_))
             ));
         }
+    }
+
+    fn seeded_mosaic<T: RawFloat>(
+        width: u32,
+        height: u32,
+        offset: f64,
+        scale: f64,
+    ) -> MonoImage<T> {
+        let samples = (0..width * height)
+            .map(|i| {
+                let h = i.wrapping_mul(0x9e37_79b9).rotate_left(13) ^ i.wrapping_mul(0x85eb_ca6b);
+                let u = f64::from((h ^ (h >> 16)) & 0xffff) / 65535.0;
+                num!(offset + scale * u)
+            })
+            .collect();
+        MonoImage::from_raw(width, height, samples).unwrap()
+    }
+
+    #[test]
+    fn signed_and_zero_constants_are_preserved() -> mischief::Result<()> {
+        for pattern in BayerPattern::ALL {
+            for value in [-0.25_f32, 0.0_f32, 4.0_f32] {
+                let image = MonoImage::from_raw(16, 16, vec![value; 256]).unwrap();
+                let output = DemosaicPpg.lazy(&image, pattern)?.collect();
+                assert!(
+                    output
+                        .as_raw()
+                        .iter()
+                        .all(|sample| (*sample - value).abs() < 1.0e-6)
+                );
+            }
+            for value in [-0.25_f64, 0.0_f64, 1.0e4_f64] {
+                let image = MonoImage::from_raw(16, 16, vec![value; 256]).unwrap();
+                let output = DemosaicPpg.lazy(&image, pattern)?.collect();
+                assert!(
+                    output
+                        .as_raw()
+                        .iter()
+                        .all(|sample| (*sample - value).abs() < 1.0e-11)
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn signed_zero_crossing_ramp_is_finite_and_exact() -> mischief::Result<()> {
+        let width = 16_u32;
+        let height = 16_u32;
+        let samples = (0..height)
+            .flat_map(|y| {
+                (0..width).map(move |x| {
+                    let t = (x + y) as f64 / f64::from(width + height - 2);
+                    -0.25 + 0.5 * t
+                })
+            })
+            .collect();
+        let image = MonoImage::from_raw(width, height, samples).unwrap();
+        let output = DemosaicPpg.lazy(&image, BayerPattern::RGGB)?.collect();
+        for y in 0..height {
+            for x in 0..width {
+                for ch in output.get_pixel(x, y).0 {
+                    assert!(ch.is_finite());
+                }
+            }
+        }
+        for y in 4..height - 4 {
+            for x in 4..width - 4 {
+                let expected = -0.25 + 0.5 * (x + y) as f64 / f64::from(width + height - 2);
+                for ch in output.get_pixel(x, y).0 {
+                    assert!(
+                        (ch - expected).abs() < 1.0e-12,
+                        "at ({x},{y}): {ch} vs {expected}"
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn positive_scale_equivariance_holds_in_f32_and_f64() -> mischief::Result<()> {
+        let base_f32: MonoImage<f32> = seeded_mosaic(24, 24, -0.5, 2.5);
+        let base_out_f32 = DemosaicPpg.lazy(&base_f32, BayerPattern::GBRG)?.collect();
+        for scale in [1.0e-4_f32, 1.0e-1, 10.0, 1.0e4] {
+            let scaled = MonoImage::from_raw(
+                24,
+                24,
+                base_f32.as_raw().iter().map(|v| *v * scale).collect(),
+            )
+            .unwrap();
+            let out = DemosaicPpg.lazy(&scaled, BayerPattern::GBRG)?.collect();
+            for (a, b) in out.as_raw().iter().zip(base_out_f32.as_raw()) {
+                let expected = *b * scale;
+                let tol = 1.0e-5 * expected.abs().max(scale);
+                assert!(
+                    (*a - expected).abs() <= tol,
+                    "f32 scale {scale}: {a} vs {expected}"
+                );
+            }
+        }
+
+        let base_f64: MonoImage<f64> = seeded_mosaic(24, 24, -0.5, 2.5);
+        let base_out_f64 = DemosaicPpg.lazy(&base_f64, BayerPattern::GBRG)?.collect();
+        for scale in [1.0e-6_f64, 1.0e6] {
+            let scaled = MonoImage::from_raw(
+                24,
+                24,
+                base_f64.as_raw().iter().map(|v| *v * scale).collect(),
+            )
+            .unwrap();
+            let out = DemosaicPpg.lazy(&scaled, BayerPattern::GBRG)?.collect();
+            for (a, b) in out.as_raw().iter().zip(base_out_f64.as_raw()) {
+                let expected = *b * scale;
+                let tol = 1.0e-11 * expected.abs().max(scale);
+                assert!(
+                    (*a - expected).abs() <= tol,
+                    "f64 scale {scale}: {a} vs {expected}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn shift_invariance_holds_in_f32_and_f64() -> mischief::Result<()> {
+        let base_f32: MonoImage<f32> = seeded_mosaic(24, 24, -0.25, 1.5);
+        let base_out_f32 = DemosaicPpg.lazy(&base_f32, BayerPattern::BGGR)?.collect();
+        for shift in [-0.37_f32, 12.5_f32] {
+            let shifted = MonoImage::from_raw(
+                24,
+                24,
+                base_f32.as_raw().iter().map(|v| *v + shift).collect(),
+            )
+            .unwrap();
+            let out = DemosaicPpg.lazy(&shifted, BayerPattern::BGGR)?.collect();
+            for (a, b) in out.as_raw().iter().zip(base_out_f32.as_raw()) {
+                let expected = *b + shift;
+                let tol = 2.0e-5 * expected.abs().max(1.0);
+                assert!(
+                    (*a - expected).abs() <= tol,
+                    "f32 shift {shift}: {a} vs {expected}"
+                );
+            }
+        }
+
+        let base_f64: MonoImage<f64> = seeded_mosaic(24, 24, -0.25, 1.5);
+        let base_out_f64 = DemosaicPpg.lazy(&base_f64, BayerPattern::BGGR)?.collect();
+        for shift in [-0.37_f64, 12.5_f64] {
+            let shifted = MonoImage::from_raw(
+                24,
+                24,
+                base_f64.as_raw().iter().map(|v| *v + shift).collect(),
+            )
+            .unwrap();
+            let out = DemosaicPpg.lazy(&shifted, BayerPattern::BGGR)?.collect();
+            for (a, b) in out.as_raw().iter().zip(base_out_f64.as_raw()) {
+                let expected = *b + shift;
+                assert!(
+                    (*a - expected).abs() <= 1.0e-11,
+                    "f64 shift {shift}: {a} vs {expected}"
+                );
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vertical_flip_symmetry_holds() -> mischief::Result<()> {
+        let width = 24_u32;
+        let height = 24_u32;
+        let base: MonoImage<f64> = seeded_mosaic(width, height, -0.5, 2.0);
+        let mut flipped_samples = Vec::with_capacity((width * height) as usize);
+        for y in (0..height).rev() {
+            for x in 0..width {
+                flipped_samples.push(base.get_pixel(x, y)[0]);
+            }
+        }
+        let flipped = MonoImage::from_raw(width, height, flipped_samples).unwrap();
+
+        for (pattern, flipped_pattern) in [
+            (BayerPattern::RGGB, BayerPattern::GBRG),
+            (BayerPattern::GBRG, BayerPattern::RGGB),
+            (BayerPattern::BGGR, BayerPattern::GRBG),
+            (BayerPattern::GRBG, BayerPattern::BGGR),
+        ] {
+            let out = DemosaicPpg.lazy(&base, pattern)?.collect();
+            let out_flip = DemosaicPpg.lazy(&flipped, flipped_pattern)?.collect();
+            for y in 0..height {
+                for x in 0..width {
+                    let a = out.get_pixel(x, y).0;
+                    let b = out_flip.get_pixel(x, height - 1 - y).0;
+                    for c in 0..3 {
+                        assert!(
+                            (a[c] - b[c]).abs() < 1.0e-12,
+                            "{pattern} at ({x},{y}) ch {c}"
+                        );
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }

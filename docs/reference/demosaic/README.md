@@ -41,8 +41,8 @@ eligibility.
 
 | Algorithm or variant | Verdict | Linear-light reconstruction | Fixed input range | Positive scale equivariance | Negative finite inputs | Generic `f32`/`f64` | Current Fornax status |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| [Original Pixel Grouping](ppg.md#original-pixel-grouping-equations) | Eligible | Yes | No | Yes | Yes; monotonic ratio branch has no pole | Yes | Not separately implemented |
-| [Modern LibRaw/darktable PPG](ppg.md#modern-librawdarktable-ppg-equations) | Eligible | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Ppg` |
+| [Original Pixel Grouping](ppg.md#sources) | Eligible | Yes | No | Yes | Yes; monotonic ratio branch has no pole | Yes | Not separately implemented |
+| [Modern LibRaw/darktable PPG](ppg.md#algorithm) | Eligible | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Ppg` |
 | [RCD 2.3](rcd.md) | Convertible | Yes | No | Yes with scale-relative tolerances | Needs a defined denominator fallback | Yes | Implemented with most conversion work completed |
 | [Zhang-Wu LMMSE](lmmse.md) | Convertible | Yes | No | Yes with a relative variance floor | Yes | Yes | Not the current default formulation |
 | [darktable-compatible LMMSE](lmmse.md#current-fornax-behavior) | Conditional | Encoded workspace, decoded output | No, but globally scale-normalized | Yes through normalization | Yes through odd transfer extension | Yes | Current `Demosaic::Lmmse` |
