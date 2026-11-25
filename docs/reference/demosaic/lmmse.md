@@ -135,11 +135,11 @@ observations and let $s=f*h$ be their low-pass-filtered values. Means and
 variances are taken over the nine taps of the direction window. Define
 
 $$
-\mu_x=\operatorname{mean}(s),
+\mu_x=\{mean}(s),
 \qquad
-\sigma_x^2=\operatorname{mean}\left((s-\mu_x)^2\right),
+\sigma_x^2=\{mean}\left((s-\mu_x)^2\right),
 \qquad
-\sigma_n^2=\operatorname{mean}\left((s-f)^2\right).
+\sigma_n^2=\{mean}\left((s-f)^2\right).
 $$
 
 $\mu_x$ is the local DC level, $\sigma_x^2$ measures variation in the filtered
@@ -245,7 +245,7 @@ The current darktable-compatible path encodes normalized values with an
 analytical sRGB-style transfer and decodes after interpolation. Define
 
 $$
-\operatorname{sgn}(v)=
+\{sgn}(v)=
 \begin{cases}
 -1,&v<0,\\
 1,&v\ge 0.
@@ -277,9 +277,9 @@ $$
 The signed transforms apply odd extension:
 
 $$
-E(v)=\operatorname{sgn}(v)e(|v|),
+E(v)=\{sgn}(v)e(|v|),
 \qquad
-D(v)=\operatorname{sgn}(v)d(|v|).
+D(v)=\{sgn}(v)d(|v|).
 $$
 
 The current constants are:
