@@ -5,7 +5,7 @@ Bayer demosaicing methods (`linear` and `ppg`).
 
 ## Methodology
 
-- **Chart:** [demosaic_chart.svg](chart/demosaic_chart.svg) (`2048 × 2048`, 4×4 grid of `512 × 512` tiles with even-aligned `448 × 448` evaluation ROIs).
+- **Chart:** `temp/compare-demosaic/demosaic_chart.svg` (`2048 × 2048`, 4×4 grid of `512 × 512` tiles with even-aligned `448 × 448` evaluation ROIs).
 - **Rasterization & Filter:** 4× supersampling (`8192 × 8192`) via `resvg`, exact IEC 61966-2-1 sRGB-to-linear EOTF in `float32`, followed by 4×4 box (area-average) downsampling in linear light to `2048 × 2048`.
 - **Unclamped Float (`< 0.0` and `> 1.0`):** Row 4 tiles (`signed_zero_crossing` `[-0.25, +0.25]`, `hdr_specular` `[0.0, 4.0]`, and `wide_range_signed_hdr` `[-0.5, +2.5]`) are analytically synthesized directly in IEEE 754 `float32` so clamping or gamma-domain bugs are caught immediately.
 - **Mosaic-Only Noise:** Tile 13 (`noisy_flat_fields`) stores noiseless flat patches in `ground_truth_rgb.tif` and injects deterministic fixed-seed Gaussian noise only into the 4 Bayer mosaics (`bayer_*.tif`), evaluated separately from clean `[0, 1]` and unclamped-float metrics.

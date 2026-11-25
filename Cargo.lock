@@ -475,19 +475,15 @@ dependencies = [
 name = "compare-demosaic"
 version = "0.0.17"
 dependencies = [
- "assert_cmd",
  "clap",
  "clap-style",
  "clap-verbosity-flag",
  "clerk",
- "fornax-core",
  "fornax-devtool",
  "fornax-raw",
  "fornax-tiff",
  "mischief",
- "predicates",
  "rstest",
- "strum",
  "tempfile",
 ]
 

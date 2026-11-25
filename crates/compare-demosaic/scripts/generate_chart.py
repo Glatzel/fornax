@@ -32,8 +32,8 @@ from PIL import Image
 
 CRATE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = CRATE_DIR.parent.parent
-DEFAULT_SVG_PATH = CRATE_DIR / "chart" / "demosaic_chart.svg"
 DEFAULT_TEMP_DIR = REPO_ROOT / "temp" / "compare-demosaic"
+DEFAULT_SVG_PATH = DEFAULT_TEMP_DIR / "demosaic_chart.svg"
 
 FONT_FAMILY = "DejaVu Sans, Liberation Sans, Noto Sans, Arial, sans-serif"
 

@@ -8,7 +8,7 @@ Build a reproducible, pure-Rust + Python demosaic quality comparison harness in 
 
 ### In scope
 - `compare-demosaic` pixi feature, tasks, and environment in `pixi.toml`
-- 16-tile `2048x2048` synthetic SVG chart (`crates/compare-demosaic/chart/demosaic_chart.svg`)
+- 16-tile `2048x2048` synthetic SVG chart (`temp/compare-demosaic/demosaic_chart.svg`, generated in `temp/`)
 - Python rasterizer (`resvg` 4x supersampling + linear-light 4x4 box downsample + analytical `f32` synthesis) exporting 5 `float32` TIFFs to `temp/compare-demosaic/`
 - Rust CLI crate (`crates/compare-demosaic`) reading Bayer `f32` TIFFs via `fornax-tiff`, running `fornax_raw::demosaic::Demosaic` (`Linear`, `Ppg`, `all`), and writing demosaiced `f32` RGB TIFFs to `temp/compare-demosaic/{method}/`
 - Python metrics evaluator (`MAE`, `MSE`, `RMSE`, `MaxAE`, `PSNR`, per-channel `PSNR`, `SSIM`, false-color chroma error, unclamped float & mosaic-only noise stats), CSV/JSON persistence, preview/error-heatmap PNGs, and `crates/compare-demosaic/README.md` generation
