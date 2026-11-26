@@ -7,9 +7,9 @@
 use generic_num::num;
 use rayon::prelude::*;
 
-use super::AmazeOptions;
-use super::buffer::{DenseLazy, channel, dense_from_vec};
+use super::buffer::{channel, dense_from_vec, DenseLazy};
 use super::numerics::normalization_scale;
+use super::AmazeOptions;
 use crate::error::DemosaicError;
 use crate::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 
@@ -211,7 +211,10 @@ impl<T: RawFloat> Workspace<T> {
     }
 }
 
-fn reset_vec<V: Copy>(buf: &mut Vec<V>, len: usize, value: V) {
+fn reset_vec<V>(buf: &mut Vec<V>, len: usize, value: V)
+where
+    V: Copy,
+{
     if buf.len() < len {
         buf.resize(len, value);
     }
@@ -288,7 +291,7 @@ fn tile_origins(width: usize, height: usize, core_step: usize) -> Vec<(usize, us
 ///
 /// Every reflection step shifts `idx` by an even integer, keeping CFA phases
 /// intact across image boundaries for any `len >= 2`.
-fn reflect_index(mut idx: isize, len: usize) -> usize {
+const fn reflect_index(mut idx: isize, len: usize) -> usize {
     let limit = len as isize - 1;
     while idx < 0 || idx > limit {
         if idx < 0 {
@@ -301,7 +304,6 @@ fn reflect_index(mut idx: isize, len: usize) -> usize {
     idx as usize
 }
 
-#[allow(clippy::too_many_arguments)]
 fn process_tile<T>(
     input: &[T],
     width: usize,
@@ -565,7 +567,10 @@ fn select_color_differences<T>(
     }
 }
 
-fn three_tap_variance<T: RawFloat>(prev: T, curr: T, next: T) -> T {
+fn three_tap_variance<T>(prev: T, curr: T, next: T) -> T
+where
+    T: RawFloat,
+{
     num!(3.0) * (square(prev) + square(curr) + square(next)) - square(prev + curr + next)
 }
 
@@ -1650,8 +1655,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::demosaic::LazyDemosaic;
     use crate::demosaic::test_support::format_rgb_3dp;
+    use crate::demosaic::LazyDemosaic;
 
     fn make_test_bayer(
         width: u32,
@@ -1900,16 +1905,12 @@ mod tests {
         assert!(DemosaicAmaze.lazy(&tiny, BayerPattern::RGGB).is_err());
 
         let img = MonoImage::from_raw(16, 16, vec![0.5_f32; 256]).unwrap();
-        assert!(
-            DemosaicAmaze
-                .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 34 })
-                .is_err()
-        );
-        assert!(
-            DemosaicAmaze
-                .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 37 })
-                .is_err()
-        );
+        assert!(DemosaicAmaze
+            .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 34 })
+            .is_err());
+        assert!(DemosaicAmaze
+            .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 37 })
+            .is_err());
 
         let mut bad = vec![0.5_f32; 256];
         bad[17] = f32::NAN;
