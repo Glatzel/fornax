@@ -437,18 +437,19 @@ mod tests {
     use super::*;
     use crate::BayerPattern;
 
-    fn seeded_mosaic<T: RawFloat>(width: usize, height: usize, seed: u64) -> Vec<T> {
+    fn seeded_mosaic<T>(width: usize, height: usize, seed: u64) -> Vec<T>
+    where
+        T: RawFloat,
+    {
         let mut state = seed;
         (0..width * height)
             .map(|_| {
                 state = state.wrapping_mul(6364136223846793005).wrapping_add(1);
                 let unit = ((state >> 32) as f64) / f64::from(u32::MAX);
-                cast_f64::<T>(unit.mul_add(2.0, -0.5))
+                num!(unit.mul_add(2.0, -0.5))
             })
             .collect()
     }
-
-    fn cast_f64<T: RawFloat>(v: f64) -> T { num!(v) }
 
     fn flip_h(samples: &[f32], width: usize, height: usize) -> Vec<f32> {
         let mut out = vec![0.0_f32; width * height];

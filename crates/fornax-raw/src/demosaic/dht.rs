@@ -181,7 +181,7 @@ where
     clippy::too_many_arguments,
     reason = "tile worker coordinates and scale factors are explicit"
 )]
-fn process_tile<T: RawFloat>(
+fn process_tile<T>(
     input: &[T],
     width: usize,
     height: usize,
@@ -193,7 +193,10 @@ fn process_tile<T: RawFloat>(
     scale: T,
     inv_scale: T,
     scratch: &mut DhtScratch<T>,
-) -> DhtTileOutput<T> {
+) -> DhtTileOutput<T>
+where
+    T: RawFloat,
+{
     scratch.clear();
     let ts = tile_size;
     let x_tile = tx * core;
@@ -349,7 +352,11 @@ fn process_tile<T: RawFloat>(
             let g_sw = scratch.rgb[sw][1];
             let g_se = scratch.rgb[se][1];
 
-            let (dp, dq) = if known != 1 {
+            let (dp, dq) = if known == 1 {
+                let dp = ((g0 + g0) - (g_nw + g_se)).abs();
+                let dq = ((g0 + g0) - (g_ne + g_sw)).abs();
+                (dp, dq)
+            } else {
                 let opp = 2 - known;
                 let c_nw = scratch.rgb[nw][opp];
                 let c_ne = scratch.rgb[ne][opp];
@@ -357,10 +364,6 @@ fn process_tile<T: RawFloat>(
                 let c_se = scratch.rgb[se][opp];
                 let dp = ((g_nw - c_nw) - (g_se - c_se)).abs() + ((g0 + g0) - (g_nw + g_se)).abs();
                 let dq = ((g_ne - c_ne) - (g_sw - c_sw)).abs() + ((g0 + g0) - (g_ne + g_sw)).abs();
-                (dp, dq)
-            } else {
-                let dp = ((g0 + g0) - (g_nw + g_se)).abs();
-                let dq = ((g0 + g0) - (g_ne + g_sw)).abs();
                 (dp, dq)
             };
 
@@ -590,7 +593,10 @@ fn refine_hv_pass(src: &[u8], dst: &mut [u8], ts: usize, margin: usize, isolated
 }
 
 #[inline(always)]
-fn green_candidate<T: RawFloat>(c0: T, cs: T, gs: T, eps_ratio: T) -> T {
+fn green_candidate<T>(c0: T, cs: T, gs: T, eps_ratio: T) -> T
+where
+    T: RawFloat,
+{
     if c0 * cs > T::zero() && c0 * gs > T::zero() {
         let a0 = c0.abs();
         let a_s = cs.abs();
@@ -606,7 +612,10 @@ fn green_candidate<T: RawFloat>(c0: T, cs: T, gs: T, eps_ratio: T) -> T {
 }
 
 #[inline(always)]
-fn estimate_green_axis<T: RawFloat>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, eps_ratio: T) -> T {
+fn estimate_green_axis<T>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, eps_ratio: T) -> T
+where
+    T: RawFloat,
+{
     let cand_m = green_candidate(c0, cm, gm, eps_ratio);
     let cand_p = green_candidate(c0, cp, gp, eps_ratio);
     let dm = square((c0 - cm).abs() + eps);
@@ -615,14 +624,20 @@ fn estimate_green_axis<T: RawFloat>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, e
 }
 
 #[inline(always)]
-fn estimate_diag_rb<T: RawFloat>(g0: T, g1: T, c1: T, g2: T, c2: T, eps: T) -> T {
+fn estimate_diag_rb<T>(g0: T, g1: T, c1: T, g2: T, c2: T, eps: T) -> T
+where
+    T: RawFloat,
+{
     let d1 = cube((g0 - g1).abs() + eps);
     let d2 = cube((g0 - g2).abs() + eps);
     g0 + (d2 * (c1 - g1) + d1 * (c2 - g2)) / (d1 + d2)
 }
 
 #[inline(always)]
-fn estimate_hv_rb<T: RawFloat>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T) {
+fn estimate_hv_rb<T>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T)
+where
+    T: RawFloat,
+{
     let d1 = square((g0 - s1[1]).abs() + eps);
     let d2 = square((g0 - s2[1]).abs() + eps);
     let inv = T::one() / (d1 + d2);
@@ -632,10 +647,20 @@ fn estimate_hv_rb<T: RawFloat>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T) 
 }
 
 #[inline(always)]
-fn square<T: RawFloat>(v: T) -> T { v * v }
+fn square<T>(v: T) -> T
+where
+    T: RawFloat,
+{
+    v * v
+}
 
 #[inline(always)]
-fn cube<T: RawFloat>(v: T) -> T { v * v * v }
+fn cube<T>(v: T) -> T
+where
+    T: RawFloat,
+{
+    v * v * v
+}
 
 const fn reflect_index(index: isize, length: usize) -> usize {
     if length <= 1 {
@@ -656,7 +681,10 @@ mod tests {
     use super::*;
     use crate::BayerChannel;
 
-    fn seeded_mosaic<T: RawFloat>(width: usize, height: usize, seed: u64) -> Vec<T> {
+    fn seeded_mosaic<T>(width: usize, height: usize, seed: u64) -> Vec<T>
+    where
+        T: RawFloat,
+    {
         let mut state = seed;
         (0..width * height)
             .map(|_| {
