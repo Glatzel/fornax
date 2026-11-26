@@ -14,7 +14,7 @@ availability.
 | Modern LibRaw/darktable [`PPG`](ppg.md) | Ready; done | Supported PPG formulation |
 | [`RCD`](rcd.md) | Ready; done | Supported linear-light RCD 2.3 formulation |
 | [`LMMSE`](lmmse.md) | Ready; done | Supported linear-light Zhang-Wu LMMSE formulation |
-| `AMaZE` | Not ready | Implemented and selectable; follow-up work remains |
+| [`AMaZE`](amaze.md) | Ready; done | Supported linear-light AMaZE formulation |
 | `VNG` | Not ready | Implemented and selectable; follow-up work remains |
 | `VNG4` | Not ready | Implemented and selectable; follow-up work remains |
 | Malvar-He-Cutler | Tier -1 | Reference only; never implement |
@@ -45,6 +45,7 @@ eligibility.
 | [Modern LibRaw/darktable PPG](ppg.md#algorithm) | Eligible | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Ppg` |
 | [RCD 2.3](rcd.md) | Ready | Yes | No | Yes (tile-normalized) | Yes (zero-crossing fallback) | Yes | Ready as `Demosaic::Rcd` |
 | [Zhang-Wu LMMSE](lmmse.md) | Ready | Yes | No | Yes (tile-normalized) | Yes | Yes | Ready as `Demosaic::Lmmse` |
+| [AMaZE](amaze.md) | Ready | Yes | No | Yes (tile-normalized) | Yes | Yes | Ready as `Demosaic::Amaze` |
 
 ## Algorithms to remove
 
@@ -75,10 +76,17 @@ place it below the implementation tiers.
 - Readiness complete: linear-light Zhang-Wu LMMSE with tile-normalized variance
   floor, parity-preserving reflected halos, and configurable `LmmseOptions`.
 
+### AMaZE
+
+- Readiness complete: linear-light AMaZE with tile normalization, out-of-place
+  Jacobi stencil passes, corrected 0.25 variance means, symmetric chroma
+  taps, sign-safe ratio fallback, unclamped neighbor overshoot bounds, and
+  configurable `AmazeOptions`.
+
 ## Unresolved research questions
 
-None for Linear, PPG, RCD, or LMMSE. Remaining `Not ready` algorithms
-(`AMaZE`, `VNG`, `VNG4`) are tracked separately.
+None for Linear, PPG, RCD, LMMSE, or AMaZE. Remaining `Not ready` algorithms
+(`VNG`, `VNG4`) are tracked separately.
 
 ## Individual reports
 
@@ -87,10 +95,10 @@ None for Linear, PPG, RCD, or LMMSE. Remaining `Not ready` algorithms
 - [Patterned pixel grouping readiness](ppg.md)
 - [Ratio-corrected demosaicing readiness](rcd.md)
 - [Directional LMMSE readiness](lmmse.md)
+- [AMaZE readiness](amaze.md)
 
 ## Other implementation notes
 
-- [AMaZE reference notes](amaze.md)
 - [VNG and VNG4 reference notes](vng.md)
 - [RawTherapee reference notes](rawtherapee.md)
 

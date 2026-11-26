@@ -21,11 +21,13 @@ pub enum ProductionMethod {
     Rcd,
     /// Linear-light Zhang-Wu directional LMMSE demosaicing.
     Lmmse,
+    /// Linear-light AMaZE demosaicing.
+    Amaze,
 }
 
 impl ProductionMethod {
     /// All production-ready demosaicing methods in canonical order.
-    pub const ALL: [Self; 4] = [Self::Linear, Self::Ppg, Self::Rcd, Self::Lmmse];
+    pub const ALL: [Self; 5] = [Self::Linear, Self::Ppg, Self::Rcd, Self::Lmmse, Self::Amaze];
 
     /// Stable lowercase identifier used for directory names and reports.
     pub const fn as_str(self) -> &'static str {
@@ -34,6 +36,7 @@ impl ProductionMethod {
             Self::Ppg => "ppg",
             Self::Rcd => "rcd",
             Self::Lmmse => "lmmse",
+            Self::Amaze => "amaze",
         }
     }
 
@@ -44,6 +47,7 @@ impl ProductionMethod {
             Self::Ppg => Demosaic::Ppg,
             Self::Rcd => Demosaic::rcd(),
             Self::Lmmse => Demosaic::lmmse(),
+            Self::Amaze => Demosaic::amaze(),
         }
     }
 }
@@ -51,7 +55,8 @@ impl ProductionMethod {
 /// CLI selector for demosaicing methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum MethodSelection {
-    /// Run all production-ready methods (`linear`, `ppg`, `rcd`, `lmmse`).
+    /// Run all production-ready methods (`linear`, `ppg`, `rcd`, `lmmse`,
+    /// `amaze`).
     All,
     /// Run bilinear demosaicing (`linear`).
     Linear,
@@ -61,6 +66,8 @@ pub enum MethodSelection {
     Rcd,
     /// Run directional LMMSE demosaicing (`lmmse`).
     Lmmse,
+    /// Run AMaZE demosaicing (`amaze`).
+    Amaze,
 }
 
 /// CLI arguments for `compare-demosaic`.
@@ -71,8 +78,8 @@ pub enum MethodSelection {
     styles = clap_style::styles(),
 )]
 pub struct CliArgs {
-    /// Demosaicing method(s) to run (`linear`, `ppg`, `rcd`, `lmmse`, or
-    /// `all`).
+    /// Demosaicing method(s) to run (`linear`, `ppg`, `rcd`, `lmmse`, `amaze`,
+    /// or `all`).
     #[arg(long, value_enum, value_delimiter = ',', default_value = "all")]
     pub method: Vec<MethodSelection>,
 
@@ -121,6 +128,7 @@ pub fn resolve_methods(selections: &[MethodSelection]) -> Vec<ProductionMethod> 
             MethodSelection::Ppg => ProductionMethod::Ppg,
             MethodSelection::Rcd => ProductionMethod::Rcd,
             MethodSelection::Lmmse => ProductionMethod::Lmmse,
+            MethodSelection::Amaze => ProductionMethod::Amaze,
         };
         if !resolved.contains(&method) {
             resolved.push(method);
@@ -217,6 +225,7 @@ mod tests {
                 ProductionMethod::Ppg,
                 ProductionMethod::Rcd,
                 ProductionMethod::Lmmse,
+                ProductionMethod::Amaze,
             ]
         );
         assert_eq!(
@@ -246,6 +255,10 @@ mod tests {
     #[case(ProductionMethod::Lmmse, BayerPattern::BGGR)]
     #[case(ProductionMethod::Lmmse, BayerPattern::GRBG)]
     #[case(ProductionMethod::Lmmse, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Amaze, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Amaze, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Amaze, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Amaze, BayerPattern::GBRG)]
     fn demosaic_tiff_preserves_unclamped_float_range(
         #[case] method: ProductionMethod,
         #[case] pattern: BayerPattern,

@@ -39,7 +39,7 @@ use crate::{BayerPattern, MonoImage, RawFloat};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Demosaic {
     /// Aliasing minimization and zipper elimination.
-    Amaze,
+    Amaze(AmazeOptions),
     /// Bilinear interpolation.
     Linear,
     /// Linear minimum mean-square-error demosaicing.
@@ -56,6 +56,39 @@ pub enum Demosaic {
 
 impl Default for Demosaic {
     fn default() -> Self { Self::rcd() }
+}
+
+/// Configuration for [`Demosaic::Amaze`].
+///
+/// # Examples
+///
+/// ```
+/// use fornax_raw::demosaic::AmazeOptions;
+///
+/// assert_eq!(
+///     AmazeOptions::default().tile_size,
+///     AmazeOptions::DEFAULT_TILE_SIZE
+/// );
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AmazeOptions {
+    /// Square tile size (including the 16-pixel border halo on each side).
+    /// Must be even and at least 36.
+    pub tile_size: usize,
+}
+
+impl AmazeOptions {
+    /// Default square tile size (`160`).
+    pub const DEFAULT_TILE_SIZE: usize = 160;
+
+    /// Default AMaZE options (`tile_size: 160`).
+    pub const DEFAULT: Self = Self {
+        tile_size: Self::DEFAULT_TILE_SIZE,
+    };
+}
+
+impl Default for AmazeOptions {
+    fn default() -> Self { Self::DEFAULT }
 }
 
 /// Configuration for [`Demosaic::Rcd`].
@@ -150,6 +183,17 @@ pub enum LmmseMode {
 }
 
 impl Demosaic {
+    /// Returns AMaZE with its default tile size (`160`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_raw::demosaic::{AmazeOptions, Demosaic};
+    ///
+    /// assert_eq!(Demosaic::amaze(), Demosaic::Amaze(AmazeOptions::DEFAULT));
+    /// ```
+    pub const fn amaze() -> Self { Self::Amaze(AmazeOptions::DEFAULT) }
+
     /// Returns RCD with its default tile size (`112`).
     ///
     /// # Examples
@@ -225,7 +269,9 @@ impl<T: RawFloat + Send + Sync> IDemosaic<T> for Demosaic {
         pattern: BayerPattern,
     ) -> Result<AnyLazy<'a, T>, DemosaicError> {
         Ok(match self {
-            Self::Amaze => AnyLazy::Amaze(DemosaicAmaze.lazy(bayer, pattern)?),
+            Self::Amaze(options) => {
+                AnyLazy::Amaze(DemosaicAmaze.lazy_with_options(bayer, pattern, *options)?)
+            }
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse(options) => {
                 AnyLazy::Lmmse(DemosaicLmmse.lazy_with_options(bayer, pattern, *options)?)
@@ -252,7 +298,7 @@ mod rust_algorithm_tests {
     const RUST_ALGORITHMS: [Demosaic; 4] = [
         Demosaic::Vng,
         Demosaic::Vng4,
-        Demosaic::Amaze,
+        Demosaic::amaze(),
         Demosaic::lmmse(),
     ];
 
@@ -264,7 +310,7 @@ mod rust_algorithm_tests {
         {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [
-                Demosaic::Amaze,
+                Demosaic::amaze(),
                 Demosaic::Linear,
                 Demosaic::lmmse(),
                 Demosaic::Ppg,

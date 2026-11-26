@@ -16,7 +16,7 @@ fn selected_algorithm() -> Vec<(String, Demosaic)> {
         .filter(|name| !name.is_empty())
         .map(|name| {
             let algorithm = match name {
-                "amaze" => Demosaic::Amaze,
+                "amaze" => Demosaic::amaze(),
                 "linear" => Demosaic::Linear,
                 "lmmse" => Demosaic::lmmse(),
                 "ppg" => Demosaic::Ppg,

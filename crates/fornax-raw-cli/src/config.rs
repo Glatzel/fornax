@@ -284,7 +284,7 @@ const fn merge_bool(cli_true: bool, configured: Option<bool>) -> bool {
 
 fn parse_demosaic(name: &str) -> Result<Demosaic, ConfigError> {
     match name.to_ascii_lowercase().as_str() {
-        "amaze" => Ok(Demosaic::Amaze),
+        "amaze" => Ok(Demosaic::amaze()),
         "linear" => Ok(Demosaic::Linear),
         "lmmse" => Ok(Demosaic::lmmse()),
         "ppg" => Ok(Demosaic::Ppg),

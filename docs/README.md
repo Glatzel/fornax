@@ -51,7 +51,7 @@ reference, and active planning documentation.
 | --- | --- |
 | [Demosaic reference index](reference/demosaic/README.md) | Current implementations, retained provenance, and external source research. |
 | [AAHD reference notes](reference/demosaic/aahd.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [AMaZE reference notes](reference/demosaic/amaze.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [AMaZE readiness](reference/demosaic/amaze.md) | Linear-light AMaZE equations, Nyquist/chroma fixes, and tile options. |
 | [DCB reference notes](reference/demosaic/dcb.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [DHT reference notes](reference/demosaic/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [Linear readiness](reference/demosaic/linear.md) | Bilinear reconstruction, border behavior, and fixed snapshot coverage. |
