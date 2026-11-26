@@ -7,9 +7,9 @@
 use generic_num::num;
 use rayon::prelude::*;
 
-use super::buffer::{channel, dense_from_vec, DenseLazy};
-use super::numerics::normalization_scale;
 use super::AmazeOptions;
+use super::buffer::{DenseLazy, channel, dense_from_vec};
+use super::numerics::normalization_scale;
 use crate::error::DemosaicError;
 use crate::{BayerChannel, BayerPattern, MonoImage, RawFloat};
 
@@ -1655,8 +1655,9 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::demosaic::test_support::format_rgb_3dp;
     use crate::demosaic::LazyDemosaic;
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    use crate::demosaic::test_support::format_rgb_3dp;
 
     fn make_test_bayer(
         width: u32,
@@ -1905,12 +1906,16 @@ mod tests {
         assert!(DemosaicAmaze.lazy(&tiny, BayerPattern::RGGB).is_err());
 
         let img = MonoImage::from_raw(16, 16, vec![0.5_f32; 256]).unwrap();
-        assert!(DemosaicAmaze
-            .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 34 })
-            .is_err());
-        assert!(DemosaicAmaze
-            .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 37 })
-            .is_err());
+        assert!(
+            DemosaicAmaze
+                .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 34 })
+                .is_err()
+        );
+        assert!(
+            DemosaicAmaze
+                .lazy_with_options(&img, BayerPattern::RGGB, AmazeOptions { tile_size: 37 })
+                .is_err()
+        );
 
         let mut bad = vec![0.5_f32; 256];
         bad[17] = f32::NAN;
