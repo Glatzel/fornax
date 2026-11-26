@@ -2,12 +2,7 @@
 
 - decoder
 - demosaic
-  - tier1
-    - [RCD]
-    - [PPG]
-    - [LMMSE]
   - tier2
-    - [AMAZE]
     - [DHT]
     - [VNG]
     - [VNG4]
