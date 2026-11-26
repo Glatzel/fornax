@@ -285,6 +285,7 @@ const fn merge_bool(cli_true: bool, configured: Option<bool>) -> bool {
 fn parse_demosaic(name: &str) -> Result<Demosaic, ConfigError> {
     match name.to_ascii_lowercase().as_str() {
         "amaze" => Ok(Demosaic::amaze()),
+        "dht" => Ok(Demosaic::dht()),
         "linear" => Ok(Demosaic::Linear),
         "lmmse" => Ok(Demosaic::lmmse()),
         "ppg" => Ok(Demosaic::Ppg),
@@ -370,11 +371,14 @@ mod tests {
 
     #[test]
     fn removed_demosaic_names_are_rejected() {
-        for name in ["aahd", "ahd", "dcb", "dht"] {
+        for name in ["aahd", "ahd", "dcb"] {
             assert!(matches!(
                 parse_demosaic(name),
                 Err(ConfigError::UnknownDemosaic(value)) if value == name
             ));
         }
+        assert_eq!(parse_demosaic("dht").unwrap(), Demosaic::dht());
+        assert_eq!(parse_demosaic("vng").unwrap(), Demosaic::Vng);
+        assert_eq!(parse_demosaic("vng4").unwrap(), Demosaic::Vng4);
     }
 }

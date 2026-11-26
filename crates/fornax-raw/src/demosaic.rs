@@ -3,6 +3,7 @@ mod test_support;
 
 mod amaze;
 mod buffer;
+mod dht;
 mod linear;
 mod lmmse;
 mod numerics;
@@ -14,12 +15,13 @@ mod vng;
 use std::num::NonZeroU8;
 
 use amaze::DemosaicAmaze;
+use dht::DemosaicDht;
 use linear::{DemosaicLinear, LinearLazy};
 use lmmse::DemosaicLmmse;
 use ppg::{DemosaicPpg, PpgLazy};
 pub use protocol::{IDemosaic, LazyDemosaic};
 use rcd::{DemosaicRcd, RcdLazy};
-use vng::DemosaicVng;
+use vng::{DemosaicVng, VngLazy};
 
 use crate::error::DemosaicError;
 use crate::{BayerPattern, MonoImage, RawFloat};
@@ -40,6 +42,8 @@ use crate::{BayerPattern, MonoImage, RawFloat};
 pub enum Demosaic {
     /// Aliasing minimization and zipper elimination.
     Amaze(AmazeOptions),
+    /// Directional homogenization and Thomson-style demosaicing.
+    Dht(DhtOptions),
     /// Bilinear interpolation.
     Linear,
     /// Linear minimum mean-square-error demosaicing.
@@ -48,9 +52,9 @@ pub enum Demosaic {
     Ppg,
     /// Ratio-corrected demosaicing.
     Rcd(RcdOptions),
-    /// Variable-number-of-gradients demosaicing.
+    /// Variable-number-of-gradients demosaicing (3-color).
     Vng,
-    /// Split-green VNG demosaicing.
+    /// Split-green VNG demosaicing (4-color).
     Vng4,
 }
 
@@ -88,6 +92,39 @@ impl AmazeOptions {
 }
 
 impl Default for AmazeOptions {
+    fn default() -> Self { Self::DEFAULT }
+}
+
+/// Configuration for [`Demosaic::Dht`].
+///
+/// # Examples
+///
+/// ```
+/// use fornax_raw::demosaic::DhtOptions;
+///
+/// assert_eq!(
+///     DhtOptions::default().tile_size,
+///     DhtOptions::DEFAULT_TILE_SIZE
+/// );
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct DhtOptions {
+    /// Square tile size (including the 10-pixel border halo on each side).
+    /// Must be even and at least 24.
+    pub tile_size: usize,
+}
+
+impl DhtOptions {
+    /// Default square tile size (`128`).
+    pub const DEFAULT_TILE_SIZE: usize = 128;
+
+    /// Default DHT options (`tile_size: 128`).
+    pub const DEFAULT: Self = Self {
+        tile_size: Self::DEFAULT_TILE_SIZE,
+    };
+}
+
+impl Default for DhtOptions {
     fn default() -> Self { Self::DEFAULT }
 }
 
@@ -194,6 +231,17 @@ impl Demosaic {
     /// ```
     pub const fn amaze() -> Self { Self::Amaze(AmazeOptions::DEFAULT) }
 
+    /// Returns DHT with its default tile size (`128`).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use fornax_raw::demosaic::{Demosaic, DhtOptions};
+    ///
+    /// assert_eq!(Demosaic::dht(), Demosaic::Dht(DhtOptions::DEFAULT));
+    /// ```
+    pub const fn dht() -> Self { Self::Dht(DhtOptions::DEFAULT) }
+
     /// Returns RCD with its default tile size (`112`).
     ///
     /// # Examples
@@ -219,12 +267,13 @@ impl Demosaic {
 
 pub enum AnyLazy<'a, T: RawFloat> {
     Amaze(buffer::DenseLazy<T>),
+    Dht(buffer::DenseLazy<T>),
     Linear(LinearLazy<'a, T>),
     Lmmse(buffer::DenseLazy<T>),
     Ppg(PpgLazy<'a, T>),
     Rcd(RcdLazy<'a, T>),
-    Vng(buffer::DenseLazy<T>),
-    Vng4(buffer::DenseLazy<T>),
+    Vng(VngLazy<'a, T>),
+    Vng4(VngLazy<'a, T>),
 }
 
 impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
@@ -233,7 +282,8 @@ impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.dimensions(),
             Self::Ppg(p) => p.dimensions(),
             Self::Rcd(r) => r.dimensions(),
-            Self::Vng(d) | Self::Amaze(d) | Self::Lmmse(d) | Self::Vng4(d) => d.dimensions(),
+            Self::Vng(v) | Self::Vng4(v) => v.dimensions(),
+            Self::Amaze(d) | Self::Dht(d) | Self::Lmmse(d) => d.dimensions(),
         }
     }
 
@@ -242,8 +292,8 @@ impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.fill_rows(y0, out),
             Self::Ppg(p) => p.fill_rows(y0, out),
             Self::Rcd(r) => r.fill_rows(y0, out),
-
-            Self::Amaze(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => d.fill_rows(y0, out),
+            Self::Vng(v) | Self::Vng4(v) => v.fill_rows(y0, out),
+            Self::Amaze(d) | Self::Dht(d) | Self::Lmmse(d) => d.fill_rows(y0, out),
         }
     }
 
@@ -252,8 +302,8 @@ impl<T: RawFloat + Send + Sync> LazyDemosaic<T> for AnyLazy<'_, T> {
             Self::Linear(l) => l.collect_with(post),
             Self::Ppg(p) => p.collect_with(post),
             Self::Rcd(r) => r.collect_with(post),
-
-            Self::Amaze(d) | Self::Lmmse(d) | Self::Vng(d) | Self::Vng4(d) => d.collect_with(post),
+            Self::Vng(v) | Self::Vng4(v) => v.collect_with(post),
+            Self::Amaze(d) | Self::Dht(d) | Self::Lmmse(d) => d.collect_with(post),
         }
     }
 }
@@ -272,6 +322,9 @@ impl<T: RawFloat + Send + Sync> IDemosaic<T> for Demosaic {
             Self::Amaze(options) => {
                 AnyLazy::Amaze(DemosaicAmaze.lazy_with_options(bayer, pattern, *options)?)
             }
+            Self::Dht(options) => {
+                AnyLazy::Dht(DemosaicDht.lazy_with_options(bayer, pattern, *options)?)
+            }
             Self::Linear => AnyLazy::Linear(DemosaicLinear.lazy(bayer, pattern)?),
             Self::Lmmse(options) => {
                 AnyLazy::Lmmse(DemosaicLmmse.lazy_with_options(bayer, pattern, *options)?)
@@ -280,8 +333,8 @@ impl<T: RawFloat + Send + Sync> IDemosaic<T> for Demosaic {
             Self::Rcd(options) => {
                 AnyLazy::Rcd(DemosaicRcd.lazy_with_options(bayer, pattern, *options)?)
             }
-            Self::Vng => AnyLazy::Vng(DemosaicVng.lazy(bayer, pattern)?),
-            Self::Vng4 => AnyLazy::Vng4(DemosaicVng.lazy(bayer, pattern)?),
+            Self::Vng => AnyLazy::Vng(DemosaicVng.lazy(bayer, pattern, false)?),
+            Self::Vng4 => AnyLazy::Vng4(DemosaicVng.lazy(bayer, pattern, true)?),
         })
     }
 }
@@ -295,7 +348,8 @@ mod rust_algorithm_tests {
     use super::*;
     use crate::MonoImage;
 
-    const RUST_ALGORITHMS: [Demosaic; 4] = [
+    const RUST_ALGORITHMS: [Demosaic; 5] = [
+        Demosaic::dht(),
         Demosaic::Vng,
         Demosaic::Vng4,
         Demosaic::amaze(),
@@ -311,6 +365,7 @@ mod rust_algorithm_tests {
             let image = MonoImage::from_raw(64, 64, vec![value; 64 * 64]).unwrap();
             let algorithms = [
                 Demosaic::amaze(),
+                Demosaic::dht(),
                 Demosaic::Linear,
                 Demosaic::lmmse(),
                 Demosaic::Ppg,
@@ -353,15 +408,27 @@ mod rust_algorithm_tests {
 
     #[test]
     fn vng4_selects_split_green_vng_behavior() -> mischief::Result<()> {
-        let samples = (0..64 * 64)
-            .map(|sample| sample as f64 / f64::from(64 * 64 - 1))
+        let samples = (0..16 * 16)
+            .map(|idx| {
+                let x = idx as u32 % 16;
+                let y = idx as u32 / 16;
+                match BayerPattern::GBRG.channel_at(x, y) {
+                    crate::BayerChannel::R => 0.25_f64,
+                    crate::BayerChannel::GRedRow => 0.4_f64,
+                    crate::BayerChannel::GBlueRow => 0.8_f64,
+                    crate::BayerChannel::B => 0.6_f64,
+                }
+            })
             .collect::<Vec<_>>();
-        let image = MonoImage::from_raw(64, 64, samples).unwrap();
-        for pattern in BayerPattern::ALL {
-            let vng = Demosaic::Vng.demosaic(&image, pattern)?.collect();
-            let vng4 = Demosaic::Vng4.demosaic(&image, pattern)?.collect();
-            assert_eq!(vng, vng4, "{pattern}");
-        }
+        let image = MonoImage::from_raw(16, 16, samples).unwrap();
+        let vng = Demosaic::Vng
+            .demosaic(&image, BayerPattern::GBRG)?
+            .collect();
+        let vng4 = Demosaic::Vng4
+            .demosaic(&image, BayerPattern::GBRG)?
+            .collect();
+        assert_ne!(vng, vng4);
+        assert!((vng4.get_pixel(8, 8)[1] - 0.6).abs() < 1e-12);
         Ok(())
     }
 

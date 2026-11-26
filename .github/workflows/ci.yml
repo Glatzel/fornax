@@ -426,10 +426,10 @@ jobs:
           #   changed: ${{ needs.changed.outputs.benchmark_dcb }}
           #   extra-options: --bench demosaic
           #   algorithm: dcb
-          # - label: demosaic-dht
-          #   changed: ${{ needs.changed.outputs.benchmark_dht }}
-          #   extra-options: --bench demosaic
-          #   algorithm: dht
+          - label: demosaic-dht
+            changed: ${{ needs.changed.outputs.benchmark_dht }}
+            extra-options: --bench demosaic
+            algorithm: dht
           - label: demosaic-linear
             changed: ${{ needs.changed.outputs.benchmark_linear }}
             extra-options: --bench demosaic
@@ -446,14 +446,14 @@ jobs:
             changed: ${{ needs.changed.outputs.benchmark_rcd }}
             extra-options: --bench demosaic
             algorithm: rcd
-          # - label: demosaic-vng
-          #   changed: ${{ needs.changed.outputs.benchmark_vng }}
-          #   extra-options: --bench demosaic
-          #   algorithm: vng
-          # - label: demosaic-vng4
-          #   changed: ${{ needs.changed.outputs.benchmark_vng4 }}
-          #   extra-options: --bench demosaic
-          #   algorithm: vng4
+          - label: demosaic-vng
+            changed: ${{ needs.changed.outputs.benchmark_vng }}
+            extra-options: --bench demosaic
+            algorithm: vng
+          - label: demosaic-vng4
+            changed: ${{ needs.changed.outputs.benchmark_vng4 }}
+            extra-options: --bench demosaic
+            algorithm: vng4
 
           - label: preprocessor
             changed: ${{ needs.changed.outputs.benchmark_preprocessor }}

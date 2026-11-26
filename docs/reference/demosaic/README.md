@@ -15,8 +15,9 @@ availability.
 | [`RCD`](rcd.md) | Ready; done | Supported linear-light RCD 2.3 formulation |
 | [`LMMSE`](lmmse.md) | Ready; done | Supported linear-light Zhang-Wu LMMSE formulation |
 | [`AMaZE`](amaze.md) | Ready; done | Supported linear-light AMaZE formulation |
-| `VNG` | Not ready | Implemented and selectable; follow-up work remains |
-| `VNG4` | Not ready | Implemented and selectable; follow-up work remains |
+| [`DHT`](dht.md) | Ready; done | Supported clean-room linear-light DHT formulation |
+| [`VNG`](vng.md) | Ready; done | Supported linear-light 3-color VNG formulation |
+| [`VNG4`](vng.md) | Ready; done | Supported linear-light 4-color split-green VNG4 formulation |
 | Malvar-He-Cutler | Tier -1 | Reference only; never implement |
 
 ## Tier -1 reference-only
@@ -46,6 +47,9 @@ eligibility.
 | [RCD 2.3](rcd.md) | Ready | Yes | No | Yes (tile-normalized) | Yes (zero-crossing fallback) | Yes | Ready as `Demosaic::Rcd` |
 | [Zhang-Wu LMMSE](lmmse.md) | Ready | Yes | No | Yes (tile-normalized) | Yes | Yes | Ready as `Demosaic::Lmmse` |
 | [AMaZE](amaze.md) | Ready | Yes | No | Yes (tile-normalized) | Yes | Yes | Ready as `Demosaic::Amaze` |
+| [Clean-room DHT](dht.md) | Ready | Yes | No | Yes (tile-normalized) | Yes (zero-crossing fallback) | Yes | Ready as `Demosaic::Dht` |
+| [VNG (3-color)](vng.md) | Ready | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Vng` |
+| [VNG4 (4-color split-green)](vng.md) | Ready | Yes | No | Yes | Yes | Yes | Ready as `Demosaic::Vng4` |
 
 ## Algorithms to remove
 
@@ -83,10 +87,25 @@ place it below the implementation tiers.
   taps, sign-safe ratio fallback, unclamped neighbor overshoot bounds, and
   configurable `AmazeOptions`.
 
+### Clean-room DHT
+
+- Readiness complete: clean-room linear-light DHT with tile normalization,
+  symmetric 7-tap HV directional costs, 3-pass Jacobi majority-vote refinement,
+  sign-safe ratio / additive zero-crossing green reconstruction, symmetric
+  diagonal costs with 1-pass refinement, inverse-gradient additive R/B
+  reconstruction, and configurable `DhtOptions`.
+
+### VNG and VNG4
+
+- Readiness complete: linear-light 3-color `Demosaic::Vng` and 4-color
+  split-green `Demosaic::Vng4` sharing one streaming `VngLazy` kernel with
+  parity-preserving reflected borders and canonical `minimum + 0.5 * maximum`
+  thresholding.
+
 ## Unresolved research questions
 
-None for Linear, PPG, RCD, LMMSE, or AMaZE. Remaining `Not ready` algorithms
-(`VNG`, `VNG4`) are tracked separately.
+None. All implemented production demosaic selectors (`Linear`, `Ppg`, `Rcd`,
+`Lmmse`, `Amaze`, `Dht`, `Vng`, `Vng4`) are ready.
 
 ## Individual reports
 
@@ -96,17 +115,17 @@ None for Linear, PPG, RCD, LMMSE, or AMaZE. Remaining `Not ready` algorithms
 - [Ratio-corrected demosaicing readiness](rcd.md)
 - [Directional LMMSE readiness](lmmse.md)
 - [AMaZE readiness](amaze.md)
+- [DHT readiness](dht.md)
+- [VNG and VNG4 readiness](vng.md)
 
 ## Other implementation notes
 
-- [VNG and VNG4 reference notes](vng.md)
 - [RawTherapee reference notes](rawtherapee.md)
 
 ## Removed implementation provenance
 
 - [AAHD reference notes](aahd.md)
 - [DCB reference notes](dcb.md)
-- [DHT reference notes](dht.md)
 
 These notes preserve source and numerical evidence for formulations removed
 from the production API. They are not descriptions of available selectors.

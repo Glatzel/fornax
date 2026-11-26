@@ -1,96 +1,128 @@
-# DHT reference notes
+# Directional homogenization and Thomson-style demosaicing (DHT)
 
-> **Removed from Fornax.** The retained LibRaw formulation depends on
-> positive-domain color ratios, a mid-gray padding value, and bounded channel
-> reconstruction. Making those operations accept mixed-sign linear samples
-> would replace DHT's mathematical model rather than port it. The notes below
-> remain as provenance for a possible future sign-correct formulation.
+Fornax's `Demosaic::Dht` implements a clean-room, linear-light DHT
+formulation in unclamped, signed, scene-linear floating-point arithmetic.
 
-This reference note records pinned sources, numerical behavior, and implementation boundaries for DHT.
+## Classification
 
-This note records the authoritative source and numeric conventions that were
-used by Fornax's former conventional 2x2 RGB Bayer DHT path.
+**Done: production ready.**
 
-## Source
+## Provenance and clean-room design
 
-- LibRaw 0.22.3, commit
-  `cf02d66eb5c19d4e46df7aee0582e47a4918509a`,
-  [`src/demosaic/dht_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/dht_demosaic.cpp).
-- LibRaw 0.22.3, three-color CFA preprocessing:
-  [`src/demosaic/misc_demosaic.cpp`](https://github.com/LibRaw/LibRaw/blob/cf02d66eb5c19d4e46df7aee0582e47a4918509a/src/demosaic/misc_demosaic.cpp#L21).
-The former comparison called `pre_interpolate()` followed by
-`dht_interpolate()`. For
-the fixture's three-color, full-resolution Bayer path, preprocessing unifies
-the two green CFA phases. DHT's fallback to AHD for unsupported filter arrays
-is outside the Fornax scope.
+The former LibRaw `dht_demosaic.cpp` port was removed in `#763` because it relied
+on strictly-positive multiplicative ratios, `0.5` mid-gray padding, global
+channel clamping, and LGPL-2.1/CDDL-1.0 code structure.
 
-## Algorithm shape
+`Demosaic::Dht` is an original clean-room Rust implementation designed for
+Fornax's scene-linear contract:
 
-DHT works in a float RGB plane with four padded rows and columns on the top and
-left. Padding is initialized to `0.5`, while measured CFA values replace their
-channel after nonzero bounds are collected.
+- **No `0.5` mid-gray padding or global `[min, max]` clamps:** border halos use
+  parity-preserving reflection (`reflect_index`) and all arithmetic is
+  unclamped.
+- **No hot-pixel hide/restore pass:** hot/dead pixel suppression belongs to
+  preprocessing, not linear demosaicing.
+- **Scale normalization:** each image is normalized by a robust high percentile
+  $s = \text{normalization\_scale}(F)$ so directional floors $\varepsilon$ are
+  positive-scale equivariant.
+- **Symmetric directional costs & Jacobi refinement:** out-of-place `src -> dst`
+  majority-vote passes preserve exact horizontal and vertical flip symmetry,
+  and the NE-SW diagonal cost evaluates the NE-SW samples directly (avoiding
+  the upstream `druld` copy-paste defect).
 
-The fixed reference sequence is:
+## Algorithm
 
-1. Detect isolated hot or dead CFA samples using eight neighbors and a
-   one-stop `calc_dist` threshold. Replace candidate values along the
-   lower-distance axis, preserving a hot-sample flag for final restoration.
-2. Discover horizontal and vertical directions from ratios of green and
-   known non-green samples. The direction confidence is raised to the eighth
-   power, and ratios above `256` become strong-direction flags.
-3. Refine HV directions in two row-parity passes and then in a column pass.
-4. Interpolate missing green values along the selected axis, apply the
-   `scale_under`/`scale_over` correction, and clamp to channel bounds.
-5. Discover diagonal directions, refine unsupported diagonals, and
-   interpolate the missing red or blue sample at non-green sites.
-6. Reconstruct red and blue at green sites along the selected HV direction.
-7. Restore measured samples at hot sites and convert each float channel to
-   `ushort` by truncation.
+Let $F_{\mathrm{norm}} = F / s$ be the scale-normalized CFA mosaic.
 
-The implementation uses the reference flag values, constants, and traversal
-order. Its public boundary is still normalized input and normalized RGB output;
-the internal integer comparison behavior is preserved by converting through
-16-bit codes at the `DenseLazy` boundary.
+### 1. Symmetric HV direction estimation and refinement
 
-## Numeric behavior
+At each site $p = (r, c)$, Fornax evaluates symmetric 7-tap directional costs
+along vertical ($v$) and horizontal ($h$) axes using the 1D neighbors
+$f_{\pm 1}, f_{\pm 2}, f_{\pm 3}$:
 
-- `calc_dist` returns a ratio and is invariant to one-stop scaling.
-- The hot threshold is `64`, the strong HV threshold is `256`, and the strong
-  diagonal threshold is `1.4`.
-- Green interpolation applies squared ratio weights; diagonal red/blue
-  interpolation applies cubed ratio weights; HV red/blue interpolation applies
-  squared ratio weights.
-- Direct float-to-`u16` output truncates toward zero and saturates at the
-  unsigned 16-bit limits.
-- Measured Bayer samples are not changed by the interpolation stages, except
-  that hot samples are intentionally restored after candidate interpolation.
+$$
+D_a(p) = 2 \left|(f_{-1} - f_{+1}) - \frac{1}{2}(f_{-2} - f_{+2})\right|
+       + \left|2 f_0 - (f_{-2} + f_{+2})\right|
+       + \frac{1}{2}\left|(f_{-1} + f_{+1}) - (f_{-3} + f_{+3})\right|,
+\qquad a \in \{v, h\}.
+$$
 
-## Fornax boundary
+The initial HV label selects the smaller cost ($D_h < D_v \implies H$,
+$D_v < D_h \implies V$, exact tie $\implies \mathrm{Tie}$) and marks the site
+strong when the opposing cost exceeds $2.0 \cdot (D_{\min} + \varepsilon)$.
+Three out-of-place Jacobi majority-vote passes refine non-strong pixels: two
+co-directional cardinal passes followed by one isolated-pixel pass.
 
-The comparison bridge supplies an identity camera-to-RGB matrix and no white
-balance. Fornax supports only RGGB, BGGR, GRBG, and GBRG. Camera metadata,
-LibRaw callbacks, shrink, half-size, four-color RGB, output color processing,
-and the AHD fallback are outside this implementation.
+### 2. Sign-safe green reconstruction at R/B sites
 
-The canonical comparison matches LibRaw exactly across the native GBRG row and
-all cropped consistency rows. The bridge still tests only the demosaic stage:
-camera metadata, white balance, and output-color behavior are outside its
-boundary.
+Along each axis $a \in \{v, h\}$, the two directional green candidates
+$g_m, g_p$ at $d = \pm 1$ are combined with squared inverse-gradient weights:
 
-## Licensing
+$$
+\widehat{C}_s =
+\begin{cases}
+g_s \cdot \dfrac{2|c_0|}{|c_0| + |c_s|},
+  & \text{if } c_0 c_s > 0,\ c_0 g_s > 0,\ \text{and } |c_0| + |c_s| > \varepsilon_{\mathrm{ratio}}, \\[8pt]
+g_s + \frac{1}{2}(c_0 - c_s),
+  & \text{otherwise,}
+\end{cases}
+\qquad
+w_s = \frac{1}{(|c_0 - c_s| + \varepsilon)^2}.
+$$
 
-LibRaw's `dht_demosaic.cpp` retains the following notice:
+The final green estimate selects the vertical axis, horizontal axis, or their
+average on ties.
 
-```text
-Copyright 2013 Anton Petrusevich
+### 3. Diagonal direction estimation and R/B reconstruction at R/B sites
 
-This code is licensed under one of two licenses as you choose:
+Using reconstructed green, symmetric NW-SE ($P$) and NE-SW ($Q$) costs are
+evaluated at R/B sites from diagonal color differences and green curvature, and
+at G sites from green curvature:
 
-1. GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-2. COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
-```
+$$
+\begin{aligned}
+D_P^{\mathrm{RB}} &= \left|(G_{NW} - C_{NW}) - (G_{SE} - C_{SE})\right| + \left|2 G_0 - (G_{NW} + G_{SE})\right|, \\
+D_Q^{\mathrm{RB}} &= \left|(G_{NE} - C_{NE}) - (G_{SW} - C_{SW})\right| + \left|2 G_0 - (G_{NE} + G_{SW})\right|.
+\end{aligned}
+$$
 
-The source is used as the behavioral specification for a direct Rust
-translation, which can remain a derivative work. Redistribution must therefore
-retain the copyright and comply with one of the source's dual-license choices;
-project licensing review is required before distributing the implementation.
+Sites are marked strong when the opposing cost exceeds
+$1.4 \cdot (D_{\min} + \varepsilon)$, followed by one out-of-place Jacobi
+isolated-diagonal refinement pass. Missing R/B at R/B sites is reconstructed
+along the selected diagonal with cubed inverse green-difference weights:
+
+$$
+C_0 = G_0 + \frac{d_2 (C_1 - G_1) + d_1 (C_2 - G_2)}{d_1 + d_2},
+\qquad d_k = \left(|G_0 - G_k| + \varepsilon\right)^3.
+$$
+
+### 4. Cardinal R/B reconstruction at G sites
+
+At G sites, missing R and B are reconstructed along the refined HV axis using
+squared inverse green-difference weights $d_k = (|G_0 - G_k| + \varepsilon)^2$
+over the adjacent R/B neighbors. Measured CFA samples are restored bit-exactly
+on output.
+
+## Configuration and tile geometry
+
+`Demosaic::Dht(DhtOptions)` exposes `tile_size`:
+
+| Option / Constant | Default | Meaning |
+| --- | ---: | --- |
+| `DhtOptions::tile_size` | `128` | Square tile extent including the 10-pixel halo (`even`, `>= 24`) |
+| `BORDER` | `10` | Overlap discarded between interior tiles |
+
+Tiles are processed in parallel with Rayon.
+
+## Numeric contract and verification
+
+- Generic over `RawFloat` (`f32` and `f64`), operating directly on signed,
+  unclamped scene-linear samples with no gamma transfer or `[0, 1]` output
+  clamp.
+- Unit tests in [`dht.rs`](../../../crates/fornax-raw/src/demosaic/dht.rs)
+  verify: fixed 24x24 RGGB `insta` snapshot, positive/zero/negative/colored
+  constants, signed zero-crossing ramps, positive-scale equivariance (`f32` and
+  `f64`, `1e-12` to `1e12`), sign symmetry, horizontal and vertical flip
+  symmetry, tile-size invariance (`24`, `32`, `128`), bit-exact measured-sample
+  preservation, and tiny-image handling (`2x2`, `3x3`, `5x5`).
+- Synthetic chart, signed/HDR ROI, noisy mosaic, and slanted-edge MTF results
+  are tracked in [`compare-demosaic`](../../../crates/compare-demosaic/README.md).

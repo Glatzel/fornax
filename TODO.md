@@ -2,10 +2,6 @@
 
 - decoder
 - demosaic
-  - tier2
-    - [DHT]
-    - [VNG]
-    - [VNG4]
   - tier3
     - [AHD]
     - [AAHD]

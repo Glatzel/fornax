@@ -53,14 +53,14 @@ reference, and active planning documentation.
 | [AAHD reference notes](reference/demosaic/aahd.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [AMaZE readiness](reference/demosaic/amaze.md) | Linear-light AMaZE equations, Nyquist/chroma fixes, and tile options. |
 | [DCB reference notes](reference/demosaic/dcb.md) | Pinned sources, numerical behavior, and implementation boundaries. |
-| [DHT reference notes](reference/demosaic/dht.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [DHT readiness](reference/demosaic/dht.md) | Clean-room linear-light DHT equations, sign-safe green, and tile options. |
 | [Linear readiness](reference/demosaic/linear.md) | Bilinear reconstruction, border behavior, and fixed snapshot coverage. |
 | [MHC Tier -1 research](reference/demosaic/mhc.md) | Source equations and the reference-only patent/license disposition. |
 | [LMMSE readiness](reference/demosaic/lmmse.md) | Linear-light Zhang-Wu LMMSE equations, tile options, and verification. |
 | [PPG readiness](reference/demosaic/ppg.md) | Modern formulation provenance, equations, readiness, and fixed snapshot coverage. |
 | [RawTherapee reference notes](reference/demosaic/rawtherapee.md) | Pinned sources, numerical behavior, and implementation boundaries. |
 | [RCD readiness](reference/demosaic/rcd.md) | Linear-light RCD 2.3 equations, signed zero-crossing rule, and tile options. |
-| [VNG reference notes](reference/demosaic/vng.md) | Pinned sources, numerical behavior, and implementation boundaries. |
+| [VNG and VNG4 readiness](reference/demosaic/vng.md) | Linear-light 3-color VNG and 4-color split-green VNG4 equations and verification. |
 | [TIFF-Family Compression ID Ownership](reference/codecs/compression-ids.md) | Ownership of TIFF-family compression identifiers. |
 | [Corpus Losslessness Classification](reference/codecs/lossless-classification.md) | Provenance and conservative corpus compression boundaries. |
 

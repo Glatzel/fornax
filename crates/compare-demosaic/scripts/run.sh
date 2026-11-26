@@ -13,7 +13,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            printf 'usage: %s [--method linear|ppg|rcd|lmmse|all|...]\n' "$0" >&2
+            printf 'usage: %s [--method linear|ppg|rcd|lmmse|amaze|dht|vng|vng4|all|...]\n' "$0" >&2
             exit 2
             ;;
     esac
