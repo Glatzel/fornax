@@ -446,16 +446,9 @@ mod tests {
             .map(|_| {
                 state = state.wrapping_mul(6364136223846793005).wrapping_add(1);
                 let unit = ((state >> 32) as f64) / f64::from(u32::MAX);
-                cast_f64::<T>(unit.mul_add(2.0, -0.5))
+                num!(unit.mul_add(2.0, -0.5))
             })
             .collect()
-    }
-
-    fn cast_f64<T>(v: f64) -> T
-    where
-        T: RawFloat,
-    {
-        num!(v)
     }
 
     fn flip_h(samples: &[f32], width: usize, height: usize) -> Vec<f32> {
