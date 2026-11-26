@@ -1670,7 +1670,8 @@ mod tests {
             for x in 0..width {
                 let fx = x as f32 / width as f32;
                 let fy = y as f32 / height as f32;
-                let base = 0.15f32.mul_add((fy * 7.0).cos(), 0.25f32.mul_add((fx * 11.0).sin(), 0.35));
+                let base =
+                    0.15f32.mul_add((fy * 7.0).cos(), 0.25f32.mul_add((fx * 11.0).sin(), 0.35));
                 let chroma = match pattern.channel_at(x, y) {
                     BayerChannel::R => 0.25 * fy.mul_add(3.0, fx * 5.0).cos(),
                     BayerChannel::GRedRow | BayerChannel::GBlueRow => 0.05 * (fx * 13.0).sin(),
