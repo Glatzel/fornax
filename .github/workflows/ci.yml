@@ -418,10 +418,10 @@ jobs:
           #   changed: ${{ needs.changed.outputs.benchmark_ahd }}
           #   extra-options: --bench demosaic
           #   algorithm: ahd
-          # - label: demosaic-amaze
-          #   changed: ${{ needs.changed.outputs.benchmark_amaze }}
-          #   extra-options: --bench demosaic
-          #   algorithm: amaze
+          - label: demosaic-amaze
+            changed: ${{ needs.changed.outputs.benchmark_amaze }}
+            extra-options: --bench demosaic
+            algorithm: amaze
           # - label: demosaic-dcb
           #   changed: ${{ needs.changed.outputs.benchmark_dcb }}
           #   extra-options: --bench demosaic
@@ -434,18 +434,18 @@ jobs:
             changed: ${{ needs.changed.outputs.benchmark_linear }}
             extra-options: --bench demosaic
             algorithm: linear
-          # - label: demosaic-lmmse
-          #   changed: ${{ needs.changed.outputs.benchmark_lmmse }}
-          #   extra-options: --bench demosaic
-          #   algorithm: lmmse
+          - label: demosaic-lmmse
+            changed: ${{ needs.changed.outputs.benchmark_lmmse }}
+            extra-options: --bench demosaic
+            algorithm: lmmse
           - label: demosaic-ppg
             changed: ${{ needs.changed.outputs.benchmark_ppg }}
             extra-options: --bench demosaic
             algorithm: ppg
-          # - label: demosaic-rcd
-          #   changed: ${{ needs.changed.outputs.benchmark_rcd }}
-          #   extra-options: --bench demosaic
-          #   algorithm: rcd
+          - label: demosaic-rcd
+            changed: ${{ needs.changed.outputs.benchmark_rcd }}
+            extra-options: --bench demosaic
+            algorithm: rcd
           # - label: demosaic-vng
           #   changed: ${{ needs.changed.outputs.benchmark_vng }}
           #   extra-options: --bench demosaic
