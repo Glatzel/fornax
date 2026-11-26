@@ -437,7 +437,7 @@ mod tests {
     use super::*;
     use crate::BayerPattern;
 
-    fn seeded_mosaic<T: RawFloat>(width: usize, height: usize, seed: u64) -> Vec<T> {
+    fn seeded_mosaic<T>(width: usize, height: usize, seed: u64) -> Vec<T> where T: RawFloat {
         let mut state = seed;
         (0..width * height)
             .map(|_| {
@@ -448,7 +448,7 @@ mod tests {
             .collect()
     }
 
-    fn cast_f64<T: RawFloat>(v: f64) -> T { num!(v) }
+    fn cast_f64<T>(v: f64) -> T where T: RawFloat { num!(v) }
 
     fn flip_h(samples: &[f32], width: usize, height: usize) -> Vec<f32> {
         let mut out = vec![0.0_f32; width * height];
