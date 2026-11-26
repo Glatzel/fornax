@@ -82,7 +82,7 @@ def test_evaluate_roi_exact_analytical_metrics() -> None:
 
 
 def test_parse_methods_and_readme_update_idempotent(tmp_path: Path) -> None:
-    assert parse_methods("all") == ["linear", "ppg", "rcd", "lmmse", "amaze"]
+    assert parse_methods("all") == ["linear", "ppg", "rcd", "lmmse", "amaze", "dht", "vng", "vng4"]
     assert parse_methods("rcd,ppg,rcd") == ["rcd", "ppg"]
 
     readme = tmp_path / "README.md"

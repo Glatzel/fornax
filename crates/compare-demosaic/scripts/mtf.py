@@ -17,7 +17,7 @@ from chart_spec import BAYER_PATTERNS, TILES
 CRATE_DIR = Path(__file__).resolve().parent.parent
 REPO_ROOT = CRATE_DIR.parent.parent
 DEFAULT_TEMP_DIR = REPO_ROOT / "temp" / "compare-demosaic"
-ALL_METHODS = ("linear", "ppg", "rcd", "lmmse", "amaze")
+ALL_METHODS = ("linear", "ppg", "rcd", "lmmse", "amaze", "dht", "vng", "vng4")
 
 app = typer.Typer(no_args_is_help=True)
 

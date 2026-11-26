@@ -23,11 +23,26 @@ pub enum ProductionMethod {
     Lmmse,
     /// Linear-light AMaZE demosaicing.
     Amaze,
+    /// Clean-room linear-light DHT demosaicing.
+    Dht,
+    /// Linear-light 3-color VNG demosaicing.
+    Vng,
+    /// Linear-light 4-color split-green VNG4 demosaicing.
+    Vng4,
 }
 
 impl ProductionMethod {
     /// All production-ready demosaicing methods in canonical order.
-    pub const ALL: [Self; 5] = [Self::Linear, Self::Ppg, Self::Rcd, Self::Lmmse, Self::Amaze];
+    pub const ALL: [Self; 8] = [
+        Self::Linear,
+        Self::Ppg,
+        Self::Rcd,
+        Self::Lmmse,
+        Self::Amaze,
+        Self::Dht,
+        Self::Vng,
+        Self::Vng4,
+    ];
 
     /// Stable lowercase identifier used for directory names and reports.
     pub const fn as_str(self) -> &'static str {
@@ -37,6 +52,9 @@ impl ProductionMethod {
             Self::Rcd => "rcd",
             Self::Lmmse => "lmmse",
             Self::Amaze => "amaze",
+            Self::Dht => "dht",
+            Self::Vng => "vng",
+            Self::Vng4 => "vng4",
         }
     }
 
@@ -48,6 +66,9 @@ impl ProductionMethod {
             Self::Rcd => Demosaic::rcd(),
             Self::Lmmse => Demosaic::lmmse(),
             Self::Amaze => Demosaic::amaze(),
+            Self::Dht => Demosaic::dht(),
+            Self::Vng => Demosaic::Vng,
+            Self::Vng4 => Demosaic::Vng4,
         }
     }
 }
@@ -56,7 +77,7 @@ impl ProductionMethod {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum MethodSelection {
     /// Run all production-ready methods (`linear`, `ppg`, `rcd`, `lmmse`,
-    /// `amaze`).
+    /// `amaze`, `dht`, `vng`, `vng4`).
     All,
     /// Run bilinear demosaicing (`linear`).
     Linear,
@@ -68,6 +89,12 @@ pub enum MethodSelection {
     Lmmse,
     /// Run AMaZE demosaicing (`amaze`).
     Amaze,
+    /// Run DHT demosaicing (`dht`).
+    Dht,
+    /// Run 3-color VNG demosaicing (`vng`).
+    Vng,
+    /// Run 4-color split-green VNG4 demosaicing (`vng4`).
+    Vng4,
 }
 
 /// CLI arguments for `compare-demosaic`.
@@ -79,7 +106,7 @@ pub enum MethodSelection {
 )]
 pub struct CliArgs {
     /// Demosaicing method(s) to run (`linear`, `ppg`, `rcd`, `lmmse`, `amaze`,
-    /// or `all`).
+    /// `dht`, `vng`, `vng4`, or `all`).
     #[arg(long, value_enum, value_delimiter = ',', default_value = "all")]
     pub method: Vec<MethodSelection>,
 
@@ -129,6 +156,9 @@ pub fn resolve_methods(selections: &[MethodSelection]) -> Vec<ProductionMethod> 
             MethodSelection::Rcd => ProductionMethod::Rcd,
             MethodSelection::Lmmse => ProductionMethod::Lmmse,
             MethodSelection::Amaze => ProductionMethod::Amaze,
+            MethodSelection::Dht => ProductionMethod::Dht,
+            MethodSelection::Vng => ProductionMethod::Vng,
+            MethodSelection::Vng4 => ProductionMethod::Vng4,
         };
         if !resolved.contains(&method) {
             resolved.push(method);
@@ -226,6 +256,9 @@ mod tests {
                 ProductionMethod::Rcd,
                 ProductionMethod::Lmmse,
                 ProductionMethod::Amaze,
+                ProductionMethod::Dht,
+                ProductionMethod::Vng,
+                ProductionMethod::Vng4,
             ]
         );
         assert_eq!(
@@ -259,6 +292,18 @@ mod tests {
     #[case(ProductionMethod::Amaze, BayerPattern::BGGR)]
     #[case(ProductionMethod::Amaze, BayerPattern::GRBG)]
     #[case(ProductionMethod::Amaze, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Dht, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Dht, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Dht, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Dht, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Vng, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Vng, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Vng, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Vng, BayerPattern::GBRG)]
+    #[case(ProductionMethod::Vng4, BayerPattern::RGGB)]
+    #[case(ProductionMethod::Vng4, BayerPattern::BGGR)]
+    #[case(ProductionMethod::Vng4, BayerPattern::GRBG)]
+    #[case(ProductionMethod::Vng4, BayerPattern::GBRG)]
     fn demosaic_tiff_preserves_unclamped_float_range(
         #[case] method: ProductionMethod,
         #[case] pattern: BayerPattern,
