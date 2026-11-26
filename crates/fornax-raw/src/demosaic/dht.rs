@@ -193,7 +193,10 @@ fn process_tile<T>(
     scale: T,
     inv_scale: T,
     scratch: &mut DhtScratch<T>,
-) -> DhtTileOutput<T> where T: RawFloat {
+) -> DhtTileOutput<T>
+where
+    T: RawFloat,
+{
     scratch.clear();
     let ts = tile_size;
     let x_tile = tx * core;
@@ -590,7 +593,10 @@ fn refine_hv_pass(src: &[u8], dst: &mut [u8], ts: usize, margin: usize, isolated
 }
 
 #[inline(always)]
-fn green_candidate<T>(c0: T, cs: T, gs: T, eps_ratio: T) -> T where T: RawFloat {
+fn green_candidate<T>(c0: T, cs: T, gs: T, eps_ratio: T) -> T
+where
+    T: RawFloat,
+{
     if c0 * cs > T::zero() && c0 * gs > T::zero() {
         let a0 = c0.abs();
         let a_s = cs.abs();
@@ -606,7 +612,10 @@ fn green_candidate<T>(c0: T, cs: T, gs: T, eps_ratio: T) -> T where T: RawFloat 
 }
 
 #[inline(always)]
-fn estimate_green_axis<T>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, eps_ratio: T) -> T where T: RawFloat {
+fn estimate_green_axis<T>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, eps_ratio: T) -> T
+where
+    T: RawFloat,
+{
     let cand_m = green_candidate(c0, cm, gm, eps_ratio);
     let cand_p = green_candidate(c0, cp, gp, eps_ratio);
     let dm = square((c0 - cm).abs() + eps);
@@ -615,14 +624,20 @@ fn estimate_green_axis<T>(c0: T, cm: T, cp: T, gm: T, gp: T, eps: T, eps_ratio: 
 }
 
 #[inline(always)]
-fn estimate_diag_rb<T>(g0: T, g1: T, c1: T, g2: T, c2: T, eps: T) -> T where T: RawFloat {
+fn estimate_diag_rb<T>(g0: T, g1: T, c1: T, g2: T, c2: T, eps: T) -> T
+where
+    T: RawFloat,
+{
     let d1 = cube((g0 - g1).abs() + eps);
     let d2 = cube((g0 - g2).abs() + eps);
     g0 + (d2 * (c1 - g1) + d1 * (c2 - g2)) / (d1 + d2)
 }
 
 #[inline(always)]
-fn estimate_hv_rb<T>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T) where T: RawFloat {
+fn estimate_hv_rb<T>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T)
+where
+    T: RawFloat,
+{
     let d1 = square((g0 - s1[1]).abs() + eps);
     let d2 = square((g0 - s2[1]).abs() + eps);
     let inv = T::one() / (d1 + d2);
@@ -632,10 +647,20 @@ fn estimate_hv_rb<T>(g0: T, s1: [T; 3], s2: [T; 3], eps: T) -> (T, T) where T: R
 }
 
 #[inline(always)]
-fn square<T>(v: T) -> T where T: RawFloat { v * v }
+fn square<T>(v: T) -> T
+where
+    T: RawFloat,
+{
+    v * v
+}
 
 #[inline(always)]
-fn cube<T>(v: T) -> T where T: RawFloat { v * v * v }
+fn cube<T>(v: T) -> T
+where
+    T: RawFloat,
+{
+    v * v * v
+}
 
 const fn reflect_index(index: isize, length: usize) -> usize {
     if length <= 1 {
@@ -656,7 +681,10 @@ mod tests {
     use super::*;
     use crate::BayerChannel;
 
-    fn seeded_mosaic<T>(width: usize, height: usize, seed: u64) -> Vec<T> where T: RawFloat {
+    fn seeded_mosaic<T>(width: usize, height: usize, seed: u64) -> Vec<T>
+    where
+        T: RawFloat,
+    {
         let mut state = seed;
         (0..width * height)
             .map(|_| {
