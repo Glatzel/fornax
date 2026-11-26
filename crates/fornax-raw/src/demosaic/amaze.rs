@@ -1670,11 +1670,11 @@ mod tests {
             for x in 0..width {
                 let fx = x as f32 / width as f32;
                 let fy = y as f32 / height as f32;
-                let base = 0.35 + 0.25 * (fx * 11.0).sin() + 0.15 * (fy * 7.0).cos();
+                let base = 0.15f32.mul_add((fy * 7.0).cos(), 0.25f32.mul_add((fx * 11.0).sin(), 0.35));
                 let chroma = match pattern.channel_at(x, y) {
-                    BayerChannel::R => 0.25 * (fx * 5.0 + fy * 3.0).cos(),
+                    BayerChannel::R => 0.25 * fy.mul_add(3.0, fx * 5.0).cos(),
                     BayerChannel::GRedRow | BayerChannel::GBlueRow => 0.05 * (fx * 13.0).sin(),
-                    BayerChannel::B => -0.2 * (fx * 4.0 - fy * 6.0).sin(),
+                    BayerChannel::B => -0.2 * fy.mul_add(-6.0, fx * 4.0).sin(),
                 };
                 data.push((base + chroma) * scale);
             }
@@ -1733,7 +1733,7 @@ mod tests {
             for x in 0..w {
                 let fx = x as f32 / w as f32 - 0.5;
                 let fy = y as f32 / h as f32 - 0.5;
-                let v = 3.5 * (fx * 6.0).sin() + 1.8 * (fy * 8.0).cos() - 0.4;
+                let v = 1.8f32.mul_add((fy * 8.0).cos(), 3.5 * (fx * 6.0).sin()) - 0.4;
                 data.push(v);
             }
         }
@@ -1778,7 +1778,7 @@ mod tests {
             .zip(out_scaled.as_raw().iter())
             .enumerate()
         {
-            let diff = (a * scale - b).abs();
+            let diff = f32::mul_add(a, scale, -b).abs();
             assert!(
                 diff <= 1e-4 * scale,
                 "scale equivariance mismatch at index {i}: {} vs {}",
@@ -1795,7 +1795,7 @@ mod tests {
             for x in 0..64 {
                 let fx = x as f32 / 64.0 - 0.5;
                 let fy = y as f32 / 64.0 - 0.5;
-                data.push((fx * 9.0).sin() - 0.6 * (fy * 7.0).cos());
+                data.push(0.6f32.mul_add(-(fy * 7.0).cos(), (fx * 9.0).sin()));
             }
         }
         let pos = MonoImage::from_raw(64, 64, data.clone()).unwrap();
@@ -1888,7 +1888,7 @@ mod tests {
             .map(|i| {
                 let x = (i % 40) as f64 / 40.0;
                 let y = (i / 40) as f64 / 40.0;
-                0.5 + 0.3 * (x * 10.0).sin() * (y * 8.0).cos()
+                (0.3 * (x * 10.0).sin()).mul_add((y * 8.0).cos(), 0.5)
             })
             .collect();
         let img = MonoImage::from_raw(40, 40, data).unwrap();
