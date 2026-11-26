@@ -52,7 +52,7 @@ thiserror.workspace = true
 bytemuck.workspace = true
 criterion.workspace = true
 csv.workspace = true
-flashraw = "=0.4.0"
+flashraw = "=0.5.0"
 fornax-devtool.workspace = true
 image.workspace = true
 insta.workspace = true
